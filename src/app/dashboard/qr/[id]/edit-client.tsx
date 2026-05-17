@@ -62,7 +62,7 @@ export default function EditQrClient({ initial }: { initial: QrCode }) {
         <button
           onClick={save}
           disabled={saving}
-          className="w-full rounded-lg bg-brand-600 px-4 py-3 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
+          className="w-full rounded-lg bg-deep-teal px-4 py-3 text-sm font-semibold text-white hover:bg-deep-teal-dark disabled:opacity-60"
         >
           {saving ? "Saving…" : "Save changes"}
         </button>

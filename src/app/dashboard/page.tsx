@@ -45,7 +45,7 @@ export default async function DashboardPage() {
         </div>
         <Link
           href="/dashboard/qr/new"
-          className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700"
+          className="inline-flex items-center gap-2 rounded-lg bg-deep-teal px-4 py-2 text-sm font-semibold text-white hover:bg-deep-teal-dark"
         >
           <Plus className="h-4 w-4" /> New QR Code
         </Link>
@@ -62,7 +62,7 @@ export default async function DashboardPage() {
             >
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="h-10 w-10 rounded-lg bg-brand-50 grid place-items-center text-brand-600">
+                  <div className="h-10 w-10 rounded-lg bg-deep-teal/10 grid place-items-center text-deep-teal">
                     <QrCode className="h-5 w-5" />
                   </div>
                   <div>
@@ -100,7 +100,7 @@ export default async function DashboardPage() {
 function EmptyState() {
   return (
     <div className="mt-12 rounded-2xl border border-dashed border-gray-200 bg-white p-12 text-center">
-      <div className="mx-auto h-14 w-14 rounded-full bg-brand-50 grid place-items-center text-brand-600">
+      <div className="mx-auto h-14 w-14 rounded-full bg-deep-teal/10 grid place-items-center text-deep-teal">
         <QrCode className="h-7 w-7" />
       </div>
       <h3 className="mt-4 text-lg font-semibold text-gray-900">No QR codes yet</h3>
@@ -109,7 +109,7 @@ function EmptyState() {
       </p>
       <Link
         href="/dashboard/qr/new"
-        className="mt-6 inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700"
+        className="mt-6 inline-flex items-center gap-2 rounded-lg bg-deep-teal px-4 py-2 text-sm font-semibold text-white hover:bg-deep-teal-dark"
       >
         <Plus className="h-4 w-4" /> Create QR Code
       </Link>

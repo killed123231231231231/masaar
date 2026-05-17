@@ -9,18 +9,12 @@ export default {
   theme: {
     extend: {
       colors: {
-        brand: {
-          50: "#f0f7ff",
-          100: "#e0efff",
-          200: "#bae0ff",
-          300: "#7ac8ff",
-          400: "#36abff",
-          500: "#0a8df0",
-          600: "#0070cc",
-          700: "#0058a3",
-          800: "#054a86",
-          900: "#0a3f6f",
-        },
+        "deep-teal": { DEFAULT: "#0F5B55", light: "#3FA39A", dark: "#073d3a" },
+        terracotta: { DEFAULT: "#E07A5F", light: "#EA9881", dark: "#B85F47" },
+        sand: { DEFAULT: "#E9E6DF", light: "#F4F2EE", dark: "#D6D1C6" },
+        charcoal: { DEFAULT: "#1B1B1D" },
+        // Alias so any bare `brand` references keep resolving to deep-teal.
+        brand: { DEFAULT: "#0F5B55", light: "#3FA39A", dark: "#073d3a" },
       },
       fontFamily: {
         sans: ["var(--font-inter)", "system-ui", "sans-serif"],

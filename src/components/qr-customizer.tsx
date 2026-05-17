@@ -162,7 +162,7 @@ export default function QrCustomizer({ initialShortId, onSave, saving }: Props) 
                 onClick={() => setContentKind(t.key)}
                 className={`rounded-lg px-3 py-1.5 text-sm font-medium disabled:opacity-40 ${
                   content_kind === t.key
-                    ? "bg-brand-600 text-white"
+                    ? "bg-deep-teal text-white"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
@@ -251,7 +251,7 @@ export default function QrCustomizer({ initialShortId, onSave, saving }: Props) 
         <button
           onClick={handleSave}
           disabled={saving}
-          className="w-full rounded-lg bg-brand-600 px-4 py-3 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
+          className="w-full rounded-lg bg-deep-teal px-4 py-3 text-sm font-semibold text-white hover:bg-deep-teal-dark disabled:opacity-60"
         >
           {saving ? "Saving…" : "Save QR code"}
         </button>
@@ -272,7 +272,7 @@ export default function QrCustomizer({ initialShortId, onSave, saving }: Props) 
           />
           {kind === "dynamic" && (
             <p className="mt-4 text-center text-xs text-gray-500">
-              Embeds <code className="text-brand-600">/r/{shortId}</code> · destination editable anytime
+              Embeds <code className="text-deep-teal">/r/{shortId}</code> · destination editable anytime
             </p>
           )}
         </div>
@@ -380,7 +380,7 @@ function KindCard({
       onClick={onClick}
       className={`text-left rounded-xl border p-4 transition ${
         active
-          ? "border-brand-500 bg-brand-50/40 ring-2 ring-brand-100"
+          ? "border-deep-teal bg-deep-teal/10 ring-2 ring-deep-teal/20"
           : "border-gray-200 bg-white hover:bg-gray-50"
       }`}
     >

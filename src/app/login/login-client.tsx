@@ -45,7 +45,7 @@ export default function LoginClient() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
+            className="w-full rounded-lg bg-deep-teal px-4 py-2.5 text-sm font-semibold text-white hover:bg-deep-teal-dark disabled:opacity-60"
           >
             {loading ? "Logging in…" : "Log in"}
           </button>
@@ -53,7 +53,7 @@ export default function LoginClient() {
 
         <p className="mt-6 text-center text-sm text-gray-500">
           New to Masaar?{" "}
-          <Link href="/signup" className="font-semibold text-brand-600 hover:underline">
+          <Link href="/signup" className="font-semibold text-deep-teal hover:underline">
             Create an account
           </Link>
         </p>
@@ -83,7 +83,7 @@ function Field({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         required={required}
-        className="mt-1 block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+        className="mt-1 block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm shadow-sm focus:border-deep-teal focus:outline-none focus:ring-1 focus:ring-deep-teal"
       />
     </label>
   );
