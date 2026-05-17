@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { generateShortId } from "@/lib/shortid";
+import { generateShortId, isValidShortId } from "@/lib/shortid";
 import { parseHttpUrl } from "@/lib/url";
 import type { QrCode } from "@/types/database";
 
@@ -38,7 +38,12 @@ export async function POST(request: Request) {
   }
 
   if (insert.kind === "dynamic") {
-    insert.short_id = generateShortId();
+    // Trust the client-generated shortId only if it's well-formed (so the
+    // printed/previewed QR matches what we persist); otherwise generate.
+    // The DB unique constraint still guards against collisions.
+    insert.short_id = isValidShortId(body.short_id)
+      ? body.short_id
+      : generateShortId();
   }
 
   const { data, error } = await supabase

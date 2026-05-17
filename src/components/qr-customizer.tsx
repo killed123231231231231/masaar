@@ -5,6 +5,7 @@ import QrPreview from "@/components/qr-preview";
 import { encodeEmail, encodePhone, encodeSms, encodeVCard, encodeWifi } from "@/lib/content-types";
 import type { ContentKind, QrKind } from "@/types/database";
 import { appUrl } from "@/lib/utils";
+import { generateShortId } from "@/lib/shortid";
 
 interface Props {
   initialShortId?: string | null;   // for dynamic preview
@@ -16,6 +17,7 @@ export interface SavePayload {
   name: string;
   kind: QrKind;
   content_kind: ContentKind;
+  short_id: string;
   destination: string;
   payload_json: Record<string, unknown> | null;
   fg_color: string;
@@ -39,6 +41,9 @@ const DOT_STYLES = ["square", "dots", "rounded", "classy", "classy-rounded", "ex
 const CORNER_STYLES = ["square", "dot", "extra-rounded"];
 
 export default function QrCustomizer({ initialShortId, onSave, saving }: Props) {
+  // Generate the shortId once, client-side, so the QR the user previews
+  // and downloads encodes the SAME /r/<shortId> the server will persist.
+  const [shortId] = useState(() => initialShortId ?? generateShortId());
   const [name, setName] = useState("Untitled QR");
   const [kind, setKind] = useState<QrKind>("dynamic");
   const [content_kind, setContentKind] = useState<ContentKind>("url");
@@ -77,11 +82,11 @@ export default function QrCustomizer({ initialShortId, onSave, saving }: Props) 
   // For dynamic URL QRs, the embedded value is the Masaar short link.
   // For static QRs, the embedded value is the raw destination itself.
   const previewData = useMemo(() => {
-    if (kind === "dynamic" && content_kind === "url" && initialShortId) {
-      return `${appUrl()}/r/${initialShortId}`;
+    if (kind === "dynamic" && content_kind === "url") {
+      return `${appUrl()}/r/${shortId}`;
     }
     return rawDestination || " ";
-  }, [kind, content_kind, initialShortId, rawDestination]);
+  }, [kind, content_kind, shortId, rawDestination]);
 
   // What we persist as the destination field.
   // For dynamic URL QRs we store the real destination (server adds short_id separately).
@@ -104,6 +109,7 @@ export default function QrCustomizer({ initialShortId, onSave, saving }: Props) 
       name,
       kind,
       content_kind,
+      short_id: shortId,
       destination: persistedDestination,
       payload_json: payloadJson,
       fg_color: fgColor,
@@ -266,7 +272,7 @@ export default function QrCustomizer({ initialShortId, onSave, saving }: Props) 
           />
           {kind === "dynamic" && (
             <p className="mt-4 text-center text-xs text-gray-500">
-              Embeds <code className="text-brand-600">/r/{initialShortId ?? "…"}</code> · destination editable anytime
+              Embeds <code className="text-brand-600">/r/{shortId}</code> · destination editable anytime
             </p>
           )}
         </div>
