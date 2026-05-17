@@ -112,6 +112,7 @@ export default function LandingPage() {
       <AnalyticsPreview />
       <BuiltForGCC />
       <Faq />
+      <FinalCta />
 
       <SiteFooter />
     </main>
@@ -666,12 +667,87 @@ function Faq() {
   );
 }
 
+function FinalCta() {
+  return (
+    <section className="mx-auto max-w-6xl px-6 pb-20 lg:pb-28">
+      <div className="rounded-3xl border border-charcoal/10 bg-sand-light px-8 py-14 text-center lg:px-16 lg:py-16">
+        <h2 className="mx-auto max-w-2xl text-balance font-display text-3xl font-bold tracking-tight sm:text-4xl">
+          Ready to give every scan a path?
+        </h2>
+        <p className="mx-auto mt-4 max-w-xl text-balance text-base leading-relaxed text-charcoal/65">
+          Create your first dynamic QR code in about a minute. No credit card,
+          no reprints, ever.
+        </p>
+        <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <Link
+            href="/signup"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-deep-teal px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-terracotta active:bg-terracotta-dark sm:w-auto"
+          >
+            Start free trial <ArrowRight className="h-4 w-4" />
+          </Link>
+          <Link
+            href="#"
+            className="inline-flex w-full items-center justify-center rounded-lg border border-charcoal/15 bg-white px-6 py-3 text-base font-semibold text-charcoal transition-colors hover:text-deep-teal sm:w-auto"
+          >
+            Talk to sales
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+const FOOTER_COLS = [
+  { title: "Product", links: ["Features", "Pricing", "Analytics", "Dynamic QR"] },
+  { title: "Company", links: ["About", "Customers", "Careers", "Contact"] },
+  { title: "Resources", links: ["Docs", "Guides", "API", "Status"] },
+  { title: "Legal", links: ["Privacy", "Terms", "Cookie policy"] },
+];
+
 function SiteFooter() {
   return (
-    <footer className="border-t border-charcoal/10">
-      <div className="mx-auto max-w-6xl px-6 py-10 text-sm text-charcoal/50">
-        © {new Date().getFullYear()} Masaar{" "}
-        <span className="font-arabic">مسار</span>. All rights reserved.
+    <footer className="border-t border-charcoal/10 bg-white">
+      <div className="mx-auto max-w-6xl px-6 py-14">
+        <div className="grid gap-10 md:grid-cols-[1.4fr_repeat(4,1fr)]">
+          <div>
+            <Link href="/" className="flex items-center gap-2">
+              <LogoMark className="h-8 w-8" />
+              <span className="text-lg font-bold tracking-tight">
+                Masaar <span className="font-arabic text-deep-teal">مسار</span>
+              </span>
+            </Link>
+            <p className="mt-4 max-w-xs text-sm leading-relaxed text-charcoal/55">
+              Adaptive dynamic QR codes for GCC businesses. Every scan has a
+              path.
+            </p>
+          </div>
+
+          {FOOTER_COLS.map(({ title, links }) => (
+            <div key={title}>
+              <h3 className="text-sm font-semibold">{title}</h3>
+              <ul className="mt-4 space-y-3">
+                {links.map((l) => (
+                  <li key={l}>
+                    <Link
+                      href="#"
+                      className="text-sm text-charcoal/55 transition-colors hover:text-deep-teal"
+                    >
+                      {l}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-charcoal/10 pt-6 text-sm text-charcoal/50 sm:flex-row">
+          <p>
+            © {new Date().getFullYear()} Masaar{" "}
+            <span className="font-arabic">مسار</span>. All rights reserved.
+          </p>
+          <p>Built for the GCC</p>
+        </div>
       </div>
     </footer>
   );
