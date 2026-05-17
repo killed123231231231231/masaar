@@ -43,6 +43,21 @@ Pending work, grouped by urgency. Snapshot: 2026-05-17.
   Decide whether to keep it public or re-private (re-privatizing may
   require re-checking the Vercel Git integration).
 
+## 1b. Analytics data quality (confirmed from live data)
+
+- **Filter bot/automation hits from analytics.** Verified 2026-05-17:
+  all 4 `WgcQX3E` scans were non-human — 1 Claude Code automation
+  harness (UA contains `Electron`/`Claude`) + 3 `curl` verification
+  hits; 0 real users. Bots/automation/link-previews inflate scan
+  counts and show as Unknown country/city/browser/os. Sniff the UA for
+  `HeadlessChrome` / `Electron` / `curl` / `wget` / `python-requests` /
+  `facebookexternalhit` / `WhatsApp` / `Slackbot` / `Discordbot` /
+  `TelegramBot` / `bot|crawler|spider` / Vercel health checks, and
+  either set an `is_bot` column on `scans` or exclude them from the
+  analytics aggregates. Supersedes nice-to-fix #5 (now confirmed, not
+  theoretical). Also purge the existing automation/curl test rows when
+  the test data is purged (BACKLOG §1).
+
 ## 2. Carry-forward from the brand session
 
 - **Logo vectorization swap.** `public/logo.svg` is a 5.1 KB
