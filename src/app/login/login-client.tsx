@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import AuthAside from "@/components/auth-aside";
 
 export default function LoginClient() {
   const router = useRouter();
@@ -31,10 +32,11 @@ export default function LoginClient() {
   }
 
   return (
-    <main className="grid min-h-screen place-items-center bg-gray-50 px-4">
-      <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-sm border border-gray-100">
-        <h1 className="text-2xl font-bold text-gray-900">Welcome back</h1>
-        <p className="mt-1 text-sm text-gray-500">Log in to manage your QR codes.</p>
+    <main className="grid min-h-screen lg:grid-cols-[3fr_2fr]">
+      <div className="flex items-center justify-center bg-sand-light/40 px-4 py-12">
+        <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-sm border border-charcoal/10">
+          <h1 className="font-display text-2xl font-bold text-charcoal">Welcome back</h1>
+          <p className="mt-1 text-sm text-charcoal/55">Log in to manage your QR codes.</p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <Field label="Email" type="email" value={email} onChange={setEmail} required />
@@ -51,13 +53,15 @@ export default function LoginClient() {
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-gray-500">
-          New to Masaar?{" "}
-          <Link href="/signup" className="font-semibold text-deep-teal hover:underline">
-            Create an account
-          </Link>
-        </p>
+          <p className="mt-6 text-center text-sm text-charcoal/55">
+            New to Masaar?{" "}
+            <Link href="/signup" className="font-semibold text-deep-teal hover:underline">
+              Create an account
+            </Link>
+          </p>
+        </div>
       </div>
+      <AuthAside />
     </main>
   );
 }
