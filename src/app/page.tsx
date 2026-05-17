@@ -7,6 +7,12 @@ import {
   CalendarDays,
   Plane,
   Stethoscope,
+  QrCode,
+  Printer,
+  RefreshCw,
+  Activity,
+  MapPin,
+  Pencil,
 } from "lucide-react";
 import LogoMark from "@/components/logo-mark";
 
@@ -97,6 +103,9 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      <HowItWorks />
+      <AnalyticsPreview />
 
       <SiteFooter />
     </main>
@@ -352,6 +361,185 @@ function SignageMock() {
       <FakeQr className="mx-auto mt-2 w-20" />
       <p className="mt-2 text-[9px] font-medium text-charcoal/55">
         Every scan has a path.
+      </p>
+    </div>
+  );
+}
+
+const STEPS = [
+  {
+    icon: QrCode,
+    title: "Create your code",
+    body: "Generate a dynamic QR in seconds — add your logo, brand colors, and a destination URL.",
+  },
+  {
+    icon: Printer,
+    title: "Print & deploy",
+    body: "Put it on packaging, signage, or menus. The printed code never changes.",
+  },
+  {
+    icon: RefreshCw,
+    title: "Track & adapt",
+    body: "Watch scans live and re-point the destination anytime — no reprint, no downtime.",
+  },
+];
+
+function HowItWorks() {
+  return (
+    <section
+      id="how-it-works"
+      className="mx-auto max-w-6xl scroll-mt-24 px-6 py-20 lg:py-28"
+    >
+      <div className="mx-auto max-w-2xl text-center">
+        <p className="text-xs font-semibold uppercase tracking-wider text-deep-teal">
+          How it works
+        </p>
+        <h2 className="mt-3 text-balance font-display text-3xl font-bold tracking-tight sm:text-4xl">
+          One code. Endless destinations.
+        </h2>
+        <p className="mt-4 text-balance text-base leading-relaxed text-charcoal/65">
+          Print once, change forever. Masaar separates the code from where it
+          points, so a campaign can evolve without a single reprint.
+        </p>
+      </div>
+
+      <ol className="mt-14 grid gap-6 md:grid-cols-3">
+        {STEPS.map(({ icon: Icon, title, body }, i) => (
+          <li
+            key={title}
+            className="relative rounded-2xl border border-charcoal/10 bg-white p-7"
+          >
+            <span className="absolute right-6 top-6 font-display text-4xl font-bold text-sand">
+              {i + 1}
+            </span>
+            <span className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-deep-teal/10 text-deep-teal">
+              <Icon className="h-6 w-6" strokeWidth={1.75} />
+            </span>
+            <h3 className="mt-5 font-display text-lg font-bold">{title}</h3>
+            <p className="mt-2 text-sm leading-relaxed text-charcoal/65">
+              {body}
+            </p>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
+const ANALYTICS_POINTS = [
+  {
+    icon: Activity,
+    title: "Live scan feed",
+    body: "Every scan lands in your dashboard within seconds — no polling, no delay.",
+  },
+  {
+    icon: MapPin,
+    title: "Geo & device breakdown",
+    body: "Country, city, browser, and OS for every scan, aggregated automatically.",
+  },
+  {
+    icon: Pencil,
+    title: "Editable destinations",
+    body: "A/B a landing page or fix a broken link in production — instantly.",
+  },
+];
+
+/* Static analytics visual — hand-written SVG bars + trend line. */
+function AnalyticsPreview() {
+  const bars = [38, 52, 44, 70, 60, 86, 74];
+  return (
+    <section className="bg-sand-light/60">
+      <div className="mx-auto grid max-w-6xl items-center gap-12 px-6 py-20 lg:grid-cols-2 lg:py-28">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-deep-teal">
+            Real-time analytics
+          </p>
+          <h2 className="mt-3 text-balance font-display text-3xl font-bold tracking-tight sm:text-4xl">
+            See every scan as it happens
+          </h2>
+          <p className="mt-4 text-balance text-base leading-relaxed text-charcoal/65">
+            Stop guessing what your printed campaigns do. Masaar turns each
+            scan into a data point you can act on the same minute.
+          </p>
+
+          <ul className="mt-8 space-y-5">
+            {ANALYTICS_POINTS.map(({ icon: Icon, title, body }) => (
+              <li key={title} className="flex gap-4">
+                <span className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-deep-teal/10 text-deep-teal">
+                  <Icon className="h-5 w-5" strokeWidth={1.75} />
+                </span>
+                <div>
+                  <h3 className="font-semibold">{title}</h3>
+                  <p className="mt-1 text-sm leading-relaxed text-charcoal/65">
+                    {body}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="rounded-2xl border border-charcoal/10 bg-white p-6 shadow-xl shadow-charcoal/5">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wide text-charcoal/45">
+                Scans this week
+              </p>
+              <p className="mt-1 font-display text-3xl font-bold">4,218</p>
+            </div>
+            <span className="rounded-md bg-deep-teal/10 px-2.5 py-1 text-xs font-semibold text-deep-teal">
+              ▲ 23%
+            </span>
+          </div>
+
+          <svg
+            viewBox="0 0 320 160"
+            className="mt-6 h-44 w-full"
+            preserveAspectRatio="none"
+          >
+            {bars.map((h, i) => {
+              const x = 14 + i * 44;
+              const barH = (h / 100) * 130;
+              return (
+                <rect
+                  key={i}
+                  x={x}
+                  y={140 - barH}
+                  width="26"
+                  height={barH}
+                  rx="4"
+                  fill="#0F5B55"
+                  fillOpacity={i === bars.length - 1 ? "1" : "0.28"}
+                />
+              );
+            })}
+            <path
+              d="M27,96 L71,76 L115,86 L159,52 L203,62 L247,28 L291,40"
+              fill="none"
+              stroke="#E07A5F"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+
+          <div className="mt-4 grid grid-cols-3 gap-3 border-t border-charcoal/10 pt-4 text-center">
+            <Stat label="Countries" value="14" />
+            <Stat label="Avg / day" value="602" />
+            <Stat label="Peak hour" value="8 PM" />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="font-display text-lg font-bold">{value}</p>
+      <p className="text-[11px] font-medium uppercase tracking-wide text-charcoal/45">
+        {label}
       </p>
     </div>
   );
