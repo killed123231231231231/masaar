@@ -61,15 +61,21 @@ export async function PATCH(request: Request) {
   const body = await request.json();
   if (!body.id) return NextResponse.json({ error: "id required" }, { status: 400 });
 
-  const { id, ...patch } = body;
-  // user_id and short_id can never be patched
-  delete patch.user_id;
-  delete patch.short_id;
+  // Explicit allow-list. Spreading the request body let a client set any
+  // column (kind, is_active, password_hash, payload_json, created_at, ...).
+  // Only the two fields the edit UI actually changes are patchable.
+  const patch: Partial<QrCode> = {};
+  if (typeof body.name === "string") patch.name = body.name;
+  if (typeof body.destination === "string") patch.destination = body.destination;
+
+  if (Object.keys(patch).length === 0) {
+    return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
+  }
 
   const { data, error } = await supabase
     .from("qr_codes")
     .update(patch)
-    .eq("id", id)
+    .eq("id", body.id)
     .eq("user_id", user.id)
     .select()
     .single();
