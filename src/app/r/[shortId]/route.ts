@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { UAParser } from "ua-parser-js";
 import { parseHttpUrl } from "@/lib/url";
+import { supabaseUrl, supabaseAnonKey } from "@/lib/env";
 
 // Edge runtime is fast and exposes Vercel geo headers
 export const runtime = "edge";
@@ -25,8 +26,8 @@ export async function GET(
   // Edge runtime — use a stateless server client (no cookies needed,
   // we rely on RLS policy `qr_codes_public_read_active`).
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl(),
+    supabaseAnonKey(),
     {
       cookies: {
         getAll() { return []; },
