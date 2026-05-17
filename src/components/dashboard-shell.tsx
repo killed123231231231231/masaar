@@ -37,7 +37,7 @@ export default async function DashboardShell({
             </Link>
             <Link
               href="/dashboard/qr/new"
-              className="inline-flex items-center gap-1.5 rounded-lg bg-deep-teal px-3 py-1.5 font-semibold text-white hover:bg-deep-teal-dark"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-deep-teal px-3 py-1.5 font-semibold text-white hover:bg-deep-teal-dark transition-colors duration-200"
             >
               <Plus className="h-4 w-4" />
               New QR
@@ -55,7 +55,7 @@ export default async function DashboardShell({
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-6 py-8">{children}</main>
+      <main className="mx-auto max-w-6xl px-6 py-10">{children}</main>
     </div>
   );
 }

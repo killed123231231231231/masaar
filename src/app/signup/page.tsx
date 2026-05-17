@@ -51,7 +51,7 @@ export default function SignupPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-lg bg-deep-teal px-4 py-2.5 text-sm font-semibold text-white hover:bg-deep-teal-dark disabled:opacity-60"
+            className="w-full rounded-lg bg-deep-teal px-4 py-2.5 text-sm font-semibold text-white hover:bg-deep-teal-dark transition-colors duration-200 disabled:opacity-60"
           >
             {loading ? "Creating…" : "Create account"}
           </button>
@@ -89,7 +89,7 @@ function Field({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         required={required}
-        className="mt-1 block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm shadow-sm focus:border-deep-teal focus:outline-none focus:ring-1 focus:ring-deep-teal"
+        className="mt-1 block w-full rounded-lg border border-gray-200 h-11 px-3 text-sm shadow-sm transition-colors duration-150 focus:border-terracotta focus:outline-none focus:ring-2 focus:ring-terracotta/30"
       />
     </label>
   );

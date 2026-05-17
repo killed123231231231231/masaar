@@ -39,7 +39,7 @@ export default function EditQrClient({ initial }: { initial: QrCode }) {
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+            className="block w-full rounded-lg border border-gray-200 h-11 px-3 text-sm transition-colors duration-150 focus:border-terracotta focus:outline-none focus:ring-2 focus:ring-terracotta/30"
           />
         </Section>
 
@@ -50,7 +50,7 @@ export default function EditQrClient({ initial }: { initial: QrCode }) {
             value={destination}
             onChange={(e) => setDestination(e.target.value)}
             disabled={initial.kind === "static"}
-            className="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm disabled:bg-gray-50"
+            className="block w-full rounded-lg border border-gray-200 h-11 px-3 text-sm transition-colors duration-150 focus:border-terracotta focus:outline-none focus:ring-2 focus:ring-terracotta/30 disabled:bg-gray-50"
           />
           {initial.kind === "static" && (
             <p className="mt-2 text-xs text-amber-600">
@@ -62,7 +62,7 @@ export default function EditQrClient({ initial }: { initial: QrCode }) {
         <button
           onClick={save}
           disabled={saving}
-          className="w-full rounded-lg bg-deep-teal px-4 py-3 text-sm font-semibold text-white hover:bg-deep-teal-dark disabled:opacity-60"
+          className="w-full rounded-lg bg-deep-teal px-4 py-3 text-sm font-semibold text-white hover:bg-deep-teal-dark transition-colors duration-200 disabled:opacity-60"
         >
           {saving ? "Saving…" : "Save changes"}
         </button>

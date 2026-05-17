@@ -62,7 +62,7 @@ export default function QrPreview({ style }: { style: QrStyle }) {
     <div className="flex flex-col items-center gap-4">
       <div
         ref={ref}
-        className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm"
+        className="qr-live rounded-2xl border border-gray-100 bg-white p-4 shadow-sm"
       />
       <div className="flex gap-2">
         <DownloadBtn onClick={() => download("png")}>PNG</DownloadBtn>

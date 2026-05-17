@@ -15,7 +15,7 @@ export default function LandingPage() {
             </span>
           </Link>
           <nav className="flex items-center gap-3">
-            <Link href="/login" className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900">
+            <Link href="/login" className="px-4 py-2 text-sm font-medium text-charcoal hover:text-terracotta">
               Log in
             </Link>
             <Link
@@ -29,14 +29,14 @@ export default function LandingPage() {
       </header>
 
       {/* Hero */}
-      <section className="mx-auto max-w-6xl px-6 pt-20 pb-16 text-center">
+      <section className="mx-auto max-w-6xl px-6 pt-28 pb-24 text-center">
         <span className="inline-block rounded-full border border-gray-200 bg-gray-50 px-4 py-1 text-xs font-medium uppercase tracking-wider text-gray-700">
           Live tracking · Editable anytime
         </span>
-        <h1 className="mt-6 text-balance text-5xl font-bold tracking-tight text-gray-900 sm:text-6xl md:text-7xl">
+        <h1 className="mt-6 text-balance text-5xl md:text-6xl font-display font-bold tracking-tight leading-[1.1] text-gray-900">
           Every scan has <span className="text-deep-teal">a path.</span>
         </h1>
-        <p className="mt-6 mx-auto max-w-2xl text-balance text-lg text-gray-600">
+        <p className="mt-6 mx-auto max-w-2xl text-balance text-base leading-relaxed text-gray-600">
           Adaptive dynamic QR codes for GCC businesses. Create, manage, and edit
           destinations in real time — without reprinting.
         </p>
@@ -49,7 +49,7 @@ export default function LandingPage() {
           </Link>
           <Link
             href="#features"
-            className="rounded-lg border border-gray-200 px-6 py-3 text-base font-semibold text-gray-900 hover:bg-gray-50"
+            className="rounded-lg border border-gray-200 px-6 py-3 text-base font-semibold text-charcoal hover:bg-gray-50 hover:text-terracotta"
           >
             See how it works
           </Link>

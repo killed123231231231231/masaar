@@ -129,7 +129,7 @@ export default function QrCustomizer({ initialShortId, onSave, saving }: Props) 
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+            className="block w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm transition-colors duration-150 focus:border-terracotta focus:outline-none focus:ring-2 focus:ring-terracotta/30"
             placeholder="Give this QR a name"
           />
         </Section>
@@ -200,7 +200,7 @@ export default function QrCustomizer({ initialShortId, onSave, saving }: Props) 
                   <select
                     value={wifi.encryption}
                     onChange={(e) => setWifi({ ...wifi, encryption: e.target.value as typeof wifi.encryption })}
-                    className="mt-1 block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                    className="mt-1 block w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm transition-colors duration-150 focus:border-terracotta focus:outline-none focus:ring-2 focus:ring-terracotta/30"
                   >
                     <option value="WPA">WPA / WPA2</option>
                     <option value="WEP">WEP</option>
@@ -251,7 +251,7 @@ export default function QrCustomizer({ initialShortId, onSave, saving }: Props) 
         <button
           onClick={handleSave}
           disabled={saving}
-          className="w-full rounded-lg bg-deep-teal px-4 py-3 text-sm font-semibold text-white hover:bg-deep-teal-dark disabled:opacity-60"
+          className="w-full rounded-lg bg-deep-teal px-4 py-3 text-sm font-semibold text-white hover:bg-deep-teal-dark transition-colors duration-200 disabled:opacity-60"
         >
           {saving ? "Saving…" : "Save QR code"}
         </button>
@@ -300,7 +300,7 @@ function Input({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="mt-1 block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+        className="mt-1 block w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm transition-colors duration-150 focus:border-terracotta focus:outline-none focus:ring-2 focus:ring-terracotta/30"
       />
     </label>
   );
@@ -316,7 +316,7 @@ function Textarea({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         rows={3}
-        className="mt-1 block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+        className="mt-1 block w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm transition-colors duration-150 focus:border-terracotta focus:outline-none focus:ring-2 focus:ring-terracotta/30"
       />
     </label>
   );
@@ -340,7 +340,7 @@ function ColorField({
           type="color"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="h-9 w-12 rounded border border-gray-200"
+          className="h-11 w-12 rounded border border-gray-200"
         />
         <input
           type="text"
@@ -362,7 +362,7 @@ function Select({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="mt-1 block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm capitalize"
+        className="mt-1 block w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm capitalize transition-colors duration-150 focus:border-terracotta focus:outline-none focus:ring-2 focus:ring-terracotta/30"
       >
         {options.map((o) => (
           <option key={o} value={o}>{o.replace(/-/g, " ")}</option>
