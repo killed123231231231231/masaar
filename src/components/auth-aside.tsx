@@ -16,7 +16,7 @@ const VALUE_PROPS = [
  */
 export default function AuthAside() {
   return (
-    <aside className="relative hidden overflow-hidden bg-deep-teal p-12 text-white lg:flex lg:flex-col lg:justify-between">
+    <aside className="relative hidden overflow-hidden bg-deep-teal p-12 text-white lg:flex lg:flex-col lg:justify-center lg:gap-14">
       <div
         aria-hidden
         className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-deep-teal-light/20 blur-3xl"

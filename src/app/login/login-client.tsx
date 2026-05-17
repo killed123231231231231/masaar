@@ -35,6 +35,12 @@ export default function LoginClient() {
     <main className="grid min-h-screen lg:grid-cols-[3fr_2fr]">
       <div className="flex items-center justify-center bg-sand-light/40 px-4 py-12">
         <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-sm border border-charcoal/10">
+          <Link
+            href="/"
+            className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-charcoal/55 transition-colors hover:text-deep-teal"
+          >
+            <span aria-hidden>←</span> Back to home
+          </Link>
           <h1 className="font-display text-2xl font-bold text-charcoal">Welcome back</h1>
           <p className="mt-1 text-sm text-charcoal/55">Log in to manage your QR codes.</p>
 
