@@ -26,6 +26,9 @@ next-env.d.ts
 *.swp
 .DS_Store
 
+# Local Claude Code preview/tooling config
+.claude/
+
 # Supabase
 supabase/.branches
 supabase/.temp
