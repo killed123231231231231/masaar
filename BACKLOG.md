@@ -41,6 +41,13 @@ block production; they are logged here intentionally and left untouched.
   into the coordinated deps upgrade above (after Step 4), and re-verify
   middleware auth + the deprecated `serverExternalPackages` config.
 
+## Ops notes
+
+- **ops: never run `npm run build` while `npm run dev` is active** — they
+  share `.next/` and corrupt each other (manifests in `Cannot find module
+  './NNN.js'` + `/_next/static/*` 404s). If it happens: stop dev, delete
+  `.next/`, restart dev. Run the build gate with the dev server stopped.
+
 ## Auth follow-ups
 
 - **auth: re-verify email confirmation flow on production URL before
