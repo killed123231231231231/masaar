@@ -41,6 +41,16 @@ block production; they are logged here intentionally and left untouched.
   into the coordinated deps upgrade above (after Step 4), and re-verify
   middleware auth + the deprecated `serverExternalPackages` config.
 
+## Auth follow-ups
+
+- **auth: re-verify email confirmation flow on production URL before
+  public launch.** The `masaar` Supabase project shipped with email
+  confirmations OFF (auto-confirm); "Confirm email" was enabled manually
+  in the Dashboard during Step 5. Before public launch, spot-check the
+  full signup → real confirmation-email click → login path against the
+  production Vercel URL (Site URL / Redirect URLs must include the prod
+  domain, set in Step 7), not just localhost.
+
 ## Audit self-corrections
 
 - **C5 — `/login` `useSearchParams()` not wrapped in `<Suspense>`**: missed
