@@ -48,6 +48,25 @@ block production; they are logged here intentionally and left untouched.
   './NNN.js'` + `/_next/static/*` 404s). If it happens: stop dev, delete
   `.next/`, restart dev. Run the build gate with the dev server stopped.
 
+## Deploy follow-ups / status
+
+- **PR2 RESOLVED** — `vercel.json` was `regions:["fra1","bom1"]`;
+  multi-region serverless is Pro/Enterprise-only and failed the Hobby
+  deploy. Pinned to single `bom1` (commit `fix(deploy): pin single
+  region bom1`). No longer a nice-to-fix.
+- **deploy: wire Git auto-deploy (needs your Vercel dashboard action).**
+  The Vercel project is under `qasimahmed4444s-projects`; the GitHub repo
+  is `killed123231231231231/masaar` (now public). `vercel git connect`
+  fails from the CLI because the Vercel GitHub App isn't installed/
+  authorized on the `killed123…` GitHub account for this Vercel account
+  (cross-account). To enable push-to-deploy: Vercel dashboard → masaar →
+  Settings → Git → Connect, completing the GitHub App authorize as the
+  `killed123…` account. Until then, deploys are manual `vercel deploy
+  --prod`.
+- **note:** the Vercel MCP token is scoped to a different team than the
+  CLI account (`qasimahmed4444s-projects`), so deployment/build-log
+  observation must use the Vercel CLI, not the MCP, for this project.
+
 ## Auth follow-ups
 
 - **auth: re-verify email confirmation flow on production URL before
