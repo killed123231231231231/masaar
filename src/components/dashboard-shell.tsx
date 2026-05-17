@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { QrCode, LayoutDashboard, Plus, LogOut } from "lucide-react";
+import { LayoutDashboard, Plus, LogOut } from "lucide-react";
+import LogoMark from "@/components/logo-mark";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
@@ -20,9 +21,7 @@ export default async function DashboardShell({
       <header className="border-b border-gray-100 bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
           <Link href="/dashboard" className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-deep-teal grid place-items-center">
-              <QrCode className="h-4 w-4 text-white" />
-            </div>
+            <LogoMark className="h-8 w-8" />
             <span className="font-bold tracking-tight">
               Masaar <span className="text-deep-teal font-arabic">مسار</span>
             </span>

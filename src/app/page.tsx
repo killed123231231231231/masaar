@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { ArrowRight, QrCode, BarChart3, Pencil, Globe2 } from "lucide-react";
+import { ArrowRight, BarChart3, Pencil, Globe2 } from "lucide-react";
+import LogoMark from "@/components/logo-mark";
 
 export default function LandingPage() {
   return (
@@ -8,9 +9,7 @@ export default function LandingPage() {
       <header className="border-b border-gray-100">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <Link href="/" className="flex items-center gap-2">
-            <div className="h-9 w-9 rounded-lg bg-deep-teal grid place-items-center">
-              <QrCode className="h-5 w-5 text-white" />
-            </div>
+            <LogoMark className="h-9 w-9" />
             <span className="text-xl font-bold tracking-tight">
               Masaar <span className="text-deep-teal font-arabic">مسار</span>
             </span>
