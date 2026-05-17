@@ -34,14 +34,16 @@ export async function GET(
     }
   );
 
-  const { data: qr } = await supabase
-    .from("qr_codes")
-    .select("id, destination, is_active")
-    .eq("short_id", shortId)
-    .eq("is_active", true)
-    .single();
+  // Resolve via a SECURITY DEFINER function (see migration 002): the
+  // qr_codes table has no public read policy, so anon cannot select
+  // password_hash / payload_json. This returns only (id, destination)
+  // for active rows.
+  const { data, error } = await supabase.rpc("resolve_qr", {
+    p_short_id: shortId,
+  });
+  const qr = Array.isArray(data) ? data[0] : null;
 
-  if (!qr) {
+  if (error || !qr) {
     return new NextResponse("QR code not found", { status: 404 });
   }
 

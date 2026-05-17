@@ -12,11 +12,16 @@ export default async function AnalyticsPage({
 }) {
   const { id } = await params;
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
 
   const { data: qr } = await supabase
     .from("qr_codes")
     .select("id, name, kind, short_id, destination")
     .eq("id", id)
+    .eq("user_id", user.id)
     .single();
 
   if (!qr) redirect("/dashboard");
