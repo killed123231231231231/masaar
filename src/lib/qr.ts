@@ -30,7 +30,7 @@ export function buildQrOptions(s: QrStyle): QrOptions {
       errorCorrectionLevel: s.errorLevel ?? "H",
     },
     dotsOptions: {
-      type: (s.dotStyle as QrOptions["dotsOptions"]["type"]) ?? "square",
+      type: (s.dotStyle as NonNullable<QrOptions["dotsOptions"]>["type"]) ?? "square",
       ...(useGradient
         ? {
             gradient: {
@@ -46,7 +46,7 @@ export function buildQrOptions(s: QrStyle): QrOptions {
     },
     backgroundOptions: { color: s.bgColor },
     cornersSquareOptions: {
-      type: (s.cornerStyle as QrOptions["cornersSquareOptions"]["type"]) ?? "square",
+      type: (s.cornerStyle as NonNullable<QrOptions["cornersSquareOptions"]>["type"]) ?? "square",
       color: s.fgColor,
     },
     cornersDotOptions: {

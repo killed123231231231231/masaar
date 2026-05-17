@@ -1,6 +1,11 @@
 // Hand-written subset of the DB types. Replace with:
 //   npx supabase gen types typescript --project-id <ref> > src/types/database.ts
 // to get the full auto-generated set.
+//
+// NOTE: the shape below (per-table Relationships, plus Views/Functions/
+// Enums/CompositeTypes on the schema) is required for @supabase/supabase-js
+// to recognise this as a valid schema. Without those keys every typed query
+// silently degrades to `never`.
 
 export type QrKind = "static" | "dynamic";
 export type ContentKind =
@@ -67,10 +72,37 @@ export interface Folder {
 export interface Database {
   public: {
     Tables: {
-      profiles: { Row: Profile; Insert: Partial<Profile>; Update: Partial<Profile> };
-      folders:  { Row: Folder;  Insert: Partial<Folder>;  Update: Partial<Folder> };
-      qr_codes: { Row: QrCode;  Insert: Partial<QrCode>;  Update: Partial<QrCode> };
-      scans:    { Row: Scan;    Insert: Partial<Scan>;    Update: Partial<Scan> };
+      profiles: {
+        Row: Profile;
+        Insert: Partial<Profile>;
+        Update: Partial<Profile>;
+        Relationships: [];
+      };
+      folders: {
+        Row: Folder;
+        Insert: Partial<Folder>;
+        Update: Partial<Folder>;
+        Relationships: [];
+      };
+      qr_codes: {
+        Row: QrCode;
+        Insert: Partial<QrCode>;
+        Update: Partial<QrCode>;
+        Relationships: [];
+      };
+      scans: {
+        Row: Scan;
+        Insert: Partial<Scan>;
+        Update: Partial<Scan>;
+        Relationships: [];
+      };
     };
+    Views: { [_ in never]: never };
+    Functions: { [_ in never]: never };
+    Enums: {
+      qr_kind: QrKind;
+      content_kind: ContentKind;
+    };
+    CompositeTypes: { [_ in never]: never };
   };
 }
