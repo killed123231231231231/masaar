@@ -141,6 +141,10 @@ src/
 - **Imports**: always use `@/` alias for `src/` — never `../../`
 - **Tailwind**: use the `brand-*` colors defined in `tailwind.config.ts`. Don't
   introduce new hex codes without adding them to the config.
+- **Env vars**: `process.env.NEXT_PUBLIC_*` in client code MUST be static
+  literal access (`process.env.NEXT_PUBLIC_FOO`) — never computed/indexed
+  (`process.env[name]`). Next.js only inlines literal references into the
+  client bundle; dynamic access is undefined in the browser and throws.
 - **Error handling**: never silent-catch. Either handle and recover, or surface
   to the user.
 - **Comments**: explain *why*, not *what*. The code shows what.
