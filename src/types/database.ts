@@ -98,7 +98,16 @@ export interface Database {
       };
     };
     Views: { [_ in never]: never };
-    Functions: { [_ in never]: never };
+    Functions: {
+      resolve_qr: {
+        Args: { p_short_id: string };
+        Returns: { id: string; destination: string }[];
+      };
+      scan_counts: {
+        Args: { p_ids: string[] };
+        Returns: { qr_code_id: string; count: number }[];
+      };
+    };
     Enums: {
       qr_kind: QrKind;
       content_kind: ContentKind;

@@ -21,18 +21,17 @@ export default async function DashboardPage() {
   // Don't silently render an empty state on a DB error — surface it.
   if (qrsError) throw qrsError;
 
-  // Scan counts per QR — single aggregated query
+  // Scan counts per QR — aggregated in Postgres (RLS-scoped to the owner)
+  // instead of transferring every scan row to count in JS.
   const ids = (qrs ?? []).map((q) => q.id);
-  let counts: Record<string, number> = {};
+  const counts: Record<string, number> = {};
   if (ids.length) {
-    const { data: scans } = await supabase
-      .from("scans")
-      .select("qr_code_id")
-      .in("qr_code_id", ids);
-    counts = (scans ?? []).reduce<Record<string, number>>((acc, s) => {
-      acc[s.qr_code_id] = (acc[s.qr_code_id] ?? 0) + 1;
-      return acc;
-    }, {});
+    const { data: rows, error: countsError } = await supabase.rpc(
+      "scan_counts",
+      { p_ids: ids }
+    );
+    if (countsError) throw countsError;
+    for (const r of rows ?? []) counts[r.qr_code_id] = Number(r.count);
   }
 
   return (
