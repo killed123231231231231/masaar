@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { UAParser } from "ua-parser-js";
+import { parseHttpUrl } from "@/lib/url";
 
 // Edge runtime is fast and exposes Vercel geo headers
 export const runtime = "edge";
@@ -47,6 +48,14 @@ export async function GET(
     return new NextResponse("QR code not found", { status: 404 });
   }
 
+  // Only ever redirect to a valid http(s) URL. A destination of "https://",
+  // a scheme-less string, javascript:/data:, or a non-URL payload would
+  // otherwise throw inside NextResponse.redirect (500 on every scan).
+  const target = parseHttpUrl(qr.destination);
+  if (!target) {
+    return new NextResponse("QR code not found", { status: 404 });
+  }
+
   // Extract scan metadata
   const ua = request.headers.get("user-agent") || "";
   const parsed = new UAParser(ua).getResult();
@@ -78,7 +87,7 @@ export async function GET(
   // Don't await — but make sure the promise is created.
   scanInsert.then(() => {}, () => {});
 
-  return NextResponse.redirect(qr.destination, 302);
+  return NextResponse.redirect(target.toString(), 302);
 }
 
 function decodeSafe(v: string | null): string | null {

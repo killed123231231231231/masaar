@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { generateShortId } from "@/lib/shortid";
+import { parseHttpUrl } from "@/lib/url";
 import type { QrCode } from "@/types/database";
 
 export async function POST(request: Request) {
@@ -25,6 +26,16 @@ export async function POST(request: Request) {
     dot_style: body.dot_style ?? "square",
     corner_style: body.corner_style ?? "square",
   };
+
+  // A dynamic QR's printed code points at /r/<shortId>, which 302s to
+  // `destination`. Reject anything that isn't a valid http(s) URL up front
+  // so we never persist a row the redirect route can't resolve.
+  if (insert.kind === "dynamic" && !parseHttpUrl(insert.destination)) {
+    return NextResponse.json(
+      { error: "Dynamic QR codes need a valid http(s) destination URL." },
+      { status: 400 }
+    );
+  }
 
   if (insert.kind === "dynamic") {
     insert.short_id = generateShortId();
