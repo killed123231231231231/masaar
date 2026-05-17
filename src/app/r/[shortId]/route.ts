@@ -70,9 +70,12 @@ export async function GET(
     "0.0.0.0";
   const ipHash = await sha256(ip);
 
-  // Fire-and-forget so we don't block the redirect on insert latency.
-  // The promise still gets a chance to flush on the edge runtime.
-  const scanInsert = supabase.from("scans").insert({
+  // Await the insert. On the edge runtime a fire-and-forget promise is
+  // torn down when the response returns, so scans were being dropped
+  // non-deterministically. One insert keeps the hop well under the
+  // ~100ms budget. (next@15.0.3 only ships unstable_after, which needs
+  // experimental.after and is unstable on edge — unfit for this path.)
+  await supabase.from("scans").insert({
     qr_code_id: qr.id,
     country,
     region,
@@ -83,9 +86,6 @@ export async function GET(
     user_agent: ua,
     ip_hash: ipHash,
   });
-
-  // Don't await — but make sure the promise is created.
-  scanInsert.then(() => {}, () => {});
 
   return NextResponse.redirect(target.toString(), 302);
 }
