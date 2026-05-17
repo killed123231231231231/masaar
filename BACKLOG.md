@@ -1,146 +1,138 @@
 # Masaar — Backlog
 
-Deferred items found during the Step 2 audit / Step 3 fix pass. None of these
-block production; they are logged here intentionally and left untouched.
+Pending work, grouped by urgency. Snapshot: 2026-05-17.
 
-## Deferred deps work
+## 0. Blocking the brand-branch merge (do first)
 
-### chore(deps): coordinated upgrade — @supabase/ssr → latest + @supabase/supabase-js → latest + regenerate database.ts
+- **Preview 500 `MIDDLEWARE_INVOCATION_FAILED`.** The 3 env vars
+  (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
+  `NEXT_PUBLIC_APP_URL`) are **Production-scoped only** (`vercel env ls`).
+  Vercel preview builds run in production mode with **no** env in that
+  scope → `src/lib/env.ts` `requireProdEnv()` throws → fails in
+  `src/middleware.ts`. **Fix:** add the 3 vars to the **Preview** (and
+  Development) scope, redeploy `brand/integrate-masaar-v1`, then the user
+  can eyeball the preview. `vercel env add NEXT_PUBLIC_SUPABASE_URL
+  preview` (×3; preview `NEXT_PUBLIC_APP_URL` = the branch preview alias).
+  Prod is unaffected. Until fixed, the brand preview cannot be reviewed.
 
-- **Why deferred:** `@supabase/supabase-js` is pinned to exactly `2.45.4`
-  (no caret) because `@supabase/ssr@0.5.2` expects `^2.43.4` and npm's `^`
-  had drifted supabase-js to `2.105.4`, whose evolved typed-client contract
-  collapsed every typed query to `never`. Pinning is a stopgap.
-- **Do this AFTER Step 4** (Supabase provisioned) so `src/types/database.ts`
-  can be regenerated from the live schema via
-  `npx supabase gen types typescript --project-id <ref>` instead of being
-  hand-written.
-- **Scope:** bump `@supabase/ssr` to latest + `@supabase/supabase-js` to
-  latest as a coordinated pair, regenerate `database.ts`, then remove the
-  exact pin.
-- **Risk to review during the bump:** the `@supabase/ssr` cookie API
-  surface changed across 0.5 → 0.7 (`getAll`/`setAll` shape). Re-verify
-  `src/lib/supabase/server.ts` and `src/lib/supabase/middleware.ts` after
-  upgrading.
-### chore(security): residual Next.js advisories after the CVE-2025-66478 patch
+## 1. Blocking before any public launch
 
-- **Done:** `next` bumped 15.0.3 → **15.0.5** (commit
-  `fix(security): bump next to 15.0.5 for CVE-2025-66478`), which fully
-  resolves the CVSS 10.0 RCE per the vendor advisory.
-- **Still open (needs sign-off, out of scope for the audit pass):**
-  `npm audit` reports ~24 further `next` advisories at 15.0.5, several
-  only fixed in the 15.5.16+ line, including:
-  - **Authorization Bypass in Next.js Middleware** (GHSA-f82v-jwr5-mffw,
-    `>=15.0.0 <15.2.3`) — directly relevant: Masaar gates `/dashboard`
-    in `middleware.ts`.
-  - SSRF via middleware redirects, multiple cache-poisoning, App Router
-    XSS, and several DoS advisories.
-  - npm also flags 15.0.5 itself for a later bundle
-    (nextjs.org/blog/security-update-2025-12-11).
-- **Recommendation:** fold a Next upgrade to the latest patched 15.5.x
-  into the coordinated deps upgrade above (after Step 4), and re-verify
-  middleware auth + the deprecated `serverExternalPackages` config.
+- **Email-confirm re-verification on the prod URL.** `masaar` Supabase
+  shipped with email confirmation OFF; it was enabled manually in the
+  Dashboard during Step 5. Before launch, spot-check signup → real
+  confirmation-email click → login against the **production** URL (Site
+  URL / Redirect URLs must include the prod domain), not just localhost.
+- **Purge live Supabase test data.** Two real test users live in the
+  production DB: `usamaahmed047@gmail.com` (owns SMOKE TEST QR
+  `WgcQX3E`) and `usamaahmed047+masaartest@gmail.com` (owns `Prod Smoke
+  QR` `wWZXuTD`), plus their scan rows. Kept intentionally as the Step-8
+  baseline — purge before public launch.
+- **Domain decision + custom-domain wiring.** No domain bought
+  (`masaar.sa` / `.io` / `.com` candidates); still on `*.vercel.app`.
+  After buying: add the domain in Vercel + update Supabase Auth Site
+  URL / Redirect URLs to the custom domain.
+- **Repo public-vs-private posture.** `killed123231231231231/masaar` was
+  made **public** during the prod session (to allow Vercel Git connect).
+  Decide whether to keep it public or re-private (re-privatizing may
+  require re-checking the Vercel Git integration).
 
-## Ops notes
+## 2. Carry-forward from the brand session
 
-- **ops: never run `npm run build` while `npm run dev` is active** — they
-  share `.next/` and corrupt each other (manifests in `Cannot find module
-  './NNN.js'` + `/_next/static/*` 404s). If it happens: stop dev, delete
-  `.next/`, restart dev. Run the build gate with the dev server stopped.
+- **Logo vectorization swap.** `public/logo.svg` is a 5.1 KB
+  auto-trace-derived file (exceeds the <4 KB budget; mark/mono are
+  ~1.5 KB). Consider replacing with a Fiverr / vectorizer.io
+  pixel-accurate, optimized trace. `LogoMark` component
+  (`src/components/logo-mark.tsx`) inlines the same 3 mark paths — update
+  it too if the trace changes.
+- **recharts hex palette** in `analytics-client.tsx` still uses the old
+  blue hexes (`#0070cc` etc.) — Step 3 scoped this out. Recolor to the
+  brand palette (deep-teal/terracotta/sand/charcoal) for chart
+  consistency.
+- **globals.css CSS vars** (`--background`/`--foreground`/`--muted`/
+  `--border`) are still the original neutrals, not aligned with the
+  brand `charcoal`/`sand` tokens. Align if a deeper theme pass is wanted.
 
-## Deploy follow-ups / status
+## 3. Known follow-up sessions (priority order)
 
-- **PR2 RESOLVED** — `vercel.json` was `regions:["fra1","bom1"]`;
-  multi-region serverless is Pro/Enterprise-only and failed the Hobby
-  deploy. Pinned to single `bom1` (commit `fix(deploy): pin single
-  region bom1`). No longer a nice-to-fix.
-- **deploy: wire Git auto-deploy (needs your Vercel dashboard action).**
-  The Vercel project is under `qasimahmed4444s-projects`; the GitHub repo
-  is `killed123231231231231/masaar` (now public). `vercel git connect`
-  fails from the CLI because the Vercel GitHub App isn't installed/
-  authorized on the `killed123…` GitHub account for this Vercel account
-  (cross-account). To enable push-to-deploy: Vercel dashboard → masaar →
-  Settings → Git → Connect, completing the GitHub App authorize as the
-  `killed123…` account. Until then, deploys are manual `vercel deploy
-  --prod`.
-- **note:** the Vercel MCP token is scoped to a different team than the
-  CLI account (`qasimahmed4444s-projects`), so deployment/build-log
-  observation must use the Vercel CLI, not the MCP, for this project.
+These have schema/lib scaffolding ready (see README §6 for detailed
+prompts). One per session; deploy + smoke-test after each.
+1. **Logo upload** — bucket `logos` exists; `qr_codes.logo_url` ready.
+2. **Live scan feed** — Supabase Realtime on `scans`.
+3. **Frames** around the QR — `frame_style` / `frame_text` columns ready.
+4. **Password-gated QRs** — `password_hash` column ready.
+5. **PDF export** — `pdf-lib` already a dep.
+6. **Folders UI** — `folders` table ready.
+7. **Full UI redesign** matching `brand/07-landing-page-hero-mockup.png`
+   — 3-step wizard, new dashboard, new content types
+   (WhatsApp / PDF / Image / Video / App Link). Big; explicitly out of
+   scope until prioritized.
+8. **Arabic translation + RTL** — `next-intl`, `dir="rtl"`; Plex Arabic
+   font already wired.
 
-## Auth follow-ups
+## 4. Deferred technical debt
 
-- **auth: re-verify email confirmation flow on production URL before
-  public launch.** The `masaar` Supabase project shipped with email
-  confirmations OFF (auto-confirm); "Confirm email" was enabled manually
-  in the Dashboard during Step 5. Before public launch, spot-check the
-  full signup → real confirmation-email click → login path against the
-  production Vercel URL (Site URL / Redirect URLs must include the prod
-  domain, set in Step 7), not just localhost.
+- **chore(deps): coordinated upgrade** — `@supabase/supabase-js` is
+  pinned to exactly `2.45.4` (no caret) because `@supabase/ssr@0.5.2`
+  expects `^2.43.4` and npm's `^` had drifted it to `2.105.4`,
+  collapsing every typed query to `never`. Bump `ssr` + `supabase-js`
+  as a coordinated pair, regenerate `src/types/database.ts` from the
+  live schema (`npx supabase gen types typescript --project-id
+  hsnrupadmygkeirhujiv`), drop the pin. **Risk:** ssr cookie API changed
+  0.5 → 0.7 — re-verify `lib/supabase/server.ts` + `middleware.ts`.
+- **chore(security): residual Next advisories.** `next` is at **15.0.5**
+  (CVE-2025-66478 RCE patched). `npm audit` still reports ~24 further
+  advisories, several only fixed in **15.5.16+**, incl. **Authorization
+  Bypass in Next.js Middleware** (GHSA-f82v-jwr5-mffw, directly relevant
+  — `/dashboard` is middleware-gated), SSRF, cache-poisoning, XSS, DoS;
+  npm also flags 15.0.5 for a later bundle. Fold a bump to latest
+  patched 15.5.x into the deps upgrade; re-verify middleware auth +
+  `serverExternalPackages` config.
+- **ops note:** never run `npm run build` while `npm run dev` is active
+  (shared `.next/` corrupts → `Cannot find module './NNN.js'`; recover:
+  stop dev, `rm -rf .next`, restart).
+- **Vercel MCP scope:** the Vercel MCP token is scoped to a different
+  team than the CLI account (`qasimahmed4444s-projects`) — use the
+  **Vercel CLI** for this project's deploy/log observation, not the MCP.
+- **PR2 (RESOLVED, kept for history):** `vercel.json` multi-region
+  `["fra1","bom1"]` is Pro-only and failed the Hobby deploy; pinned to
+  single `bom1` (commit `fix(deploy): pin single region bom1`).
+- **C5 (RESOLVED, kept for history):** `/login` `useSearchParams()`
+  needed a `<Suspense>` boundary (Next 15 prerender) — missed in the
+  Step-2 audit, found by `npm run build`, fixed by extracting
+  `login-client.tsx`.
 
-## Audit self-corrections
-
-- **C5 — `/login` `useSearchParams()` not wrapped in `<Suspense>`**: missed
-  in the initial Step 2 audit, found by `npm run build` (Next 15 prerender
-  bailout fails the production build, which would have broken the Vercel
-  deploy). Severity BLOCKER. Fixed in commit
-  `fix(login): wrap useSearchParams in Suspense boundary` by extracting the
-  client markup into `login-client.tsx` and wrapping it in
-  `<Suspense fallback={null}>`. Logged here so the audit gap is documented,
-  not hidden — type-checking alone would not have caught this; only a real
-  build did.
-
-## Nice-to-fix (from Step 2 audit) — deferred, not touched
-
-These were logged and intentionally left alone per the Step 3 plan.
-
+### Nice-to-fix from the Step-2 audit (deferred, untouched)
 1. **Anon scan-insert spoofing / no rate limit** — `scans_anon_insert
-   WITH CHECK (true)` (migration 001) + public anon key let anyone write
-   arbitrary `scans` rows (fake geo, inflated counts) directly, bypassing
-   `/r/[shortId]`. Inherent to the anon-insert design; revisit with a
-   rate limit or a SECURITY DEFINER insert RPC.
-2. **shortId collision has no retry** — `api/qr` POST: a unique-violation
-   on `short_id` returns a generic 400 with no retry. Probability is tiny
-   (~54^7) but a single retry loop would be more robust.
-3. **Analytics timezone bucketing** — `analytics-client.tsx` builds the
-   30-day series by shifting a local `Date` then slicing the UTC ISO
-   string; for GMT+3 (KSA) some days can be off by one bucket.
-4. **"Total scans" KPI capped at 5000** — `analytics/page.tsx` does
-   `.limit(5000)`; the KPI and series silently undercount past 5000.
-   Use a count query / RPC for the headline number.
-5. **Bots logged as scans** — link-preview/crawler hits (WhatsApp, Slack,
-   Apple, facebookexternalhit) to `/r/[shortId]` are logged as real
-   scans, inflating analytics. Filter known bot UAs.
+   WITH CHECK (true)` + public anon key lets anyone write arbitrary
+   `scans`. Revisit with rate limit or a SECURITY DEFINER insert RPC.
+2. **shortId collision has no retry** — `api/qr` POST: unique-violation
+   → generic 400, no retry loop.
+3. **Analytics timezone bucketing** — `analytics-client.tsx` mixes local
+   `Date` shift + UTC ISO slice; GMT+3 days can be off by one bucket.
+4. **"Total scans" KPI capped at 5000** — `analytics/page.tsx`
+   `.limit(5000)` silently undercounts; use a count RPC.
+5. **Bots logged as scans** — crawler/link-preview hits to
+   `/r/[shortId]` inflate analytics; filter known bot UAs.
 6. **qr-preview mount race / stale closure** — `qr-preview.tsx` mount
-   effect has `[]` deps; if `style` changes before `createQr` resolves
-   the first paint can be stale until the next style change.
-7. **Middleware runs on every route (P2)** — `middleware.ts` calls
-   `getUser()` for the marketing landing and all API routes. Scope the
-   matcher to `/dashboard` to drop an auth round-trip from public pages.
-8. **Signup password has no client minLength** — `signup/page.tsx` label
-   says "8+ chars" but there's no `minLength`; Supabase default min is 6.
+   effect `[]` deps; first paint can be stale until next style change.
+7. **Middleware runs on every route (P2)** — scope the matcher to
+   `/dashboard` to drop an auth round-trip on public pages.
+8. **Signup password has no client `minLength`** — label says 8+;
+   Supabase default min is 6.
 9. **`profiles` has no INSERT policy** — relies solely on the
-   `handle_new_user` SECURITY DEFINER trigger; if the trigger ever fails,
-   signup errors with no fallback.
-10. **Lying Insert/Update types (T2)** — `database.ts` still uses
-    `Partial<Row>` for Insert/Update, so omitting NOT NULL columns
-    compiles but fails at runtime. Resolved properly by the
-    regenerate-types deps item above (run after Step 4).
-11. **Unsafe `as` style casts** — `qr.ts` / `qr-preview.tsx` cast an
-    arbitrary string to the qr-code-styling option unions; a bad value
-    persisted in the DB could throw at render. UI constrains it today.
-12. **vercel.json regions don't pin the edge route (PR2)** — `regions:
-    ["fra1","bom1"]` affects serverless functions; the `/r/[shortId]`
-    edge route needs `export const preferredRegion` to be pinned.
+   `handle_new_user` SECURITY DEFINER trigger.
+10. **Lying Insert/Update types (T2)** — `database.ts` `Partial<Row>`
+    for Insert/Update; resolved by the deps regen above.
+11. **Unsafe `as` style casts** — `qr.ts` / `qr-preview.tsx` cast
+    arbitrary strings to qr-code-styling unions.
+12. **vercel.json regions don't pin the edge route (PR2-adjacent)** —
+    `/r/[shortId]` edge route would need `export const preferredRegion`.
 13. **next.config deprecated key (PR3)** — `experimental.
-    serverComponentsExternalPackages` was renamed to top-level
-    `serverExternalPackages` in Next 15; build emits a warning each run.
-    (Also the "required on server" comment is wrong — `qr.ts` is
-    browser-only.)
-14. **Static-QR destination not immutable server-side** — the edit UI
-    disables the field for static QRs and CLAUDE.md says static QRs
-    can't be edited, but PATCH would still accept a `destination` change
-    for a static row. Enforce kind-aware immutability in the API.
-15. **No client-side length cap** — E1 added the server-side caps
-    (the security boundary); a matching client-side maxLength on the
-    URL/text inputs would be a UX nicety.
-
+    serverComponentsExternalPackages` → top-level
+    `serverExternalPackages` in Next 15 (warns each build; the
+    "required on server" comment is wrong, `qr.ts` is browser-only).
+14. **Static-QR destination not immutable server-side** — PATCH would
+    accept a `destination` change on a static row; enforce kind-aware
+    immutability in `api/qr`.
+15. **No client-side length cap** — E1 added server-side caps; a
+    matching client `maxLength` on URL/text inputs is a UX nicety.

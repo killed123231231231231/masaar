@@ -237,3 +237,111 @@ destinations, vCard fields).
 - `short_id` is unique and never re-used (use `nanoid` from `lib/shortid.ts`)
 - Static QRs cannot be edited (the destination is in the printed code)
 - The `/r/[shortId]` route runs at edge runtime (never change to nodejs)
+
+---
+
+## Session history & current state
+
+> Context handoff snapshot, 2026-05-17. Append-only — do not rewrite the
+> sections above.
+
+### What's shipped to production (main branch)
+- **Live URL:** https://masaar-zeta.vercel.app (Vercel project
+  `qasimahmed4444s-projects/masaar`; `masaar.vercel.app` was taken)
+- **Supabase:** ref `hsnrupadmygkeirhujiv`, region `ap-south-1` (Mumbai)
+- **GitHub:** https://github.com/killed123231231231231/masaar (public).
+  As of this snapshot the user re-pointed the Vercel↔GitHub integration
+  to the **`killed123231231231231`** GitHub account and synced it to the
+  masaar Vercel project (the earlier cross-account block is resolved).
+- **main HEAD:** `e140b93` — "docs(backlog): PR2 resolved; Git
+  auto-deploy + MCP-scope follow-ups"
+- *Honest nuance:* prod was a **Vercel CLI direct-upload** deploy of
+  ~main's code; commits after the last functional change are docs-only,
+  so live runtime == main functionally but is **not** SHA-pinned —
+  unverified that the live bundle byte-matches `e140b93`.
+- **Features live e2e** (verified by local Step-5 + prod Step-8 smoke):
+  signup w/ real email confirm, login, RLS-scoped multi-tenant
+  dashboard, dynamic QR create (client-gen shortId), `/r/<shortId>` edge
+  redirect + scan logging with real Vercel geo (SA/Medina), IP hashed,
+  edit-destination re-points without reprint, per-QR analytics.
+  Migrations 001+002+003 applied.
+
+### Active work-in-progress (this branch)
+- **Branch `brand/integrate-masaar-v1` — 8 commits ahead of main, NOT
+  merged, tree clean, HEAD `c3107b2`:**
+  ```
+  c3107b2 style(polish): apply tier-1 visual refinement to brand-integrated UI
+  b132dd1 feat(brand): landing copy — "Every scan has a path." + terracotta CTA
+  0a3c558 feat(brand): swap lucide QrCode placeholder for the Masaar mark
+  e826490 feat(brand): swap Cairo for IBM Plex Sans Arabic, add Manrope display
+  acacbfb feat(brand): replace blue brand scale with Masaar palette
+  8bbb377 feat(brand): favicons from logo mark + metadata.icons
+  795193e feat(brand): add Masaar logo SVGs (lockup, mark, mono)
+  fe27fee chore: gitignore .vercel and brand/ source assets
+  ```
+- **Preview is BROKEN — not just protected.**
+  https://masaar-git-brand-integrate-masaar-v1-qasimahmed4444s-projects.vercel.app
+  returns **`500 MIDDLEWARE_INVOCATION_FAILED`**.
+  **Verified root cause:** the 3 env vars
+  (`NEXT_PUBLIC_SUPABASE_URL` / `_ANON_KEY` / `NEXT_PUBLIC_APP_URL`) were
+  added **Production-scoped only** (`vercel env ls` confirms
+  `environments: Production`). Vercel preview builds run in production
+  mode but get **no** env in that scope, so `src/lib/env.ts`
+  `requireProdEnv()` throws ("Missing required environment variable…"),
+  and the first thing that runs is the Supabase client inside
+  `src/middleware.ts` → middleware invocation fails.
+  **Fix (next session):** add the 3 vars to the **Preview** (and ideally
+  Development) Vercel environment scope, then redeploy the branch:
+  `vercel env add NEXT_PUBLIC_SUPABASE_URL preview` (×3; for
+  `NEXT_PUBLIC_APP_URL` preview-value = the branch preview alias). Prod
+  is unaffected (its vars are Production-scoped and it works).
+- **Status:** pushed; awaiting fix-preview → user eyeball → merge
+  approval. **Do not merge to main without the user's go-ahead.**
+
+### Decisions made this session (chosen / rejected)
+- **Brand Direction B (Modern Calligraphic)** over A/C — mark carries
+  the Arabic letterform, palette reads premium-GCC. Rejected generic
+  Latin-italic options.
+- **Logo = user-supplied vector trace** of `01-logo-color.png`
+  (recolored to exact hexes). Rejected hand-bezier (disconnected/
+  bottom-heavy) and autotrace (no potrace/ImageMagick in-session).
+- **`logo.svg` 5.1 KB > 4 KB budget** — kept lockup fidelity; rejected
+  lossy coord-rounding. Mark/mono ~1.5 KB.
+- **`sharp` devDependency** for build-time SVG→PNG/ICO only. Rejected
+  hand-embedded base64 (corrupted).
+- **Palette** deep-teal/terracotta/sand/charcoal replaced the blue
+  `brand-*` scale; `brand` kept as a deep-teal alias.
+- **Fonts** Manrope(display)/Inter(body)/IBM Plex Sans Arabic; Cairo
+  removed.
+- **Inline `LogoMark` component** over `<Image src=/logo.svg>` — no
+  extra request, exact polychrome, shared by both headers.
+- **`dashboard/loading.tsx`** = the only new-file exception (Next
+  framework loading boundary, not a custom component).
+- **qr-customizer input class shared with `<Textarea>`** → `py-2.5`
+  instead of `h-11` (h-11 would break the multi-line input).
+- **`brand/` gitignored** (~13 MB reference PNGs).
+- **No scope creep** into the 07 redesign / 3-step wizard / new content
+  types.
+
+### Hard-won rules (anchors; authoritative copies are in Conventions /
+Don't-break / BACKLOG ops notes)
+- `process.env.NEXT_PUBLIC_*` = literal static access only, never
+  computed/indexed (shipped-broken-then-fixed, `3ae25cf`).
+- Never `npm run build` while `npm run dev` runs (shared `.next/`).
+- `vercel.json regions` does not pin edge routes; multi-region
+  serverless is Pro-only (Hobby deploy failed → pinned `bom1`).
+- Supabase email confirmation defaulted **OFF** on the new project.
+- Multiple **permissive RLS policies combine with OR** (S1 keystone).
+- Tailwind token sweeps must be **ordered** (`brand-50` ⊂ `brand-500`).
+- **Vercel env vars are per-environment-scope** — Production-scoped vars
+  do NOT apply to Preview/Development (this caused the preview 500).
+
+### Open questions / not decided
+- Swap the current trace for a Fiverr/vectorizer.io pixel-accurate logo,
+  or keep the 5.1 KB trace.
+- Domain (`masaar.sa`/`.io`/`.com`) — none bought; no custom domain.
+- When to purge live Supabase test data (2 test users + QRs + scans,
+  kept as the Step-8 baseline).
+- Re-verify email-confirmation flow on prod URL before launch.
+- Keep Vercel Deployment Protection on previews (separate from the 500;
+  protection also applies once the 500 is fixed).
