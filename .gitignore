@@ -32,3 +32,8 @@ next-env.d.ts
 # Supabase
 supabase/.branches
 supabase/.temp
+
+.vercel
+
+# Brand source assets — design reference only; public/ ships the real assets
+brand/
