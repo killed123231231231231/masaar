@@ -20,7 +20,7 @@ export default function LandingPage() {
             </Link>
             <Link
               href="/dashboard/qr/new"
-              className="rounded-lg bg-deep-teal px-4 py-2 text-sm font-semibold text-white hover:bg-deep-teal-dark"
+              className="rounded-lg bg-deep-teal px-4 py-2 text-sm font-semibold text-white hover:bg-terracotta active:bg-terracotta-dark"
             >
               Create QR Code
             </Link>
@@ -34,16 +34,16 @@ export default function LandingPage() {
           Live tracking · Editable anytime
         </span>
         <h1 className="mt-6 text-balance text-5xl font-bold tracking-tight text-gray-900 sm:text-6xl md:text-7xl">
-          One QR. <span className="text-deep-teal">Every scan, tracked.</span>
+          Every scan has <span className="text-deep-teal">a path.</span>
         </h1>
         <p className="mt-6 mx-auto max-w-2xl text-balance text-lg text-gray-600">
-          Generate a branded QR code in seconds. Track every scan in real time. Change where it
-          points — even after it&apos;s printed.
+          Adaptive dynamic QR codes for GCC businesses. Create, manage, and edit
+          destinations in real time — without reprinting.
         </p>
         <div className="mt-10 flex items-center justify-center gap-3">
           <Link
             href="/dashboard/qr/new"
-            className="inline-flex items-center gap-2 rounded-lg bg-deep-teal px-6 py-3 text-base font-semibold text-white hover:bg-deep-teal-dark"
+            className="inline-flex items-center gap-2 rounded-lg bg-deep-teal px-6 py-3 text-base font-semibold text-white hover:bg-terracotta active:bg-terracotta-dark"
           >
             Create QR Code <ArrowRight className="h-4 w-4" />
           </Link>
