@@ -1,0 +1,62 @@
+import Link from "next/link";
+import { QrCode, LayoutDashboard, Plus, LogOut } from "lucide-react";
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
+
+export default async function DashboardShell({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect("/login");
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <header className="border-b border-gray-100 bg-white">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
+          <Link href="/dashboard" className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-lg bg-brand-600 grid place-items-center">
+              <QrCode className="h-4 w-4 text-white" />
+            </div>
+            <span className="font-bold tracking-tight">
+              Masaar <span className="text-brand-600 font-arabic">مسار</span>
+            </span>
+          </Link>
+
+          <nav className="flex items-center gap-2 text-sm">
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-gray-700 hover:bg-gray-100"
+            >
+              <LayoutDashboard className="h-4 w-4" />
+              Dashboard
+            </Link>
+            <Link
+              href="/dashboard/qr/new"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 font-semibold text-white hover:bg-brand-700"
+            >
+              <Plus className="h-4 w-4" />
+              New QR
+            </Link>
+            <form action="/auth/signout" method="post">
+              <button
+                type="submit"
+                className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-gray-700 hover:bg-gray-100"
+                title="Log out"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            </form>
+          </nav>
+        </div>
+      </header>
+
+      <main className="mx-auto max-w-6xl px-6 py-8">{children}</main>
+    </div>
+  );
+}
