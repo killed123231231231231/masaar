@@ -145,6 +145,10 @@ src/
   literal access (`process.env.NEXT_PUBLIC_FOO`) — never computed/indexed
   (`process.env[name]`). Next.js only inlines literal references into the
   client bundle; dynamic access is undefined in the browser and throws.
+  Also: **Vercel env vars are scoped per-environment (Production / Preview
+  / Development)** — Production-only env will break ALL preview builds at
+  runtime (here it 500'd in `middleware.ts` via `lib/env.ts` fail-fast).
+  Add new env vars to every relevant scope (Preview can be branch-scoped).
 - **Error handling**: never silent-catch. Either handle and recover, or surface
   to the user.
 - **Comments**: explain *why*, not *what*. The code shows what.
@@ -333,8 +337,12 @@ Don't-break / BACKLOG ops notes)
 - Supabase email confirmation defaulted **OFF** on the new project.
 - Multiple **permissive RLS policies combine with OR** (S1 keystone).
 - Tailwind token sweeps must be **ordered** (`brand-50` ⊂ `brand-500`).
-- **Vercel env vars are per-environment-scope** — Production-scoped vars
-  do NOT apply to Preview/Development (this caused the preview 500).
+- **Vercel env vars are scoped per-environment (Production/Preview/
+  Development)** — Production-only env will break all preview builds at
+  runtime. Add new env vars to ALL relevant scopes. _(FIXED 2026-05-17:
+  the 3 `NEXT_PUBLIC_*` vars were added to Preview scoped to branch
+  `brand/integrate-masaar-v1`; preview now 401 — Deployment Protection,
+  not 500.)_
 
 ### Open questions / not decided
 - Swap the current trace for a Fiverr/vectorizer.io pixel-accurate logo,

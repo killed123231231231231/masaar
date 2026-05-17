@@ -4,16 +4,23 @@ Pending work, grouped by urgency. Snapshot: 2026-05-17.
 
 ## 0. Blocking the brand-branch merge (do first)
 
-- **Preview 500 `MIDDLEWARE_INVOCATION_FAILED`.** The 3 env vars
-  (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
-  `NEXT_PUBLIC_APP_URL`) are **Production-scoped only** (`vercel env ls`).
-  Vercel preview builds run in production mode with **no** env in that
-  scope → `src/lib/env.ts` `requireProdEnv()` throws → fails in
-  `src/middleware.ts`. **Fix:** add the 3 vars to the **Preview** (and
-  Development) scope, redeploy `brand/integrate-masaar-v1`, then the user
-  can eyeball the preview. `vercel env add NEXT_PUBLIC_SUPABASE_URL
-  preview` (×3; preview `NEXT_PUBLIC_APP_URL` = the branch preview alias).
-  Prod is unaffected. Until fixed, the brand preview cannot be reviewed.
+- **Preview 500 `MIDDLEWARE_INVOCATION_FAILED` — RESOLVED 2026-05-17.**
+  Cause: the 3 `NEXT_PUBLIC_*` vars were Production-scoped only, so
+  preview builds had no env → `src/lib/env.ts` fail-fast threw in
+  `src/middleware.ts`. Fix applied: added `NEXT_PUBLIC_SUPABASE_URL`,
+  `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_APP_URL` to **Preview**
+  scoped to branch `brand/integrate-masaar-v1` (CLI requires the
+  git-branch positional in v53) and redeployed (no new commit). Preview
+  now returns **401** (Deployment Protection for anon — expected; opens
+  in a logged-in browser), not 500. `SUPABASE_SERVICE_ROLE_KEY`
+  deliberately NOT added to Preview (keeps the smaller attack surface).
+  Brand merge is now gated only on the user's visual eyeball.
+- **Deferred — proper preview-env story:** `NEXT_PUBLIC_APP_URL` for
+  Preview is a placeholder `https://preview.invalid` (brand review is
+  visual; QR absolute-URL construction is intentionally broken-but-
+  obvious on previews). A real per-preview value needs a Vercel System
+  Env (e.g. `VERCEL_URL`) wired into `appUrl()` — defer to the
+  logo-upload session.
 
 ## 1. Blocking before any public launch
 
