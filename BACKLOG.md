@@ -22,9 +22,24 @@ block production; they are logged here intentionally and left untouched.
   surface changed across 0.5 → 0.7 (`getAll`/`setAll` shape). Re-verify
   `src/lib/supabase/server.ts` and `src/lib/supabase/middleware.ts` after
   upgrading.
-- Also re-evaluate the `next@15.0.3` advisory (CVE-2025-66478) at the same
-  time — a patched Next 15.x is available; framework upgrade is out of scope
-  for the audit fix pass and needs sign-off.
+### chore(security): residual Next.js advisories after the CVE-2025-66478 patch
+
+- **Done:** `next` bumped 15.0.3 → **15.0.5** (commit
+  `fix(security): bump next to 15.0.5 for CVE-2025-66478`), which fully
+  resolves the CVSS 10.0 RCE per the vendor advisory.
+- **Still open (needs sign-off, out of scope for the audit pass):**
+  `npm audit` reports ~24 further `next` advisories at 15.0.5, several
+  only fixed in the 15.5.16+ line, including:
+  - **Authorization Bypass in Next.js Middleware** (GHSA-f82v-jwr5-mffw,
+    `>=15.0.0 <15.2.3`) — directly relevant: Masaar gates `/dashboard`
+    in `middleware.ts`.
+  - SSRF via middleware redirects, multiple cache-poisoning, App Router
+    XSS, and several DoS advisories.
+  - npm also flags 15.0.5 itself for a later bundle
+    (nextjs.org/blog/security-update-2025-12-11).
+- **Recommendation:** fold a Next upgrade to the latest patched 15.5.x
+  into the coordinated deps upgrade above (after Step 4), and re-verify
+  middleware auth + the deprecated `serverExternalPackages` config.
 
 ## Audit self-corrections
 
