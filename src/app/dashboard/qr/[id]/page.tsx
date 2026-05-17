@@ -19,13 +19,16 @@ export default async function EditQrPage({
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: qr } = await supabase
+  const { data: qr, error: qrError } = await supabase
     .from("qr_codes")
     .select("*")
     .eq("id", id)
     .eq("user_id", user.id)
     .single();
 
+  // PGRST116 = no rows: not found / not owned -> redirect. Anything else
+  // (e.g. DB unavailable) is a real error and must not be swallowed.
+  if (qrError && qrError.code !== "PGRST116") throw qrError;
   if (!qr) redirect("/dashboard");
 
   return (

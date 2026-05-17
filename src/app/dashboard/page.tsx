@@ -13,11 +13,13 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: qrs } = await supabase
+  const { data: qrs, error: qrsError } = await supabase
     .from("qr_codes")
     .select("*")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
+  // Don't silently render an empty state on a DB error — surface it.
+  if (qrsError) throw qrsError;
 
   // Scan counts per QR — single aggregated query
   const ids = (qrs ?? []).map((q) => q.id);
