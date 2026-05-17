@@ -13,6 +13,10 @@ import {
   Activity,
   MapPin,
   Pencil,
+  ChevronDown,
+  Languages,
+  ShieldCheck,
+  Globe,
 } from "lucide-react";
 import LogoMark from "@/components/logo-mark";
 
@@ -106,6 +110,8 @@ export default function LandingPage() {
 
       <HowItWorks />
       <AnalyticsPreview />
+      <BuiltForGCC />
+      <Faq />
 
       <SiteFooter />
     </main>
@@ -542,6 +548,121 @@ function Stat({ label, value }: { label: string; value: string }) {
         {label}
       </p>
     </div>
+  );
+}
+
+const GCC_FEATURES = [
+  { icon: Languages, en: "Arabic-first UI", ar: "واجهة عربية أولاً" },
+  { icon: ShieldCheck, en: "Regional data residency", ar: "استضافة بيانات إقليمية" },
+  { icon: Globe, en: "Gulf-ready pricing", ar: "تسعير مهيّأ للخليج" },
+];
+
+function BuiltForGCC() {
+  return (
+    <section className="mx-auto max-w-6xl px-6 py-20 lg:py-28">
+      <div className="overflow-hidden rounded-3xl bg-deep-teal text-white">
+        <div className="grid gap-10 p-10 md:grid-cols-2 lg:p-14">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-deep-teal-light">
+              Built for the Gulf
+            </p>
+            <h2 className="mt-3 text-balance font-display text-3xl font-bold tracking-tight sm:text-4xl">
+              Designed for the GCC, in your language
+            </h2>
+            <p className="mt-4 text-balance leading-relaxed text-white/75">
+              Arabic-first interface, regional data residency, and pricing
+              that speaks your market — for businesses across Saudi Arabia,
+              the UAE, and the wider Gulf.
+            </p>
+          </div>
+
+          <div dir="rtl" className="font-arabic text-right">
+            <p className="text-xs font-semibold uppercase tracking-wider text-deep-teal-light">
+              مصمّم لمنطقة الخليج
+            </p>
+            <h2 className="mt-3 text-balance font-display text-3xl font-bold leading-snug sm:text-4xl">
+              مصمّم لدول الخليج، وبلغتك
+            </h2>
+            <p className="mt-4 text-balance leading-loose text-white/75">
+              واجهة عربية أولاً، واستضافة بيانات إقليمية، وأسعار تناسب سوقك —
+              للشركات في السعودية والإمارات ومنطقة الخليج.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid border-t border-white/15 sm:grid-cols-3">
+          {GCC_FEATURES.map(({ icon: Icon, en, ar }) => (
+            <div
+              key={en}
+              className="flex items-center gap-3 px-8 py-5 [&:not(:last-child)]:border-b [&:not(:last-child)]:border-white/15 sm:[&:not(:last-child)]:border-b-0 sm:[&:not(:last-child)]:border-r"
+            >
+              <Icon className="h-5 w-5 shrink-0 text-deep-teal-light" strokeWidth={1.75} />
+              <div className="min-w-0">
+                <p className="text-sm font-semibold">{en}</p>
+                <p className="font-arabic text-xs text-white/65">{ar}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+const FAQS = [
+  {
+    q: "What is a dynamic QR code?",
+    a: "A QR code whose destination you can change after it's printed. The code points to a Masaar link you control, so the artwork never has to change.",
+  },
+  {
+    q: "Do I need to reprint when the URL changes?",
+    a: "No — that's the whole point. Update the destination in your dashboard and every existing printed code instantly follows.",
+  },
+  {
+    q: "Is Masaar available in Arabic?",
+    a: "Yes. The interface is built Arabic-first with full right-to-left support, alongside English.",
+  },
+  {
+    q: "What scan data do I get?",
+    a: "Aggregated country, city, device, browser, and timing for every scan — with hashed IPs, never raw addresses or personally identifying information.",
+  },
+  {
+    q: "Is there a free trial?",
+    a: "Yes. Start free with no credit card required, and set up your first code in about a minute.",
+  },
+];
+
+function Faq() {
+  return (
+    <section className="bg-sand-light/60">
+      <div className="mx-auto max-w-3xl px-6 py-20 lg:py-28">
+        <div className="text-center">
+          <p className="text-xs font-semibold uppercase tracking-wider text-deep-teal">
+            FAQ
+          </p>
+          <h2 className="mt-3 text-balance font-display text-3xl font-bold tracking-tight sm:text-4xl">
+            Questions, answered
+          </h2>
+        </div>
+
+        <div className="mt-12 divide-y divide-charcoal/10 border-y border-charcoal/10">
+          {FAQS.map(({ q, a }) => (
+            <details key={q} className="group">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-5 font-display text-base font-semibold marker:hidden [&::-webkit-details-marker]:hidden">
+                {q}
+                <ChevronDown
+                  className="h-5 w-5 shrink-0 text-charcoal/50 transition-transform group-open:rotate-180"
+                  strokeWidth={2}
+                />
+              </summary>
+              <p className="pb-5 text-sm leading-relaxed text-charcoal/65">
+                {a}
+              </p>
+            </details>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
 
