@@ -15,7 +15,9 @@ interface Scan {
   os: string | null;
 }
 
-const COLORS = ["#0070cc", "#36abff", "#7ac8ff", "#bae0ff", "#0a3f6f", "#054a86"];
+// Brand palette: deep-teal (primary), terracotta (accent), sea-teal
+// (tertiary), then on-brand variants for any extra pie slices.
+const COLORS = ["#0F5B55", "#E07A5F", "#3FA39A", "#073d3a", "#B85F47", "#D6D1C6"];
 
 export default function AnalyticsClient({ scans }: { scans: Scan[] }) {
   // Time series — group scans by day (last 30 days)
@@ -68,15 +70,15 @@ export default function AnalyticsClient({ scans }: { scans: Scan[] }) {
             <AreaChart data={timeSeries}>
               <defs>
                 <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#0070cc" stopOpacity={0.4} />
-                  <stop offset="100%" stopColor="#0070cc" stopOpacity={0} />
+                  <stop offset="0%" stopColor="#0F5B55" stopOpacity={0.4} />
+                  <stop offset="100%" stopColor="#0F5B55" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
               <XAxis dataKey="date" tick={{ fontSize: 11 }} />
               <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
               <Tooltip />
-              <Area type="monotone" dataKey="count" stroke="#0070cc" fill="url(#g1)" strokeWidth={2} />
+              <Area type="monotone" dataKey="count" stroke="#0F5B55" fill="url(#g1)" strokeWidth={2} />
             </AreaChart>
           </ResponsiveContainer>
         </div>
@@ -162,7 +164,7 @@ function BreakdownBar({ data }: { data: { key: string; count: number }[] }) {
           <XAxis type="number" tick={{ fontSize: 11 }} allowDecimals={false} />
           <YAxis dataKey="key" type="category" tick={{ fontSize: 11 }} width={100} />
           <Tooltip />
-          <Bar dataKey="count" fill="#0070cc" radius={[0, 4, 4, 0]} />
+          <Bar dataKey="count" fill="#0F5B55" radius={[0, 4, 4, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>

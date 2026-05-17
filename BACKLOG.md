@@ -115,6 +115,31 @@ prompts). One per session; deploy + smoke-test after each.
 - **Vercel MCP scope:** the Vercel MCP token is scoped to a different
   team than the CLI account (`qasimahmed4444s-projects`) — use the
   **Vercel CLI** for this project's deploy/log observation, not the MCP.
+- **Vercel preview env-var scoping is per-branch — every new preview
+  branch needs a one-time env replication.** Hit twice now
+  (`brand/integrate-masaar-v1`, then `ui/landing-redesign-v1`).
+  `NEXT_PUBLIC_*` is build-time inlined and the Vercel Preview vars are
+  scoped to a *specific git branch*, so a fresh branch's preview builds
+  with no env → `src/lib/env.ts` fail-fast throws in middleware →
+  **500 `MIDDLEWARE_INVOCATION_FAILED`**. A healthy protected preview
+  returns **401**, not 500. One-time fix per new branch
+  (`vercel` CLI v53, from the masaar dir, replace `BRANCH`):
+  ```
+  vercel env add NEXT_PUBLIC_SUPABASE_URL preview BRANCH \
+    --value https://hsnrupadmygkeirhujiv.supabase.co --yes
+  vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY preview BRANCH \
+    --value <anon key from .env.local> --yes
+  vercel env add NEXT_PUBLIC_APP_URL preview BRANCH \
+    --value https://preview.invalid --yes
+  vercel redeploy <latest BRANCH preview url>   # no --yes flag; redeploy rejects it
+  ```
+  Do **not** add `SUPABASE_SERVICE_ROLE_KEY` to Preview (attack
+  surface). `NEXT_PUBLIC_APP_URL` is a deliberate `preview.invalid`
+  placeholder (brand/visual review only; QR absolute-URL build is
+  intentionally broken-but-obvious on previews). Longer-term fix under
+  discussion (all-previews scope vs a `scripts/setup-preview-env.sh`
+  vs preview-only graceful-degradation in `lib/env.ts`) — see the
+  session report; not yet decided.
 - **PR2 (RESOLVED, kept for history):** `vercel.json` multi-region
   `["fra1","bom1"]` is Pro-only and failed the Hobby deploy; pinned to
   single `bom1` (commit `fix(deploy): pin single region bom1`).

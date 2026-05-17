@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import AuthAside from "@/components/auth-aside";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -35,10 +36,17 @@ export default function SignupPage() {
   }
 
   return (
-    <main className="grid min-h-screen place-items-center bg-gray-50 px-4">
-      <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-sm border border-gray-100">
-        <h1 className="text-2xl font-bold text-gray-900">Create your account</h1>
-        <p className="mt-1 text-sm text-gray-500">It only takes a few seconds.</p>
+    <main className="grid min-h-screen lg:grid-cols-[3fr_2fr]">
+      <div className="flex items-center justify-center bg-sand-light/40 px-4 py-12">
+        <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-sm border border-charcoal/10">
+          <Link
+            href="/"
+            className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-charcoal/55 transition-colors hover:text-deep-teal"
+          >
+            <span aria-hidden>←</span> Back to home
+          </Link>
+          <h1 className="font-display text-2xl font-bold text-charcoal">Create your account</h1>
+          <p className="mt-1 text-sm text-charcoal/55">It only takes a few seconds.</p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <Field label="Full name" type="text" value={fullName} onChange={setFullName} required />
@@ -57,13 +65,15 @@ export default function SignupPage() {
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-gray-500">
-          Already have an account?{" "}
-          <Link href="/login" className="font-semibold text-deep-teal hover:underline">
-            Log in
-          </Link>
-        </p>
+          <p className="mt-6 text-center text-sm text-charcoal/55">
+            Already have an account?{" "}
+            <Link href="/login" className="font-semibold text-deep-teal hover:underline">
+              Log in
+            </Link>
+          </p>
+        </div>
       </div>
+      <AuthAside />
     </main>
   );
 }
