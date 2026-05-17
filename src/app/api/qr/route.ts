@@ -4,6 +4,37 @@ import { generateShortId, isValidShortId } from "@/lib/shortid";
 import { parseHttpUrl } from "@/lib/url";
 import type { QrCode } from "@/types/database";
 
+// Boundary limits. A QR at error-correction level H can't encode much
+// more than ~1KB anyway, and structured payloads are tiny — so reject
+// oversized input instead of parsing/storing a 10MB paste.
+const MAX_BODY_BYTES = 64 * 1024;
+const MAX_DESTINATION_LEN = 2048;
+const MAX_PAYLOAD_BYTES = 8 * 1024;
+
+function bodyTooLarge(request: Request): boolean {
+  const len = request.headers.get("content-length");
+  return !!len && Number(len) > MAX_BODY_BYTES;
+}
+
+function sizeError(body: {
+  destination?: unknown;
+  payload_json?: unknown;
+}): string | null {
+  if (
+    typeof body.destination === "string" &&
+    body.destination.length > MAX_DESTINATION_LEN
+  ) {
+    return `Destination must be ${MAX_DESTINATION_LEN} characters or fewer.`;
+  }
+  if (
+    body.payload_json != null &&
+    JSON.stringify(body.payload_json).length > MAX_PAYLOAD_BYTES
+  ) {
+    return "Structured payload too large.";
+  }
+  return null;
+}
+
 export async function POST(request: Request) {
   const supabase = await createClient();
   const {
@@ -11,7 +42,14 @@ export async function POST(request: Request) {
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  if (bodyTooLarge(request)) {
+    return NextResponse.json({ error: "Request body too large." }, { status: 413 });
+  }
+
   const body = await request.json();
+
+  const sizeErr = sizeError(body);
+  if (sizeErr) return NextResponse.json({ error: sizeErr }, { status: 400 });
 
   const insert: Partial<QrCode> = {
     user_id: user.id,
@@ -63,8 +101,15 @@ export async function PATCH(request: Request) {
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  if (bodyTooLarge(request)) {
+    return NextResponse.json({ error: "Request body too large." }, { status: 413 });
+  }
+
   const body = await request.json();
   if (!body.id) return NextResponse.json({ error: "id required" }, { status: 400 });
+
+  const sizeErr = sizeError(body);
+  if (sizeErr) return NextResponse.json({ error: sizeErr }, { status: 400 });
 
   // Explicit allow-list. Spreading the request body let a client set any
   // column (kind, is_active, password_hash, payload_json, created_at, ...).
