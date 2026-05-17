@@ -4,10 +4,14 @@
 // production deployment fails fast with a clear message instead of
 // silently pointing every QR at localhost or booting without Supabase.
 //
+// IMPORTANT: each NEXT_PUBLIC_* var must be read as a *literal*
+// `process.env.NEXT_PUBLIC_FOO` reference. Next.js only inlines those
+// into the client bundle by static text replacement; a computed
+// `process.env[name]` is NOT replaced and throws in the browser.
+//
 // Dependency-free so it is safe to import from the edge route.
 
-function requireProdEnv(name: string): string {
-  const value = process.env[name];
+function requireProdEnv(name: string, value: string | undefined): string {
   if (value && value.length > 0) return value;
   if (process.env.NODE_ENV === "production") {
     throw new Error(
@@ -20,11 +24,17 @@ function requireProdEnv(name: string): string {
 }
 
 export function supabaseUrl(): string {
-  return requireProdEnv("NEXT_PUBLIC_SUPABASE_URL");
+  return requireProdEnv(
+    "NEXT_PUBLIC_SUPABASE_URL",
+    process.env.NEXT_PUBLIC_SUPABASE_URL
+  );
 }
 
 export function supabaseAnonKey(): string {
-  return requireProdEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY");
+  return requireProdEnv(
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  );
 }
 
 export function appUrl(): string {
