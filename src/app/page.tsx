@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { ArrowRight, QrCode, BarChart3, Pencil, Globe2 } from "lucide-react";
+import { ArrowRight, BarChart3, Pencil, Globe2 } from "lucide-react";
+import LogoMark from "@/components/logo-mark";
 
 export default function LandingPage() {
   return (
@@ -8,20 +9,18 @@ export default function LandingPage() {
       <header className="border-b border-gray-100">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <Link href="/" className="flex items-center gap-2">
-            <div className="h-9 w-9 rounded-lg bg-brand-600 grid place-items-center">
-              <QrCode className="h-5 w-5 text-white" />
-            </div>
+            <LogoMark className="h-9 w-9" />
             <span className="text-xl font-bold tracking-tight">
-              Masaar <span className="text-brand-600 font-arabic">مسار</span>
+              Masaar <span className="text-deep-teal font-arabic">مسار</span>
             </span>
           </Link>
           <nav className="flex items-center gap-3">
-            <Link href="/login" className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900">
+            <Link href="/login" className="px-4 py-2 text-sm font-medium text-charcoal hover:text-terracotta">
               Log in
             </Link>
             <Link
               href="/dashboard/qr/new"
-              className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700"
+              className="rounded-lg bg-deep-teal px-4 py-2 text-sm font-semibold text-white hover:bg-terracotta active:bg-terracotta-dark"
             >
               Create QR Code
             </Link>
@@ -30,27 +29,27 @@ export default function LandingPage() {
       </header>
 
       {/* Hero */}
-      <section className="mx-auto max-w-6xl px-6 pt-20 pb-16 text-center">
+      <section className="mx-auto max-w-6xl px-6 pt-28 pb-24 text-center">
         <span className="inline-block rounded-full border border-gray-200 bg-gray-50 px-4 py-1 text-xs font-medium uppercase tracking-wider text-gray-700">
           Live tracking · Editable anytime
         </span>
-        <h1 className="mt-6 text-balance text-5xl font-bold tracking-tight text-gray-900 sm:text-6xl md:text-7xl">
-          One QR. <span className="text-brand-600">Every scan, tracked.</span>
+        <h1 className="mt-6 text-balance text-5xl md:text-6xl font-display font-bold tracking-tight leading-[1.1] text-gray-900">
+          Every scan has <span className="text-deep-teal">a path.</span>
         </h1>
-        <p className="mt-6 mx-auto max-w-2xl text-balance text-lg text-gray-600">
-          Generate a branded QR code in seconds. Track every scan in real time. Change where it
-          points — even after it&apos;s printed.
+        <p className="mt-6 mx-auto max-w-2xl text-balance text-base leading-relaxed text-gray-600">
+          Adaptive dynamic QR codes for GCC businesses. Create, manage, and edit
+          destinations in real time — without reprinting.
         </p>
         <div className="mt-10 flex items-center justify-center gap-3">
           <Link
             href="/dashboard/qr/new"
-            className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-6 py-3 text-base font-semibold text-white hover:bg-brand-700"
+            className="inline-flex items-center gap-2 rounded-lg bg-deep-teal px-6 py-3 text-base font-semibold text-white hover:bg-terracotta active:bg-terracotta-dark"
           >
             Create QR Code <ArrowRight className="h-4 w-4" />
           </Link>
           <Link
             href="#features"
-            className="rounded-lg border border-gray-200 px-6 py-3 text-base font-semibold text-gray-900 hover:bg-gray-50"
+            className="rounded-lg border border-gray-200 px-6 py-3 text-base font-semibold text-charcoal hover:bg-gray-50 hover:text-terracotta"
           >
             See how it works
           </Link>
@@ -99,7 +98,7 @@ function FeatureCard({
 }) {
   return (
     <div className="rounded-2xl border border-gray-100 bg-white p-8 shadow-sm">
-      <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
+      <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-deep-teal/10 text-deep-teal">
         {icon}
       </div>
       <h3 className="mt-4 text-lg font-semibold text-gray-900">{title}</h3>

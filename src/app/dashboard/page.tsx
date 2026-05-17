@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import DashboardShell from "@/components/dashboard-shell";
 import { BarChart3, Pencil, QrCode, Plus } from "lucide-react";
+import LogoMark from "@/components/logo-mark";
 
 export const dynamic = "force-dynamic";
 
@@ -38,14 +39,14 @@ export default async function DashboardPage() {
     <DashboardShell>
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Your QR codes</h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <h1 className="text-2xl md:text-3xl font-display font-bold tracking-tight">Your QR codes</h1>
+          <p className="mt-1 text-xs uppercase tracking-wider text-charcoal/60">
             {qrs?.length ?? 0} {qrs?.length === 1 ? "code" : "codes"} total
           </p>
         </div>
         <Link
           href="/dashboard/qr/new"
-          className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700"
+          className="inline-flex items-center gap-2 rounded-lg bg-deep-teal px-4 py-2 text-sm font-semibold text-white hover:bg-deep-teal-dark transition-colors duration-200"
         >
           <Plus className="h-4 w-4" /> New QR Code
         </Link>
@@ -58,11 +59,11 @@ export default async function DashboardPage() {
           {qrs.map((q) => (
             <div
               key={q.id}
-              className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm"
+              className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm hover:-translate-y-0.5 hover:shadow-md transition duration-200"
             >
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="h-10 w-10 rounded-lg bg-brand-50 grid place-items-center text-brand-600">
+                  <div className="h-10 w-10 rounded-lg bg-deep-teal/10 grid place-items-center text-deep-teal">
                     <QrCode className="h-5 w-5" />
                   </div>
                   <div>
@@ -78,13 +79,13 @@ export default async function DashboardPage() {
               <div className="mt-4 flex gap-2">
                 <Link
                   href={`/dashboard/qr/${q.id}`}
-                  className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                  className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-charcoal hover:bg-gray-50 hover:text-terracotta"
                 >
                   <Pencil className="h-3.5 w-3.5" /> Edit
                 </Link>
                 <Link
                   href={`/dashboard/qr/${q.id}/analytics`}
-                  className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                  className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-charcoal hover:bg-gray-50 hover:text-terracotta"
                 >
                   <BarChart3 className="h-3.5 w-3.5" /> Analytics
                 </Link>
@@ -99,17 +100,17 @@ export default async function DashboardPage() {
 
 function EmptyState() {
   return (
-    <div className="mt-12 rounded-2xl border border-dashed border-gray-200 bg-white p-12 text-center">
-      <div className="mx-auto h-14 w-14 rounded-full bg-brand-50 grid place-items-center text-brand-600">
-        <QrCode className="h-7 w-7" />
-      </div>
-      <h3 className="mt-4 text-lg font-semibold text-gray-900">No QR codes yet</h3>
-      <p className="mt-1 text-sm text-gray-500">
-        Create your first dynamic QR code and start tracking scans.
+    <div className="mt-12 rounded-2xl border border-sand-dark bg-sand p-12 text-center">
+      <LogoMark className="mx-auto h-16 w-16 opacity-30" />
+      <h3 className="mt-4 text-lg md:text-xl font-display font-semibold text-charcoal">
+        Your dashboard is empty
+      </h3>
+      <p className="mt-2 mx-auto max-w-sm text-base leading-relaxed text-charcoal/60">
+        Create your first dynamic QR code and watch scans roll in.
       </p>
       <Link
         href="/dashboard/qr/new"
-        className="mt-6 inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700"
+        className="mt-6 inline-flex items-center gap-2 rounded-lg bg-deep-teal px-4 py-2 text-sm font-semibold text-white hover:bg-terracotta transition-colors duration-200"
       >
         <Plus className="h-4 w-4" /> Create QR Code
       </Link>

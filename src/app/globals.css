@@ -17,3 +17,16 @@ html, body {
 @layer utilities {
   .text-balance { text-wrap: balance; }
 }
+
+@layer base {
+  * {
+    transition-property: background-color, border-color, color, fill, stroke,
+      opacity, box-shadow, transform;
+    transition-duration: 150ms;
+  }
+  /* qr-preview re-renders the QR live; transitions there cause lag */
+  .qr-live,
+  .qr-live * {
+    transition-property: none !important;
+  }
+}

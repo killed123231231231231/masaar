@@ -1,9 +1,14 @@
 import type { Metadata } from "next";
-import { Inter, Cairo } from "next/font/google";
+import { Inter, IBM_Plex_Sans_Arabic, Manrope } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
-const cairo = Cairo({ subsets: ["arabic", "latin"], variable: "--font-cairo" });
+const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope" });
+const plexArabic = IBM_Plex_Sans_Arabic({
+  subsets: ["arabic", "latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-plex",
+});
 
 export const metadata: Metadata = {
   title: "Masaar — Branded QR codes with live tracking",
@@ -14,6 +19,14 @@ export const metadata: Metadata = {
     description: "One QR. Every scan, tracked.",
     type: "website",
   },
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/logo-mark.svg", type: "image/svg+xml" },
+      { url: "/icon-512.png", type: "image/png", sizes: "512x512" },
+    ],
+    apple: { url: "/apple-touch-icon.png", sizes: "180x180" },
+  },
 };
 
 export default function RootLayout({
@@ -22,7 +35,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${cairo.variable}`}>
+    <html lang="en" className={`${inter.variable} ${manrope.variable} ${plexArabic.variable}`}>
       <body className="font-sans antialiased">{children}</body>
     </html>
   );

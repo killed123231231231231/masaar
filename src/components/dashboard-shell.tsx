@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { QrCode, LayoutDashboard, Plus, LogOut } from "lucide-react";
+import { LayoutDashboard, Plus, LogOut } from "lucide-react";
+import LogoMark from "@/components/logo-mark";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
@@ -20,11 +21,9 @@ export default async function DashboardShell({
       <header className="border-b border-gray-100 bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
           <Link href="/dashboard" className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-brand-600 grid place-items-center">
-              <QrCode className="h-4 w-4 text-white" />
-            </div>
+            <LogoMark className="h-8 w-8" />
             <span className="font-bold tracking-tight">
-              Masaar <span className="text-brand-600 font-arabic">مسار</span>
+              Masaar <span className="text-deep-teal font-arabic">مسار</span>
             </span>
           </Link>
 
@@ -38,7 +37,7 @@ export default async function DashboardShell({
             </Link>
             <Link
               href="/dashboard/qr/new"
-              className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 font-semibold text-white hover:bg-brand-700"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-deep-teal px-3 py-1.5 font-semibold text-white hover:bg-deep-teal-dark transition-colors duration-200"
             >
               <Plus className="h-4 w-4" />
               New QR
@@ -56,7 +55,7 @@ export default async function DashboardShell({
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-6 py-8">{children}</main>
+      <main className="mx-auto max-w-6xl px-6 py-10">{children}</main>
     </div>
   );
 }
