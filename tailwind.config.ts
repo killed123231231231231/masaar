@@ -17,8 +17,9 @@ export default {
         brand: { DEFAULT: "#0F5B55", light: "#3FA39A", dark: "#073d3a" },
       },
       fontFamily: {
+        display: ["var(--font-manrope)", "system-ui", "sans-serif"],
         sans: ["var(--font-inter)", "system-ui", "sans-serif"],
-        arabic: ["var(--font-cairo)", "system-ui", "sans-serif"],
+        arabic: ["var(--font-plex)", "system-ui", "sans-serif"],
       },
     },
   },
