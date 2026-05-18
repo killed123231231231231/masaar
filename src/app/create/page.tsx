@@ -1,10 +1,18 @@
 import Link from "next/link";
 import LogoMark from "@/components/logo-mark";
+import { createClient } from "@/lib/supabase/server";
 import CreateClient from "./create-client";
 
-// Public, no auth (middleware only gates /dashboard). The anonymous
-// funnel entry point — slim branded chrome, no DashboardShell.
-export default function CreatePage() {
+// Public (middleware only gates /dashboard). Anonymous visitors get the
+// email-gate funnel; an already-authed user skips it and the QR is
+// created straight onto their account (Bug 4).
+export default async function CreatePage() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const isAuthed = !!user;
+
   return (
     <main className="min-h-screen bg-sand-light/40">
       <header className="border-b border-charcoal/10 bg-white">
@@ -16,10 +24,10 @@ export default function CreatePage() {
             </span>
           </Link>
           <Link
-            href="/login"
+            href={isAuthed ? "/dashboard" : "/login"}
             className="text-sm font-medium text-charcoal/65 transition-colors hover:text-deep-teal"
           >
-            Log in
+            {isAuthed ? "Dashboard" : "Log in"}
           </Link>
         </div>
       </header>
@@ -30,10 +38,12 @@ export default function CreatePage() {
             Create your QR code
           </h1>
           <p className="mt-1 text-sm text-charcoal/60">
-            Build it now — no account needed. We’ll email it to you.
+            {isAuthed
+              ? "Build it and we’ll add it straight to your account."
+              : "Build it now — no account needed. We’ll email it to you."}
           </p>
         </div>
-        <CreateClient />
+        <CreateClient isAuthed={isAuthed} />
       </div>
     </main>
   );
