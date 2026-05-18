@@ -54,7 +54,16 @@ export default function QrCustomizer({ initialShortId, onSave, saving }: Props) 
   const [textValue, setTextValue] = useState("");
 
   // Structured payloads
-  const [vcard, setVcard] = useState({ firstName: "", lastName: "", phone: "", email: "" });
+  const [vcard, setVcard] = useState({
+    firstName: "",
+    lastName: "",
+    phone: "",
+    email: "",
+    organization: "",
+    title: "",
+    website: "",
+    address: "",
+  });
   const [wifi, setWifi] = useState({ ssid: "", password: "", encryption: "WPA" as "WPA" | "WEP" | "nopass" });
   const [email, setEmail] = useState({ to: "", subject: "", body: "" });
   const [sms, setSms] = useState({ number: "", message: "" });
@@ -114,6 +123,15 @@ export default function QrCustomizer({ initialShortId, onSave, saving }: Props) 
     }
   }, [content_kind, vcard, wifi, email, sms, phone]);
 
+  // Non-URL content types encode their payload directly into the QR —
+  // there's nothing to redirect, so they're inherently STATIC. Picking
+  // one auto-switches kind so the tabs aren't dead-ends behind the
+  // dynamic default (the "only URL is exposed" report).
+  function selectContent(k: ContentKind) {
+    setContentKind(k);
+    if (k !== "url") setKind("static");
+  }
+
   async function handleSave() {
     await onSave({
       name,
@@ -149,8 +167,9 @@ export default function QrCustomizer({ initialShortId, onSave, saving }: Props) 
           <div className="grid grid-cols-2 gap-3">
             <KindCard
               active={kind === "dynamic"}
+              disabled={content_kind !== "url"}
               title="Dynamic"
-              body="Editable destination, tracked scans. Requires URL content."
+              body="Editable destination, tracked scans. URL content only."
               onClick={() => setKind("dynamic")}
             />
             <KindCard
@@ -168,9 +187,8 @@ export default function QrCustomizer({ initialShortId, onSave, saving }: Props) 
             {CONTENT_TABS.map((t) => (
               <button
                 key={t.key}
-                disabled={kind === "dynamic" && t.key !== "url"}
-                onClick={() => setContentKind(t.key)}
-                className={`rounded-lg px-3 py-1.5 text-sm font-medium disabled:opacity-40 ${
+                onClick={() => selectContent(t.key)}
+                className={`rounded-lg px-3 py-1.5 text-sm font-medium ${
                   content_kind === t.key
                     ? "bg-deep-teal text-white"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -180,11 +198,11 @@ export default function QrCustomizer({ initialShortId, onSave, saving }: Props) 
               </button>
             ))}
           </div>
-          {kind === "dynamic" && (
-            <p className="mt-2 text-xs text-gray-500">
-              Dynamic QRs only support URL destinations (they route through your Masaar link).
-            </p>
-          )}
+          <p className="mt-2 text-xs text-gray-500">
+            {content_kind === "url"
+              ? "URL can be dynamic (editable, tracked) or static."
+              : `${CONTENT_TABS.find((t) => t.key === content_kind)?.label} is encoded directly into the QR — it's a static code (no redirect or tracking).`}
+          </p>
 
           <div className="mt-4 space-y-3">
             {content_kind === "url" && (
@@ -199,6 +217,14 @@ export default function QrCustomizer({ initialShortId, onSave, saving }: Props) 
                 <Input label="Last name" value={vcard.lastName} onChange={(v) => setVcard({ ...vcard, lastName: v })} />
                 <Input label="Phone" value={vcard.phone} onChange={(v) => setVcard({ ...vcard, phone: v })} />
                 <Input label="Email" value={vcard.email} onChange={(v) => setVcard({ ...vcard, email: v })} />
+                <Input label="Company" value={vcard.organization} onChange={(v) => setVcard({ ...vcard, organization: v })} />
+                <Input label="Job title" value={vcard.title} onChange={(v) => setVcard({ ...vcard, title: v })} />
+                <div className="col-span-2">
+                  <Input label="Website" value={vcard.website} onChange={(v) => setVcard({ ...vcard, website: v })} placeholder="https://example.com" />
+                </div>
+                <div className="col-span-2">
+                  <Input label="Address" value={vcard.address} onChange={(v) => setVcard({ ...vcard, address: v })} />
+                </div>
               </div>
             )}
             {content_kind === "wifi" && (
@@ -383,12 +409,13 @@ function Select({
 }
 
 function KindCard({
-  active, title, body, onClick,
-}: { active: boolean; title: string; body: string; onClick: () => void }) {
+  active, title, body, onClick, disabled,
+}: { active: boolean; title: string; body: string; onClick: () => void; disabled?: boolean }) {
   return (
     <button
       onClick={onClick}
-      className={`text-left rounded-xl border p-4 transition ${
+      disabled={disabled}
+      className={`text-left rounded-xl border p-4 transition disabled:opacity-40 disabled:cursor-not-allowed ${
         active
           ? "border-deep-teal bg-deep-teal/10 ring-2 ring-deep-teal/20"
           : "border-gray-200 bg-white hover:bg-gray-50"
