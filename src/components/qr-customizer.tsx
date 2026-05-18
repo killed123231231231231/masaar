@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import QrPreview from "@/components/qr-preview";
 import { encodeEmail, encodePhone, encodeSms, encodeVCard, encodeWifi, encodeWhatsapp, encodeAppLink } from "@/lib/content-types";
 import { normalizeUrl } from "@/lib/url";
@@ -223,6 +223,23 @@ export default function QrCustomizer({ initialShortId, onSave, saving, allowLogo
       logo_url: logoUrl,
     });
   }
+
+  // Bug 8: rebuilding the QR on every keystroke flashes the preview.
+  // Memoize the live style, then debounce by 300ms so qr-code-styling
+  // re-renders once typing settles, not per character.
+  const liveStyle = useMemo(
+    () => ({
+      data: previewData,
+      fgColor,
+      bgColor,
+      gradientColor: gradient,
+      dotStyle,
+      cornerStyle,
+      logoUrl,
+    }),
+    [previewData, fgColor, bgColor, gradient, dotStyle, cornerStyle, logoUrl]
+  );
+  const previewStyle = useDebouncedValue(liveStyle, 300);
 
   return (
     <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
@@ -472,17 +489,7 @@ export default function QrCustomizer({ initialShortId, onSave, saving, allowLogo
       {/* RIGHT — preview */}
       <aside className="lg:sticky lg:top-8 self-start">
         <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-          <QrPreview
-            style={{
-              data: previewData,
-              fgColor,
-              bgColor,
-              gradientColor: gradient,
-              dotStyle,
-              cornerStyle,
-              logoUrl,
-            }}
-          />
+          <QrPreview style={previewStyle} />
           {kind === "dynamic" && (
             <p className="mt-4 text-center text-xs text-gray-500">
               Embeds <code className="text-deep-teal">/r/{shortId}</code> · destination editable anytime
@@ -492,6 +499,15 @@ export default function QrCustomizer({ initialShortId, onSave, saving, allowLogo
       </aside>
     </div>
   );
+}
+
+function useDebouncedValue<T>(value: T, delay: number): T {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const id = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(id);
+  }, [value, delay]);
+  return debounced;
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
