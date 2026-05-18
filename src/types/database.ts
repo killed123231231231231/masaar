@@ -15,7 +15,10 @@ export type ContentKind =
   | "wifi"
   | "email"
   | "sms"
-  | "phone";
+  | "phone"
+  | "whatsapp"
+  | "app_link";
+export type QrStatus = "draft" | "pending_payment" | "active" | "suspended";
 
 export interface QrCode {
   id: string;
@@ -26,6 +29,8 @@ export interface QrCode {
   kind: QrKind;
   content_kind: ContentKind;
   destination: string;
+  status: QrStatus;
+  draft_token: string | null;
   payload_json: Record<string, unknown> | null;
   password_hash: string | null;
   fg_color: string;
@@ -37,6 +42,7 @@ export interface QrCode {
   frame_style: string | null;
   frame_text: string | null;
   is_active: boolean;
+  creator_ip_hash: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -60,6 +66,10 @@ export interface Profile {
   full_name: string | null;
   avatar_url: string | null;
   created_at: string;
+  subscription_status: string | null;
+  stripe_customer_id: string | null;
+  stripe_subscription_id: string | null;
+  current_period_end: string | null;
 }
 
 export interface Folder {
@@ -103,14 +113,46 @@ export interface Database {
         Args: { p_short_id: string };
         Returns: { id: string; destination: string }[];
       };
+      resolve_qr_v2: {
+        Args: { p_short_id: string };
+        Returns: {
+          id: string;
+          destination: string;
+          status: QrStatus;
+          content_type: ContentKind;
+        }[];
+      };
       scan_counts: {
         Args: { p_ids: string[] };
         Returns: { qr_code_id: string; count: number }[];
+      };
+      claim_draft_qrs: {
+        Args: { p_draft_token: string };
+        Returns: { short_id: string }[];
+      };
+      create_anon_qr: {
+        Args: {
+          p_name: string;
+          p_kind: QrKind;
+          p_content_kind: ContentKind;
+          p_destination: string;
+          p_payload_json: Record<string, unknown> | null;
+          p_short_id: string;
+          p_draft_token: string;
+          p_fg_color: string;
+          p_bg_color: string;
+          p_gradient_color: string | null;
+          p_dot_style: string;
+          p_corner_style: string;
+          p_ip_hash: string;
+        };
+        Returns: { id: string; short_id: string }[];
       };
     };
     Enums: {
       qr_kind: QrKind;
       content_kind: ContentKind;
+      qr_status: QrStatus;
     };
     CompositeTypes: { [_ in never]: never };
   };

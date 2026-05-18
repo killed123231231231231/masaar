@@ -2,14 +2,32 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import QrPreview from "@/components/qr-preview";
 import type { QrCode } from "@/types/database";
 import { appUrl } from "@/lib/utils";
+
+const DOT_STYLES = [
+  "square",
+  "dots",
+  "rounded",
+  "classy",
+  "classy-rounded",
+  "extra-rounded",
+];
+const CORNER_STYLES = ["square", "dot", "extra-rounded"];
 
 export default function EditQrClient({ initial }: { initial: QrCode }) {
   const router = useRouter();
   const [destination, setDestination] = useState(initial.destination);
   const [name, setName] = useState(initial.name);
+  const [fgColor, setFgColor] = useState(initial.fg_color);
+  const [bgColor, setBgColor] = useState(initial.bg_color);
+  const [gradient, setGradient] = useState<string | null>(
+    initial.gradient_color
+  );
+  const [dotStyle, setDotStyle] = useState(initial.dot_style);
+  const [cornerStyle, setCornerStyle] = useState(initial.corner_style);
   const [saving, setSaving] = useState(false);
 
   const previewData =
@@ -22,14 +40,24 @@ export default function EditQrClient({ initial }: { initial: QrCode }) {
     const res = await fetch("/api/qr", {
       method: "PATCH",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ id: initial.id, destination, name }),
+      body: JSON.stringify({
+        id: initial.id,
+        name,
+        destination,
+        fg_color: fgColor,
+        bg_color: bgColor,
+        gradient_color: gradient,
+        dot_style: dotStyle,
+        corner_style: cornerStyle,
+      }),
     });
     setSaving(false);
     if (!res.ok) {
-      alert("Failed to save");
+      toast.error("Couldn’t save changes. Try again.");
       return;
     }
-    router.refresh();
+    toast.success("Changes saved");
+    setTimeout(() => router.push("/dashboard"), 800);
   }
 
   return (
@@ -44,7 +72,11 @@ export default function EditQrClient({ initial }: { initial: QrCode }) {
         </Section>
 
         <Section
-          title={initial.kind === "dynamic" ? "Destination URL (editable any time)" : "Encoded content"}
+          title={
+            initial.kind === "dynamic"
+              ? "Destination URL (editable any time)"
+              : "Encoded content"
+          }
         >
           <input
             value={destination}
@@ -54,9 +86,57 @@ export default function EditQrClient({ initial }: { initial: QrCode }) {
           />
           {initial.kind === "static" && (
             <p className="mt-2 text-xs text-amber-600">
-              Static QRs can&apos;t be edited — the value is embedded directly in the printed code.
+              Static QRs can&apos;t be edited — the value is embedded directly
+              in the printed code.
             </p>
           )}
+          <p className="mt-2 text-xs text-gray-400 capitalize">
+            Type: {initial.kind} · {initial.content_kind} (locked)
+          </p>
+        </Section>
+
+        <Section title="Design">
+          <div className="grid grid-cols-2 gap-4">
+            <ColorField label="Foreground" value={fgColor} onChange={setFgColor} />
+            <ColorField label="Background" value={bgColor} onChange={setBgColor} />
+          </div>
+
+          <div className="mt-4">
+            <label className="flex items-center gap-2 text-sm text-gray-700">
+              <input
+                type="checkbox"
+                checked={gradient !== null}
+                onChange={(e) =>
+                  setGradient(e.target.checked ? fgColor : null)
+                }
+              />
+              Use gradient
+            </label>
+            {gradient !== null && (
+              <div className="mt-2">
+                <ColorField
+                  label="Gradient end"
+                  value={gradient}
+                  onChange={setGradient}
+                />
+              </div>
+            )}
+          </div>
+
+          <div className="mt-4 grid grid-cols-2 gap-4">
+            <SelectField
+              label="Dot style"
+              value={dotStyle}
+              options={DOT_STYLES}
+              onChange={setDotStyle}
+            />
+            <SelectField
+              label="Corner style"
+              value={cornerStyle}
+              options={CORNER_STYLES}
+              onChange={setCornerStyle}
+            />
+          </div>
         </Section>
 
         <button
@@ -73,11 +153,12 @@ export default function EditQrClient({ initial }: { initial: QrCode }) {
           <QrPreview
             style={{
               data: previewData,
-              fgColor: initial.fg_color,
-              bgColor: initial.bg_color,
-              gradientColor: initial.gradient_color,
-              dotStyle: initial.dot_style,
-              cornerStyle: initial.corner_style,
+              fgColor,
+              bgColor,
+              gradientColor: gradient,
+              dotStyle,
+              cornerStyle,
+              logoUrl: initial.logo_url,
             }}
           />
         </div>
@@ -86,11 +167,77 @@ export default function EditQrClient({ initial }: { initial: QrCode }) {
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
   return (
     <div>
-      <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">{title}</h3>
+      <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
+        {title}
+      </h3>
       <div className="mt-3">{children}</div>
     </div>
+  );
+}
+
+function ColorField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <label className="block">
+      <span className="block text-xs font-medium text-gray-500">{label}</span>
+      <span className="mt-1 flex items-center gap-2">
+        <input
+          type="color"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="h-9 w-12 cursor-pointer rounded border border-gray-200"
+        />
+        <input
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="h-9 w-full rounded-lg border border-gray-200 px-2 text-xs"
+        />
+      </span>
+    </label>
+  );
+}
+
+function SelectField({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  options: string[];
+  onChange: (v: string) => void;
+}) {
+  return (
+    <label className="block">
+      <span className="block text-xs font-medium text-gray-500">{label}</span>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="mt-1 h-9 w-full rounded-lg border border-gray-200 bg-white px-2 text-sm capitalize"
+      >
+        {options.map((o) => (
+          <option key={o} value={o}>
+            {o.replace(/-/g, " ")}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }

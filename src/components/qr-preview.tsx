@@ -28,7 +28,13 @@ export default function QrPreview({ style }: { style: QrStyle }) {
     if (!qrRef.current) return;
     qrRef.current.update({
       data: style.data,
-      image: style.logoDataUrl || undefined,
+      image: style.logoUrl || style.logoDataUrl || undefined,
+      imageOptions: {
+        crossOrigin: "anonymous",
+        margin: 4,
+        imageSize: 0.3,
+        hideBackgroundDots: true,
+      },
       dotsOptions: {
         type: (style.dotStyle as "square") ?? "square",
         ...(style.gradientColor

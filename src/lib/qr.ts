@@ -13,6 +13,7 @@ export interface QrStyle {
   dotStyle?: string;       // square | dots | rounded | classy | classy-rounded | extra-rounded
   cornerStyle?: string;    // square | dot | extra-rounded
   logoDataUrl?: string | null;
+  logoUrl?: string | null;   // public URL (Supabase storage) — preferred
   errorLevel?: "L" | "M" | "Q" | "H";
 }
 
@@ -24,7 +25,7 @@ export function buildQrOptions(s: QrStyle): QrOptions {
     height: s.height ?? 320,
     type: "svg",
     data: s.data,
-    image: s.logoDataUrl || undefined,
+    image: s.logoUrl || s.logoDataUrl || undefined,
     margin: 8,
     qrOptions: {
       errorCorrectionLevel: s.errorLevel ?? "H",
@@ -55,7 +56,7 @@ export function buildQrOptions(s: QrStyle): QrOptions {
     },
     imageOptions: {
       hideBackgroundDots: true,
-      imageSize: 0.35,
+      imageSize: 0.3,
       margin: 4,
       crossOrigin: "anonymous",
     },

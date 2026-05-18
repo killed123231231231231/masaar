@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import QrCustomizer, { type SavePayload } from "@/components/qr-customizer";
 
 export default function NewQrClient() {
@@ -21,9 +22,18 @@ export default function NewQrClient() {
       alert(error || "Failed to save");
       return;
     }
-    const { id } = await res.json();
-    router.push(`/dashboard/qr/${id}`);
+    const row = await res.json().catch(() => null);
+    // Subscriber → active immediately: confirm + back to dashboard.
+    // Pending dynamic → checkout lock-in. Static → the QR's page.
+    if (row?.status === "active") {
+      toast.success("QR created!");
+      setTimeout(() => router.push("/dashboard?welcome_new_qr=1"), 800);
+    } else if (row?.short_id) {
+      router.push(`/checkout/${row.short_id}`);
+    } else {
+      router.push(`/dashboard/qr/${row?.id}`);
+    }
   }
 
-  return <QrCustomizer onSave={handleSave} saving={saving} />;
+  return <QrCustomizer onSave={handleSave} saving={saving} allowLogo />;
 }

@@ -6,6 +6,25 @@ import { supabaseUrl, supabaseAnonKey } from "@/lib/env";
 
 // Edge runtime is fast and exposes Vercel geo headers
 export const runtime = "edge";
+// The redirect target depends on the QR's *live* status — it must never
+// be cached at the route, data/fetch, or CDN/browser layer, or a QR
+// flipped to pending_payment would keep 302-ing to its destination
+// (lock-in bypass). force-dynamic + no-store closes that entire class.
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
+
+const NO_STORE = {
+  "Cache-Control": "no-store, no-cache, must-revalidate",
+  "CDN-Cache-Control": "no-store",
+} as const;
+
+function notFound() {
+  return new NextResponse("QR code not found", {
+    status: 404,
+    headers: NO_STORE,
+  });
+}
 
 /**
  * Redirect handler for dynamic QRs.
@@ -36,25 +55,39 @@ export async function GET(
     }
   );
 
-  // Resolve via a SECURITY DEFINER function (see migration 002): the
-  // qr_codes table has no public read policy, so anon cannot select
-  // password_hash / payload_json. This returns only (id, destination)
-  // for active rows.
-  const { data, error } = await supabase.rpc("resolve_qr", {
+  // Resolve via a SECURITY DEFINER function (migration 004): qr_codes has
+  // no public read policy, so anon cannot select password_hash /
+  // payload_json. resolve_qr_v2 returns (id, destination, status,
+  // content_type) for *any* row (status branching happens here, not in SQL).
+  const { data, error } = await supabase.rpc("resolve_qr_v2", {
     p_short_id: shortId,
   });
   const qr = Array.isArray(data) ? data[0] : null;
 
-  if (error || !qr) {
-    return new NextResponse("QR code not found", { status: 404 });
-  }
+  if (error || !qr) return notFound();
 
-  // Only ever redirect to a valid http(s) URL. A destination of "https://",
-  // a scheme-less string, javascript:/data:, or a non-URL payload would
-  // otherwise throw inside NextResponse.redirect (500 on every scan).
-  const target = parseHttpUrl(qr.destination);
-  if (!target) {
-    return new NextResponse("QR code not found", { status: 404 });
+  // Fail CLOSED: the real destination is reachable on EXACTLY one
+  // status ('active'). Every other value — pending_payment, suspended,
+  // draft, or any unexpected/missing status — routes to a lock-in /
+  // dead-end / 404, never the destination. A desynced or stale
+  // resolver can therefore never leak a non-active destination.
+  let redirectTo: string;
+  if (qr.status === "active") {
+    // A destination of "https://", a scheme-less string, javascript:/data:,
+    // or a non-URL payload would otherwise throw inside
+    // NextResponse.redirect (500 on every scan). Don't log a broken active
+    // scan (preserves prior behavior).
+    const target = parseHttpUrl(qr.destination);
+    if (!target) return notFound();
+    redirectTo = target.toString();
+  } else if (qr.status === "pending_payment") {
+    // Still logs the scan below — owner sees activity on an unpaid QR.
+    redirectTo = new URL(`/activate/${shortId}`, request.url).toString();
+  } else if (qr.status === "suspended") {
+    redirectTo = new URL(`/expired/${shortId}`, request.url).toString();
+  } else {
+    // draft or anything unexpected — never resolvable.
+    return notFound();
   }
 
   // Extract scan metadata
@@ -88,7 +121,9 @@ export async function GET(
     ip_hash: ipHash,
   });
 
-  return NextResponse.redirect(target.toString(), 302);
+  const res = NextResponse.redirect(redirectTo, 302);
+  for (const [k, v] of Object.entries(NO_STORE)) res.headers.set(k, v);
+  return res;
 }
 
 function decodeSafe(v: string | null): string | null {
