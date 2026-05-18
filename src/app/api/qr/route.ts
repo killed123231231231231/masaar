@@ -117,6 +117,15 @@ export async function PATCH(request: Request) {
   const patch: Partial<QrCode> = {};
   if (typeof body.name === "string") patch.name = body.name;
   if (typeof body.destination === "string") patch.destination = body.destination;
+  // Design fields are editable. kind and content_kind are deliberately
+  // NOT patchable — changing them would desync the encoded payload from
+  // the printed code.
+  if (typeof body.fg_color === "string") patch.fg_color = body.fg_color;
+  if (typeof body.bg_color === "string") patch.bg_color = body.bg_color;
+  if (typeof body.gradient_color === "string" || body.gradient_color === null)
+    patch.gradient_color = body.gradient_color;
+  if (typeof body.dot_style === "string") patch.dot_style = body.dot_style;
+  if (typeof body.corner_style === "string") patch.corner_style = body.corner_style;
 
   if (Object.keys(patch).length === 0) {
     return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
