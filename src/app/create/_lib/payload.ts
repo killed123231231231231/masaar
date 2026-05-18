@@ -9,7 +9,14 @@ import {
 } from "@/lib/content-types";
 import { normalizeUrl } from "@/lib/url";
 import type { ContentKind, QrKind } from "@/types/database";
-import { typeMeta, kindFor, defaultName, type WizardType } from "./types";
+import {
+  typeMeta,
+  kindFor,
+  defaultName,
+  DEFAULT_CUSTOMIZATION,
+  type Customization,
+  type WizardType,
+} from "./types";
 
 // Mirrors the /api/qr + /api/qr/anonymous body. Reuses the SAME
 // encoders/normalizer as the legacy builder — the wizard only
@@ -35,8 +42,10 @@ export function buildPayload(args: {
   form: Record<string, any>;
   name: string;
   shortId: string;
+  customization?: Customization;
 }): { payload?: QrSavePayload; error?: string } {
   const { type, form, shortId } = args;
+  const c = args.customization ?? DEFAULT_CUSTOMIZATION;
   const meta = typeMeta(type);
   if (!meta.backend) {
     return { error: "This content type isn’t available yet." };
@@ -132,14 +141,12 @@ export function buildPayload(args: {
       short_id: shortId,
       destination,
       payload_json,
-      // Step 3 customization layers onto these later this session;
-      // sane brand-neutral defaults for the keystone path.
-      fg_color: "#000000",
-      bg_color: "#FFFFFF",
-      gradient_color: null,
-      dot_style: "square",
-      corner_style: "square",
-      logo_url: null,
+      fg_color: c.fg_color,
+      bg_color: c.bg_color,
+      gradient_color: c.gradient_color,
+      dot_style: c.dot_style,
+      corner_style: c.corner_style,
+      logo_url: c.logo_url,
     },
   };
 }

@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { generateShortId } from "@/lib/shortid";
 import { createClient } from "@/lib/supabase/client";
+import { appUrl } from "@/lib/utils";
 import EmailGateModal from "@/components/email-gate-modal";
 import ProgressBar from "./_components/progress-bar";
 import Step1Type from "./_components/step-1-type";
@@ -14,8 +15,11 @@ import Step3Customize from "./_components/step-3-customize";
 import { buildPayload } from "./_lib/payload";
 import {
   WIZARD_KEY,
+  DEFAULT_CUSTOMIZATION,
   defaultName,
+  kindFor,
   typeMeta,
+  type Customization,
   type WizardState,
   type WizardType,
 } from "./_lib/types";
@@ -31,9 +35,11 @@ export default function WizardClient({ isAuthed }: { isAuthed: boolean }) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [form, setForm] = useState<Record<string, any>>({});
   const [name, setName] = useState("");
+  const [custom, setCustom] = useState<Customization>(DEFAULT_CUSTOMIZATION);
   const [saving, setSaving] = useState(false);
   const [gateOpen, setGateOpen] = useState(false);
   const draftToken = useRef<string>("");
+  const shortId = useRef<string>("");
   const restored = useRef(false);
 
   // Restore from localStorage once on mount (SSR-safe).
@@ -45,12 +51,17 @@ export default function WizardClient({ isAuthed }: { isAuthed: boolean }) {
         if (s.content_type) setType(s.content_type);
         if (s.form_data) setForm(s.form_data);
         if (s.name) setName(s.name);
+        if (s.customization) setCustom(s.customization);
         if (s.draft_token) draftToken.current = s.draft_token;
+        if (s.short_id) shortId.current = s.short_id;
       }
     } catch {
       /* ignore corrupt state */
     }
     if (!draftToken.current) draftToken.current = crypto.randomUUID();
+    // Stable client shortId so the Step-3 preview encodes the SAME
+    // /r/<id> that gets persisted (the Session A invariant).
+    if (!shortId.current) shortId.current = generateShortId();
     // URL ?step wins for deep-links, but never ahead of what's valid.
     const urlStep = Number(params.get("step"));
     restored.current = true;
@@ -65,7 +76,9 @@ export default function WizardClient({ isAuthed }: { isAuthed: boolean }) {
       step,
       content_type: type,
       form_data: form,
+      customization: custom,
       name,
+      short_id: shortId.current,
       draft_token: draftToken.current,
     };
     try {
@@ -73,7 +86,7 @@ export default function WizardClient({ isAuthed }: { isAuthed: boolean }) {
     } catch {
       /* quota / private mode — non-fatal */
     }
-  }, [step, type, form, name]);
+  }, [step, type, form, name, custom]);
 
   function goStep(n: Step) {
     setStepState(n);
@@ -99,7 +112,8 @@ export default function WizardClient({ isAuthed }: { isAuthed: boolean }) {
         type,
         form,
         name,
-        shortId: "preview",
+        shortId: shortId.current,
+        customization: custom,
       });
       if (error) {
         toast.error(error);
@@ -115,7 +129,8 @@ export default function WizardClient({ isAuthed }: { isAuthed: boolean }) {
       type,
       form,
       name,
-      shortId: generateShortId(),
+      shortId: shortId.current,
+      customization: custom,
     });
     if (error || !payload) {
       toast.error(error || "Something’s missing.");
@@ -189,6 +204,25 @@ export default function WizardClient({ isAuthed }: { isAuthed: boolean }) {
     }
   }
 
+  // What the Step-3 live QR encodes: dynamic kinds → the /r/ short
+  // link (== persisted); static → best-effort encoded payload.
+  const preview = (() => {
+    if (!type) return " ";
+    const meta = typeMeta(type);
+    if (!meta.backend) return " ";
+    if (kindFor(meta.backend) === "dynamic") {
+      return `${appUrl()}/r/${shortId.current}`;
+    }
+    const { payload } = buildPayload({
+      type,
+      form,
+      name,
+      shortId: shortId.current,
+      customization: custom,
+    });
+    return payload?.destination || " ";
+  })();
+
   return (
     <div className="min-h-screen bg-sand-light/30">
       <ProgressBar current={step} onJump={(n) => goStep(n)} />
@@ -212,7 +246,15 @@ export default function WizardClient({ isAuthed }: { isAuthed: boolean }) {
             setName={setName}
           />
         )}
-        {step === 3 && type && <Step3Customize type={type} name={name} />}
+        {step === 3 && type && (
+          <Step3Customize
+            previewData={preview}
+            shortId={shortId.current}
+            isAuthed={isAuthed}
+            c={custom}
+            setC={setCustom}
+          />
+        )}
 
         {/* Footer nav */}
         <div className="mt-10 flex items-center justify-between">

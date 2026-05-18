@@ -65,12 +65,41 @@ export function kindFor(backend: ContentKind): QrKind {
   return DYNAMIC.includes(backend) ? "dynamic" : "static";
 }
 
+export interface Customization {
+  fg_color: string;
+  bg_color: string;
+  gradient_color: string | null;
+  dot_style: string;
+  corner_style: string;
+  qr_text: string;
+  logo_url: string | null;
+  password: string;
+}
+
+export const DEFAULT_CUSTOMIZATION: Customization = {
+  fg_color: "#000000",
+  bg_color: "#FFFFFF",
+  gradient_color: null,
+  dot_style: "square",
+  corner_style: "square",
+  qr_text: "",
+  logo_url: null,
+  password: "",
+};
+
+export const DOT_STYLES = [
+  "square", "dots", "rounded", "classy", "classy-rounded", "extra-rounded",
+];
+export const CORNER_STYLES = ["square", "dot", "extra-rounded"];
+
 export interface WizardState {
   step: 1 | 2 | 3;
   content_type: WizardType | null;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   form_data: Record<string, any>;
+  customization: Customization;
   name: string;
+  short_id?: string;
   draft_token?: string;
 }
 
