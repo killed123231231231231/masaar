@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import QrPreview from "@/components/qr-preview";
-import { encodeEmail, encodePhone, encodeSms, encodeVCard, encodeWifi, encodeWhatsapp } from "@/lib/content-types";
+import { encodeEmail, encodePhone, encodeSms, encodeVCard, encodeWifi, encodeWhatsapp, encodeAppLink } from "@/lib/content-types";
 import { normalizeUrl } from "@/lib/url";
 import type { ContentKind, QrKind } from "@/types/database";
 import { appUrl } from "@/lib/utils";
@@ -37,6 +37,7 @@ const CONTENT_TABS: { key: ContentKind; label: string }[] = [
   { key: "sms",   label: "SMS" },
   { key: "phone", label: "Phone" },
   { key: "whatsapp", label: "WhatsApp" },
+  { key: "app_link", label: "App Link" },
 ];
 
 const DOT_STYLES = ["square", "dots", "rounded", "classy", "classy-rounded", "extra-rounded"];
@@ -45,7 +46,7 @@ const CORNER_STYLES = ["square", "dot", "extra-rounded"];
 // Content types that produce a URL and so can route through /r/ (dynamic,
 // trackable, editable). Everything else encodes its payload directly and
 // is inherently static.
-const DYNAMIC_CAPABLE: ContentKind[] = ["url", "whatsapp"];
+const DYNAMIC_CAPABLE: ContentKind[] = ["url", "whatsapp", "app_link"];
 
 const WA_COUNTRY_CODES = ["+966", "+971", "+974", "+973", "+965", "+968"];
 
@@ -81,6 +82,11 @@ export default function QrCustomizer({ initialShortId, onSave, saving }: Props) 
     number: "",
     message: "",
   });
+  const [appLink, setAppLink] = useState({
+    name: "",
+    url: "https://",
+    fallback: "",
+  });
 
   // Styling
   const [fgColor, setFgColor] = useState("#0070cc");
@@ -104,12 +110,10 @@ export default function QrCustomizer({ initialShortId, onSave, saving }: Props) 
           phone: whatsapp.countryCode + whatsapp.number,
           message: whatsapp.message,
         });
-      // App Link builder tab lands in §9 (2c); placeholder keeps the
-      // switch exhaustive (TS flags any future un-handled ContentKind).
       case "app_link":
-        return "";
+        return encodeAppLink(appLink);
     }
-  }, [content_kind, urlValue, textValue, vcard, wifi, email, sms, phone, whatsapp]);
+  }, [content_kind, urlValue, textValue, vcard, wifi, email, sms, phone, whatsapp, appLink]);
 
   // For dynamic URL QRs, the embedded value is the Masaar short link.
   // For static QRs, the embedded value is the raw destination itself.
@@ -139,9 +143,10 @@ export default function QrCustomizer({ initialShortId, onSave, saving }: Props) 
       case "sms":   return sms;
       case "phone": return { number: phone };
       case "whatsapp": return whatsapp;
+      case "app_link": return appLink;
       default:      return null;
     }
-  }, [content_kind, vcard, wifi, email, sms, phone, whatsapp]);
+  }, [content_kind, vcard, wifi, email, sms, phone, whatsapp, appLink]);
 
   // Non-URL content types encode their payload directly into the QR —
   // there's nothing to redirect, so they're inherently STATIC. Picking
@@ -305,6 +310,32 @@ export default function QrCustomizer({ initialShortId, onSave, saving }: Props) 
                 <p className="text-xs text-gray-500">
                   Opens a chat to {whatsapp.countryCode}
                   {whatsapp.number || "…"} with your message pre-typed.
+                </p>
+              </div>
+            )}
+            {content_kind === "app_link" && (
+              <div className="space-y-3">
+                <Input
+                  label="App name"
+                  value={appLink.name}
+                  onChange={(v) => setAppLink({ ...appLink, name: v })}
+                  placeholder="My App"
+                />
+                <Input
+                  label="App URL (App Store / Play Store)"
+                  value={appLink.url}
+                  onChange={(v) => setAppLink({ ...appLink, url: v })}
+                  placeholder="https://apps.apple.com/..."
+                />
+                <Input
+                  label="Fallback URL (desktop, optional)"
+                  value={appLink.fallback}
+                  onChange={(v) => setAppLink({ ...appLink, fallback: v })}
+                  placeholder="Defaults to the App URL"
+                />
+                <p className="text-xs text-gray-500">
+                  Points to the app link. Per-platform store routing comes
+                  later — for now everyone goes to the App URL.
                 </p>
               </div>
             )}
