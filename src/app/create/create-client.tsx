@@ -84,7 +84,7 @@ export default function CreateClient({ isAuthed }: { isAuthed: boolean }) {
 
   return (
     <>
-      <QrCustomizer onSave={handleSave} saving={saving} />
+      <QrCustomizer onSave={handleSave} saving={saving} allowLogo={isAuthed} />
       {!isAuthed && (
         <EmailGateModal
           open={gateOpen}

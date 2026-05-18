@@ -7,11 +7,16 @@ import { normalizeUrl } from "@/lib/url";
 import type { ContentKind, QrKind } from "@/types/database";
 import { appUrl } from "@/lib/utils";
 import { generateShortId } from "@/lib/shortid";
+import { createClient } from "@/lib/supabase/client";
 
 interface Props {
   initialShortId?: string | null;   // for dynamic preview
   onSave: (payload: SavePayload) => Promise<void>;
   saving?: boolean;
+  // Logo upload writes to the owner-scoped `logos` bucket
+  // (auth.uid() = folder[1]); anon can't upload, so the control is
+  // only shown when the caller says the user is authenticated.
+  allowLogo?: boolean;
 }
 
 export interface SavePayload {
@@ -26,6 +31,7 @@ export interface SavePayload {
   gradient_color: string | null;
   dot_style: string;
   corner_style: string;
+  logo_url: string | null;
 }
 
 const CONTENT_TABS: { key: ContentKind; label: string }[] = [
@@ -50,7 +56,7 @@ const DYNAMIC_CAPABLE: ContentKind[] = ["url", "whatsapp", "app_link"];
 
 const WA_COUNTRY_CODES = ["+966", "+971", "+974", "+973", "+965", "+968"];
 
-export default function QrCustomizer({ initialShortId, onSave, saving }: Props) {
+export default function QrCustomizer({ initialShortId, onSave, saving, allowLogo }: Props) {
   // Generate the shortId once, client-side, so the QR the user previews
   // and downloads encodes the SAME /r/<shortId> the server will persist.
   const [shortId] = useState(() => initialShortId ?? generateShortId());
@@ -94,6 +100,9 @@ export default function QrCustomizer({ initialShortId, onSave, saving }: Props) 
   const [gradient, setGradient] = useState<string | null>(null);
   const [dotStyle, setDotStyle] = useState("rounded");
   const [cornerStyle, setCornerStyle] = useState("extra-rounded");
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [logoBusy, setLogoBusy] = useState(false);
+  const [logoErr, setLogoErr] = useState<string | null>(null);
 
   // Compute destination (the raw string that the QR encodes)
   const rawDestination = useMemo(() => {
@@ -157,6 +166,47 @@ export default function QrCustomizer({ initialShortId, onSave, saving }: Props) 
     if (!DYNAMIC_CAPABLE.includes(k)) setKind("static");
   }
 
+  async function handleLogo(file: File) {
+    setLogoErr(null);
+    const okType = ["image/png", "image/jpeg", "image/svg+xml"].includes(
+      file.type
+    );
+    if (!okType) {
+      setLogoErr("PNG, JPG or SVG only.");
+      return;
+    }
+    if (file.size > 500 * 1024) {
+      setLogoErr("Logo must be under 500 KB.");
+      return;
+    }
+    setLogoBusy(true);
+    try {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        setLogoErr("Sign in to upload a logo.");
+        return;
+      }
+      const ext = file.name.split(".").pop()?.toLowerCase() || "png";
+      // Path must start with the uploader's auth.uid() — the
+      // logos_owner_upload storage policy checks foldername[1].
+      const path = `${user.id}/${shortId}/${crypto.randomUUID()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("logos")
+        .upload(path, file, { upsert: false, contentType: file.type });
+      if (upErr) {
+        setLogoErr(upErr.message);
+        return;
+      }
+      const { data } = supabase.storage.from("logos").getPublicUrl(path);
+      setLogoUrl(data.publicUrl);
+    } finally {
+      setLogoBusy(false);
+    }
+  }
+
   async function handleSave() {
     await onSave({
       name,
@@ -170,6 +220,7 @@ export default function QrCustomizer({ initialShortId, onSave, saving }: Props) 
       gradient_color: gradient,
       dot_style: dotStyle,
       corner_style: cornerStyle,
+      logo_url: logoUrl,
     });
   }
 
@@ -360,6 +411,53 @@ export default function QrCustomizer({ initialShortId, onSave, saving }: Props) 
             <Select label="Dot style" value={dotStyle} onChange={setDotStyle} options={DOT_STYLES} />
             <Select label="Corner style" value={cornerStyle} onChange={setCornerStyle} options={CORNER_STYLES} />
           </div>
+
+          {allowLogo && (
+            <div className="mt-4">
+              <span className="block text-sm font-medium text-gray-700">
+                Logo (optional)
+              </span>
+              <div className="mt-1 flex items-center gap-3">
+                {logoUrl && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={logoUrl}
+                    alt="logo"
+                    className="h-10 w-10 rounded border border-gray-200 object-contain"
+                  />
+                )}
+                <label className="cursor-pointer rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                  {logoBusy ? "Uploading…" : logoUrl ? "Replace" : "Upload logo"}
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/svg+xml"
+                    className="hidden"
+                    disabled={logoBusy}
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) handleLogo(f);
+                      e.target.value = "";
+                    }}
+                  />
+                </label>
+                {logoUrl && (
+                  <button
+                    type="button"
+                    onClick={() => setLogoUrl(null)}
+                    className="text-xs text-gray-400 hover:text-gray-700"
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
+              {logoErr && (
+                <p className="mt-1 text-xs text-red-600">{logoErr}</p>
+              )}
+              <p className="mt-1 text-xs text-gray-400">
+                PNG, JPG or SVG · under 500 KB · embedded in the QR center
+              </p>
+            </div>
+          )}
         </Section>
 
         <button
@@ -382,6 +480,7 @@ export default function QrCustomizer({ initialShortId, onSave, saving }: Props) 
               gradientColor: gradient,
               dotStyle,
               cornerStyle,
+              logoUrl,
             }}
           />
           {kind === "dynamic" && (

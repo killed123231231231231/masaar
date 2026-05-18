@@ -63,6 +63,7 @@ export async function POST(request: Request) {
     gradient_color: body.gradient_color ?? null,
     dot_style: body.dot_style ?? "square",
     corner_style: body.corner_style ?? "square",
+    logo_url: body.logo_url ?? null,
   };
 
   // A dynamic QR's printed code points at /r/<shortId>, which 302s to

@@ -25,5 +25,5 @@ export default function NewQrClient() {
     router.push(`/dashboard/qr/${id}`);
   }
 
-  return <QrCustomizer onSave={handleSave} saving={saving} />;
+  return <QrCustomizer onSave={handleSave} saving={saving} allowLogo />;
 }
