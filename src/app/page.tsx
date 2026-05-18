@@ -20,7 +20,13 @@ import {
 } from "lucide-react";
 import LogoMark from "@/components/logo-mark";
 
-const NAV = ["Product", "Solutions", "Resources", "Pricing", "About"];
+const NAV = [
+  { label: "Product", href: "/product" },
+  { label: "Solutions", href: "/solutions" },
+  { label: "Resources", href: "/resources" },
+  { label: "Pricing", href: "/pricing" },
+  { label: "About", href: "/about" },
+];
 
 const INDUSTRIES = [
   { icon: ShoppingBag, label: "Retail" },
@@ -64,16 +70,16 @@ export default function LandingPage() {
 
             <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row lg:justify-start">
               <Link
-                href="/signup"
+                href="/create"
                 className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-deep-teal px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-terracotta active:bg-terracotta-dark sm:w-auto"
               >
-                Start free trial <ArrowRight className="h-4 w-4" />
+                Create yours now <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
                 href="#how-it-works"
                 className="inline-flex w-full items-center justify-center rounded-lg border border-charcoal/15 px-6 py-3 text-base font-semibold text-charcoal transition-colors hover:bg-sand-light hover:text-deep-teal sm:w-auto"
               >
-                Book a demo
+                See how it works
               </Link>
             </div>
 
@@ -135,11 +141,11 @@ function SiteHeader() {
         <nav className="hidden items-center gap-7 md:flex">
           {NAV.map((item) => (
             <Link
-              key={item}
-              href="#"
+              key={item.label}
+              href={item.href}
               className="text-sm font-medium text-charcoal/70 transition-colors hover:text-deep-teal"
             >
-              {item}
+              {item.label}
             </Link>
           ))}
         </nav>
@@ -152,10 +158,10 @@ function SiteHeader() {
             Log in
           </Link>
           <Link
-            href="/signup"
+            href="/create"
             className="rounded-lg bg-deep-teal px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-terracotta active:bg-terracotta-dark"
           >
-            Start free trial
+            Create QR
           </Link>
         </div>
       </div>
@@ -680,16 +686,16 @@ function FinalCta() {
         </p>
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <Link
-            href="/signup"
+            href="/create"
             className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-deep-teal px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-terracotta active:bg-terracotta-dark sm:w-auto"
           >
-            Start free trial <ArrowRight className="h-4 w-4" />
+            Create yours now <ArrowRight className="h-4 w-4" />
           </Link>
           <Link
-            href="#"
+            href="/pricing"
             className="inline-flex w-full items-center justify-center rounded-lg border border-charcoal/15 bg-white px-6 py-3 text-base font-semibold text-charcoal transition-colors hover:text-deep-teal sm:w-auto"
           >
-            Talk to sales
+            See pricing
           </Link>
         </div>
       </div>
@@ -698,17 +704,35 @@ function FinalCta() {
 }
 
 const FOOTER_COLS = [
-  { title: "Product", links: ["Features", "Pricing", "Analytics", "Dynamic QR"] },
-  { title: "Company", links: ["About", "Customers", "Careers", "Contact"] },
-  { title: "Resources", links: ["Docs", "Guides", "API", "Status"] },
-  { title: "Legal", links: ["Privacy", "Terms", "Cookie policy"] },
+  {
+    title: "Product",
+    links: [
+      { label: "Overview", href: "/product" },
+      { label: "Pricing", href: "/pricing" },
+      { label: "Create a QR", href: "/create" },
+    ],
+  },
+  {
+    title: "Company",
+    links: [
+      { label: "About", href: "/about" },
+      { label: "Solutions", href: "/solutions" },
+    ],
+  },
+  {
+    title: "Resources",
+    links: [
+      { label: "Guides & docs", href: "/resources" },
+      { label: "Log in", href: "/login" },
+    ],
+  },
 ];
 
 function SiteFooter() {
   return (
     <footer className="border-t border-charcoal/10 bg-white">
       <div className="mx-auto max-w-6xl px-6 py-14">
-        <div className="grid gap-10 md:grid-cols-[1.4fr_repeat(4,1fr)]">
+        <div className="grid gap-10 md:grid-cols-[1.6fr_repeat(3,1fr)]">
           <div>
             <Link href="/" className="flex items-center gap-2">
               <LogoMark className="h-8 w-8" />
@@ -727,12 +751,12 @@ function SiteFooter() {
               <h3 className="text-sm font-semibold">{title}</h3>
               <ul className="mt-4 space-y-3">
                 {links.map((l) => (
-                  <li key={l}>
+                  <li key={l.label}>
                     <Link
-                      href="#"
+                      href={l.href}
                       className="text-sm text-charcoal/55 transition-colors hover:text-deep-teal"
                     >
-                      {l}
+                      {l.label}
                     </Link>
                   </li>
                 ))}
