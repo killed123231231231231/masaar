@@ -256,8 +256,8 @@ export default function WizardClient({ isAuthed }: { isAuthed: boolean }) {
           />
         )}
 
-        {/* Footer nav */}
-        <div className="mt-10 flex items-center justify-between">
+        {/* Footer nav — sticky at the bottom on mobile (spec §8) */}
+        <div className="sticky bottom-0 z-20 -mx-5 mt-10 flex items-center justify-between border-t border-charcoal/10 bg-sand-light/95 px-5 py-4 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0 sm:backdrop-blur-none">
           {step > 1 ? (
             <button
               type="button"
