@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { generateShortId } from "@/lib/shortid";
+import { createClient } from "@/lib/supabase/client";
 import EmailGateModal from "@/components/email-gate-modal";
 import ProgressBar from "./_components/progress-bar";
 import Step1Type from "./_components/step-1-type";
@@ -123,7 +124,24 @@ export default function WizardClient({ isAuthed }: { isAuthed: boolean }) {
     }
 
     setSaving(true);
-    if (isAuthed) {
+
+    // Authoritative auth check at click time. The server-rendered
+    // isAuthed prop is a stale snapshot (bfcache, login in another tab,
+    // cross-origin preview cookie) — relying on it showed the email
+    // gate to logged-in users. The browser client reads the live
+    // session cookie now.
+    let authed = isAuthed;
+    try {
+      const sb = createClient();
+      const {
+        data: { user },
+      } = await sb.auth.getUser();
+      authed = !!user;
+    } catch {
+      authed = isAuthed;
+    }
+
+    if (authed) {
       const res = await fetch("/api/qr", {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -232,13 +250,13 @@ export default function WizardClient({ isAuthed }: { isAuthed: boolean }) {
         </div>
       </div>
 
-      {!isAuthed && (
-        <EmailGateModal
-          open={gateOpen}
-          draftToken={draftToken.current}
-          onClose={() => setGateOpen(false)}
-        />
-      )}
+      {/* Always mounted: the live auth check (not the stale prop)
+          decides whether the anon path opens it. */}
+      <EmailGateModal
+        open={gateOpen}
+        draftToken={draftToken.current}
+        onClose={() => setGateOpen(false)}
+      />
     </div>
   );
 }
