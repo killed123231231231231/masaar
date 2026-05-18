@@ -21,8 +21,14 @@ export default function NewQrClient() {
       alert(error || "Failed to save");
       return;
     }
-    const { id } = await res.json();
-    router.push(`/dashboard/qr/${id}`);
+    const row = await res.json().catch(() => null);
+    // Subscriber (active) or static → the QR. Otherwise pending_payment
+    // → checkout lock-in (same rule as the /create funnel).
+    if (row?.status === "active" || !row?.short_id) {
+      router.push(`/dashboard/qr/${row?.id}`);
+    } else {
+      router.push(`/checkout/${row.short_id}`);
+    }
   }
 
   return <QrCustomizer onSave={handleSave} saving={saving} allowLogo />;

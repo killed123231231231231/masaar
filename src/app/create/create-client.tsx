@@ -56,11 +56,13 @@ export default function CreateClient({ isAuthed }: { isAuthed: boolean }) {
         return;
       }
       const row = await res.json().catch(() => null);
-      // Dynamic → activation checkout (same lock-in funnel, no gate).
-      // Static (no short_id) → the QR's dashboard detail page.
-      router.push(
-        row?.short_id ? `/checkout/${row.short_id}` : `/dashboard/qr/${row?.id}`
-      );
+      // Subscriber (row already 'active') or a static QR → straight to
+      // the QR. Otherwise it's pending_payment → the checkout lock-in.
+      if (row?.status === "active" || !row?.short_id) {
+        router.push(`/dashboard/qr/${row?.id}`);
+      } else {
+        router.push(`/checkout/${row.short_id}`);
+      }
       return;
     }
 
