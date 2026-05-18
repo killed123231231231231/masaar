@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import QrPreview from "@/components/qr-preview";
 import type { QrCode } from "@/types/database";
 import { appUrl } from "@/lib/utils";
@@ -52,10 +53,11 @@ export default function EditQrClient({ initial }: { initial: QrCode }) {
     });
     setSaving(false);
     if (!res.ok) {
-      alert("Failed to save");
+      toast.error("Couldn’t save changes. Try again.");
       return;
     }
-    router.refresh();
+    toast.success("Changes saved");
+    setTimeout(() => router.push("/dashboard"), 800);
   }
 
   return (

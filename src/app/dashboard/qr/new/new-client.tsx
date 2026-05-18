@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import QrCustomizer, { type SavePayload } from "@/components/qr-customizer";
 
 export default function NewQrClient() {
@@ -22,12 +23,15 @@ export default function NewQrClient() {
       return;
     }
     const row = await res.json().catch(() => null);
-    // Subscriber (active) or static → the QR. Otherwise pending_payment
-    // → checkout lock-in (same rule as the /create funnel).
-    if (row?.status === "active" || !row?.short_id) {
-      router.push(`/dashboard/qr/${row?.id}`);
-    } else {
+    // Subscriber → active immediately: confirm + back to dashboard.
+    // Pending dynamic → checkout lock-in. Static → the QR's page.
+    if (row?.status === "active") {
+      toast.success("QR created!");
+      setTimeout(() => router.push("/dashboard?welcome_new_qr=1"), 800);
+    } else if (row?.short_id) {
       router.push(`/checkout/${row.short_id}`);
+    } else {
+      router.push(`/dashboard/qr/${row?.id}`);
     }
   }
 

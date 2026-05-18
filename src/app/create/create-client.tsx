@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import QrCustomizer, { type SavePayload } from "@/components/qr-customizer";
 import EmailGateModal from "@/components/email-gate-modal";
 
@@ -56,12 +57,19 @@ export default function CreateClient({ isAuthed }: { isAuthed: boolean }) {
         return;
       }
       const row = await res.json().catch(() => null);
-      // Subscriber (row already 'active') or a static QR → straight to
-      // the QR. Otherwise it's pending_payment → the checkout lock-in.
-      if (row?.status === "active" || !row?.short_id) {
-        router.push(`/dashboard/qr/${row?.id}`);
-      } else {
+      // Subscriber → QR is already active: confirm + back to dashboard
+      // (briefly highlighting the new row). Pending dynamic → checkout
+      // lock-in. Static (no short_id) → the QR's page.
+      if (row?.status === "active") {
+        toast.success("QR created!");
+        setTimeout(
+          () => router.push("/dashboard?welcome_new_qr=1"),
+          800
+        );
+      } else if (row?.short_id) {
         router.push(`/checkout/${row.short_id}`);
+      } else {
+        router.push(`/dashboard/qr/${row?.id}`);
       }
       return;
     }
