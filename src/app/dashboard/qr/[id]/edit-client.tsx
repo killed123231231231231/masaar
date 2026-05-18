@@ -156,6 +156,7 @@ export default function EditQrClient({ initial }: { initial: QrCode }) {
               gradientColor: gradient,
               dotStyle,
               cornerStyle,
+              logoUrl: initial.logo_url,
             }}
           />
         </div>
