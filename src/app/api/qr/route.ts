@@ -95,13 +95,36 @@ export async function POST(request: Request) {
       : generateShortId();
   }
 
-  const { data, error } = await supabase
-    .from("qr_codes")
-    .insert(insert)
-    .select()
-    .single();
+  // Bug A: mirror create_anon_qr (migration 009) — on a short_id
+  // unique-violation (Postgres 23505, qr_codes_short_id_key), keep the
+  // client-provided id on attempt 1 (so the previewed QR matches), then
+  // regenerate and retry up to 5 times before failing.
+  let data = null;
+  let error = null;
+  for (let attempt = 1; attempt <= 5; attempt++) {
+    ({ data, error } = await supabase
+      .from("qr_codes")
+      .insert(insert)
+      .select()
+      .single());
+    if (!error) break;
+    const shortIdCollision =
+      error.code === "23505" && insert.kind === "dynamic";
+    if (!shortIdCollision) break;
+    insert.short_id = generateShortId();
+  }
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  if (error) {
+    const collided = error.code === "23505";
+    return NextResponse.json(
+      {
+        error: collided
+          ? "Could not allocate a unique code — please try again."
+          : error.message,
+      },
+      { status: collided ? 409 : 400 }
+    );
+  }
   return NextResponse.json(data);
 }
 
