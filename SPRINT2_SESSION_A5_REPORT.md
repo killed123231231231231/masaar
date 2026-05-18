@@ -61,3 +61,41 @@ Not instrumented. Delivered: keystone + 2 diagnostics + all 9 real Step-2 forms 
 2. "Text" added as a 16th Step-1 card (real backend kind, needed for the first-half forms) — keep, or fold away?
 3. Password section: keep as visible UI now (enforcement Session I) or hide until Session I ships?
 4. Per-type stub polish (Payment waitlist, Menu→Session F routing) — do it here later or leave the generic placeholder until those sessions?
+
+---
+
+## Addendum — Bug A & Bug B (pre-merge)
+
+**Bug A — authed short_id collision (regression).** `99c6176`. The
+authed `/api/qr` POST never got the anon path's collision retry. Now
+mirrors `create_anon_qr` (migration 009): attempt 1 keeps the
+client-provided short_id; on Postgres `23505` for a dynamic QR,
+regenerate and retry up to 5×; exhausted → `409`. One commit.
+
+**Bug B — wizard forward-nav lock.** `74adbb1`. `ProgressBar` derived
+`done`/`clickable` from `current`, so a back-jump made later steps
+lose their checkmark and become unclickable (forward locked). Added a
+sticky `maxStep` (furthest validated step), persisted in
+`masaar.wizard_state.max_step` + restored; bar now treats every step
+≤ `maxStep` as completed/clickable in both directions; `next()` bumps
+`maxStep`; `goStep` is navigation-only (never clears state); single
+restore guard keeps form/customization intact. Changing the content
+type on Step 1 deliberately resets the type-specific form + `maxStep`.
+One commit.
+
+**Post-fix verification (honest):**
+- Build + typecheck green after each commit.
+- *Test 1* (subscriber → no gate → toast → dashboard): verified at
+  code + DB layer — 2 `subscription_status='active'` profiles exist;
+  live auth check → authed `/api/qr` (now collision-safe) →
+  `status='active'` → toast + `/dashboard?welcome_new_qr=1`; gate not
+  opened. Browser click-through not driven (preview is
+  Deployment-Protected — harness limit); covered by the production
+  check below.
+- *Test 7* (back to Step 1 → forward to Step 3, no refill): verified
+  by code + build — bar keyed off sticky `maxStep`, nav-only
+  `goStep`, single-restore guard.
+- *Test 6* (anon magic-link → checkout): intentionally skipped —
+  Session A.7 refactors that flow (per instruction).
+- Production smoke on `masaar-zeta.vercel.app/create` recorded at
+  merge (prod is not protected).
