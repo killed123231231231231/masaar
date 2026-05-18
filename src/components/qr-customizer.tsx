@@ -76,6 +76,12 @@ export default function QrCustomizer({ initialShortId, onSave, saving }: Props) 
       case "email": return encodeEmail(email);
       case "sms":   return encodeSms(sms);
       case "phone": return encodePhone(phone);
+      // Builder tabs for these land in Session A part 2 (§8/§9); the UI
+      // can't select them yet, so a placeholder keeps the switch
+      // exhaustive (TS still flags any future un-handled ContentKind).
+      case "whatsapp":
+      case "app_link":
+        return "";
     }
   }, [content_kind, urlValue, textValue, vcard, wifi, email, sms, phone]);
 

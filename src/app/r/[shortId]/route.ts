@@ -36,11 +36,11 @@ export async function GET(
     }
   );
 
-  // Resolve via a SECURITY DEFINER function (see migration 002): the
-  // qr_codes table has no public read policy, so anon cannot select
-  // password_hash / payload_json. This returns only (id, destination)
-  // for active rows.
-  const { data, error } = await supabase.rpc("resolve_qr", {
+  // Resolve via a SECURITY DEFINER function (migration 004): qr_codes has
+  // no public read policy, so anon cannot select password_hash /
+  // payload_json. resolve_qr_v2 returns (id, destination, status,
+  // content_type) for *any* row (status branching happens here, not in SQL).
+  const { data, error } = await supabase.rpc("resolve_qr_v2", {
     p_short_id: shortId,
   });
   const qr = Array.isArray(data) ? data[0] : null;
@@ -49,12 +49,33 @@ export async function GET(
     return new NextResponse("QR code not found", { status: 404 });
   }
 
-  // Only ever redirect to a valid http(s) URL. A destination of "https://",
-  // a scheme-less string, javascript:/data:, or a non-URL payload would
-  // otherwise throw inside NextResponse.redirect (500 on every scan).
-  const target = parseHttpUrl(qr.destination);
-  if (!target) {
+  // Drafts are never resolvable — they only exist mid-build, pre-save.
+  if (qr.status === "draft") {
     return new NextResponse("QR code not found", { status: 404 });
+  }
+
+  // Where the scan ultimately goes:
+  //  - active           → the real destination (must be valid http(s))
+  //  - pending_payment  → /activate/[shortId] lock-in page
+  //  - suspended        → /expired/[shortId] page
+  // pending/suspended STILL log the scan (the owner sees scan activity
+  // even on an unpaid/suspended QR — that's the lock-in dopamine).
+  let redirectTo: string;
+  if (qr.status === "active") {
+    // A destination of "https://", a scheme-less string, javascript:/data:,
+    // or a non-URL payload would otherwise throw inside
+    // NextResponse.redirect (500 on every scan). Don't log a broken active
+    // scan (preserves prior behavior).
+    const target = parseHttpUrl(qr.destination);
+    if (!target) {
+      return new NextResponse("QR code not found", { status: 404 });
+    }
+    redirectTo = target.toString();
+  } else if (qr.status === "pending_payment") {
+    redirectTo = new URL(`/activate/${shortId}`, request.url).toString();
+  } else {
+    // suspended
+    redirectTo = new URL(`/expired/${shortId}`, request.url).toString();
   }
 
   // Extract scan metadata
@@ -88,7 +109,7 @@ export async function GET(
     ip_hash: ipHash,
   });
 
-  return NextResponse.redirect(target.toString(), 302);
+  return NextResponse.redirect(redirectTo, 302);
 }
 
 function decodeSafe(v: string | null): string | null {

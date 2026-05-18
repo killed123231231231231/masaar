@@ -15,7 +15,10 @@ export type ContentKind =
   | "wifi"
   | "email"
   | "sms"
-  | "phone";
+  | "phone"
+  | "whatsapp"
+  | "app_link";
+export type QrStatus = "draft" | "pending_payment" | "active" | "suspended";
 
 export interface QrCode {
   id: string;
@@ -26,6 +29,8 @@ export interface QrCode {
   kind: QrKind;
   content_kind: ContentKind;
   destination: string;
+  status: QrStatus;
+  draft_token: string | null;
   payload_json: Record<string, unknown> | null;
   password_hash: string | null;
   fg_color: string;
@@ -60,6 +65,10 @@ export interface Profile {
   full_name: string | null;
   avatar_url: string | null;
   created_at: string;
+  subscription_status: string | null;
+  stripe_customer_id: string | null;
+  stripe_subscription_id: string | null;
+  current_period_end: string | null;
 }
 
 export interface Folder {
@@ -103,6 +112,15 @@ export interface Database {
         Args: { p_short_id: string };
         Returns: { id: string; destination: string }[];
       };
+      resolve_qr_v2: {
+        Args: { p_short_id: string };
+        Returns: {
+          id: string;
+          destination: string;
+          status: QrStatus;
+          content_type: ContentKind;
+        }[];
+      };
       scan_counts: {
         Args: { p_ids: string[] };
         Returns: { qr_code_id: string; count: number }[];
@@ -111,6 +129,7 @@ export interface Database {
     Enums: {
       qr_kind: QrKind;
       content_kind: ContentKind;
+      qr_status: QrStatus;
     };
     CompositeTypes: { [_ in never]: never };
   };
