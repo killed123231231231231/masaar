@@ -37,14 +37,34 @@ export function supabaseAnonKey(): string {
   );
 }
 
+// Canonical production origin until a custom domain is wired.
+const CANONICAL_PROD_URL = "https://masaar-zeta.vercel.app";
+
 export function appUrl(): string {
-  const value = process.env.NEXT_PUBLIC_APP_URL;
-  if (value && value.length > 0) return value.replace(/\/+$/, "");
-  if (process.env.NODE_ENV === "production") {
-    throw new Error(
-      "Missing required environment variable NEXT_PUBLIC_APP_URL. " +
-        "Without it every dynamic QR would encode http://localhost:3000."
-    );
+  // A real configured value wins — but the Preview scope deliberately
+  // holds the "https://preview.invalid" placeholder, so anything
+  // containing "invalid" is treated as unset and we fall through.
+  const raw = process.env.NEXT_PUBLIC_APP_URL;
+  if (raw && raw.length > 0 && !raw.includes("invalid")) {
+    return raw.replace(/\/+$/, "");
   }
+
+  // Real production deployment — hardcode the canonical domain.
+  if (process.env.VERCEL_ENV === "production") {
+    return CANONICAL_PROD_URL;
+  }
+
+  // Server on a Vercel preview/dev deployment: its own deployment URL
+  // (VERCEL_URL is server-only — never inlined into the client bundle).
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+
+  // Browser (the client-side QR builder): use the origin actually
+  // serving us, so a preview build encodes a resolvable short link.
+  if (typeof window !== "undefined") {
+    return window.location.origin;
+  }
+
   return "http://localhost:3000";
 }
