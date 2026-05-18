@@ -36,6 +36,7 @@ export default function WizardClient({ isAuthed }: { isAuthed: boolean }) {
   const [form, setForm] = useState<Record<string, any>>({});
   const [name, setName] = useState("");
   const [custom, setCustom] = useState<Customization>(DEFAULT_CUSTOMIZATION);
+  const [maxStep, setMaxStep] = useState<Step>(1);
   const [saving, setSaving] = useState(false);
   const [gateOpen, setGateOpen] = useState(false);
   const draftToken = useRef<string>("");
@@ -52,6 +53,7 @@ export default function WizardClient({ isAuthed }: { isAuthed: boolean }) {
         if (s.form_data) setForm(s.form_data);
         if (s.name) setName(s.name);
         if (s.customization) setCustom(s.customization);
+        if (s.max_step) setMaxStep(s.max_step);
         if (s.draft_token) draftToken.current = s.draft_token;
         if (s.short_id) shortId.current = s.short_id;
       }
@@ -74,6 +76,7 @@ export default function WizardClient({ isAuthed }: { isAuthed: boolean }) {
     if (!restored.current) return;
     const s: WizardState = {
       step,
+      max_step: maxStep,
       content_type: type,
       form_data: form,
       customization: custom,
@@ -86,7 +89,7 @@ export default function WizardClient({ isAuthed }: { isAuthed: boolean }) {
     } catch {
       /* quota / private mode — non-fatal */
     }
-  }, [step, type, form, name, custom]);
+  }, [step, maxStep, type, form, name, custom]);
 
   function goStep(n: Step) {
     setStepState(n);
@@ -98,6 +101,7 @@ export default function WizardClient({ isAuthed }: { isAuthed: boolean }) {
   function next() {
     if (step === 1) {
       if (!type) return;
+      setMaxStep((m) => (Math.max(m, 2) as Step));
       goStep(2);
       return;
     }
@@ -119,6 +123,7 @@ export default function WizardClient({ isAuthed }: { isAuthed: boolean }) {
         toast.error(error);
         return;
       }
+      setMaxStep((m) => (Math.max(m, 3) as Step));
       goStep(3);
     }
   }
@@ -225,15 +230,22 @@ export default function WizardClient({ isAuthed }: { isAuthed: boolean }) {
 
   return (
     <div className="min-h-screen bg-sand-light/30">
-      <ProgressBar current={step} onJump={(n) => goStep(n)} />
+      <ProgressBar current={step} maxStep={maxStep} onJump={(n) => goStep(n)} />
 
       <div className="mx-auto max-w-4xl px-5 py-8">
         {step === 1 && (
           <Step1Type
             selected={type}
             onSelect={(t) => {
+              // Switching type invalidates the type-specific Step-2
+              // form, so reset it + progress (don't allow a stale
+              // forward-jump). Re-picking the same type is a no-op.
+              if (t !== type) {
+                setForm({});
+                setMaxStep(1);
+                setName(defaultName(t));
+              }
               setType(t);
-              if (!name) setName(defaultName(t));
             }}
           />
         )}

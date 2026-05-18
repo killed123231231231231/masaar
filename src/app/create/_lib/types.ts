@@ -94,6 +94,7 @@ export const CORNER_STYLES = ["square", "dot", "extra-rounded"];
 
 export interface WizardState {
   step: 1 | 2 | 3;
+  max_step?: 1 | 2 | 3;
   content_type: WizardType | null;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   form_data: Record<string, any>;

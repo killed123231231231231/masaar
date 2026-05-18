@@ -10,18 +10,25 @@ const STEPS = [
 
 export default function ProgressBar({
   current,
+  maxStep,
   onJump,
 }: {
   current: 1 | 2 | 3;
+  /** Furthest step the user has validly reached — completed steps stay
+   *  clickable & checkmarked even after jumping back (Bug B). */
+  maxStep: 1 | 2 | 3;
   onJump: (step: 1 | 2 | 3) => void;
 }) {
   return (
     <div className="sticky top-0 z-30 border-b border-charcoal/10 bg-white/90 backdrop-blur">
       <div className="mx-auto flex max-w-4xl items-center justify-center gap-2 px-4 py-4 sm:gap-4">
         {STEPS.map((s, i) => {
-          const done = s.n < current;
           const active = s.n === current;
-          const clickable = s.n <= current;
+          // Completed = reached before (≤ maxStep) and not the current
+          // view. Clickable in BOTH directions up to maxStep so a
+          // back-jump never locks forward navigation.
+          const done = !active && s.n <= maxStep;
+          const clickable = s.n <= maxStep;
           return (
             <div key={s.n} className="flex items-center gap-2 sm:gap-4">
               <button
