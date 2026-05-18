@@ -91,6 +91,9 @@ export default function EmailGateModal({
               placeholder="you@example.com"
               className="mt-5 w-full rounded-lg border border-charcoal/15 px-3 py-2.5 text-sm outline-none focus:border-deep-teal focus:ring-2 focus:ring-deep-teal/20"
             />
+            <p className="mt-2 text-xs text-charcoal/50">
+              Have an account? Same link works — we’ll log you in.
+            </p>
             {err && <p className="mt-2 text-xs text-terracotta-dark">{err}</p>}
             <button
               type="submit"
