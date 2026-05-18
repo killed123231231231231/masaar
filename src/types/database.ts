@@ -42,6 +42,7 @@ export interface QrCode {
   frame_style: string | null;
   frame_text: string | null;
   is_active: boolean;
+  creator_ip_hash: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -124,6 +125,24 @@ export interface Database {
       scan_counts: {
         Args: { p_ids: string[] };
         Returns: { qr_code_id: string; count: number }[];
+      };
+      create_anon_qr: {
+        Args: {
+          p_name: string;
+          p_kind: QrKind;
+          p_content_kind: ContentKind;
+          p_destination: string;
+          p_payload_json: Record<string, unknown> | null;
+          p_short_id: string;
+          p_draft_token: string;
+          p_fg_color: string;
+          p_bg_color: string;
+          p_gradient_color: string | null;
+          p_dot_style: string;
+          p_corner_style: string;
+          p_ip_hash: string;
+        };
+        Returns: { id: string; short_id: string }[];
       };
     };
     Enums: {
