@@ -126,6 +126,10 @@ export interface Database {
         Args: { p_ids: string[] };
         Returns: { qr_code_id: string; count: number }[];
       };
+      claim_draft_qrs: {
+        Args: { p_draft_token: string };
+        Returns: { short_id: string }[];
+      };
       create_anon_qr: {
         Args: {
           p_name: string;

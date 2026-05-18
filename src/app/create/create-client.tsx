@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import QrCustomizer, { type SavePayload } from "@/components/qr-customizer";
+import EmailGateModal from "@/components/email-gate-modal";
 
 const DRAFT_KEY = "masaar.draft_token";
 
@@ -16,7 +17,7 @@ const DRAFT_KEY = "masaar.draft_token";
 export default function CreateClient() {
   const draftToken = useRef<string>("");
   const [saving, setSaving] = useState(false);
-  const [savedShortId, setSavedShortId] = useState<string | null>(null);
+  const [gateOpen, setGateOpen] = useState(false);
 
   // Stable per-visitor draft token. No DB row is created until save, so
   // generating eagerly here is cheap and survives a refresh.
@@ -52,23 +53,18 @@ export default function CreateClient() {
       alert(error || "Failed to save");
       return;
     }
-    const data = await res.json().catch(() => null);
-    setSavedShortId(data?.short_id ?? "saved");
+    // Row created (user_id NULL, pending_payment). Convert via email gate.
+    setGateOpen(true);
   }
 
-  if (savedShortId) {
-    return (
-      <div className="mx-auto max-w-md rounded-2xl border border-charcoal/10 bg-white p-8 text-center shadow-sm">
-        <h2 className="font-display text-xl font-bold text-charcoal">
-          Draft saved
-        </h2>
-        <p className="mt-3 text-sm leading-relaxed text-charcoal/65">
-          Your QR code is saved. The email step to claim and activate it is
-          wired up next.
-        </p>
-      </div>
-    );
-  }
-
-  return <QrCustomizer onSave={handleSave} saving={saving} />;
+  return (
+    <>
+      <QrCustomizer onSave={handleSave} saving={saving} />
+      <EmailGateModal
+        open={gateOpen}
+        draftToken={draftToken.current}
+        onClose={() => setGateOpen(false)}
+      />
+    </>
+  );
 }
