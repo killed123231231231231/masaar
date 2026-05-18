@@ -82,3 +82,28 @@ export function encodeSms(p: SmsPayload): string {
 export function encodePhone(number: string): string {
   return `tel:${number}`;
 }
+
+export interface WhatsappPayload {
+  phone: string;
+  message?: string;
+}
+
+// https://wa.me/<digits>?text=<url-encoded>. The + and any separators
+// are stripped — wa.me wants bare international digits.
+export function encodeWhatsapp(p: WhatsappPayload): string {
+  const digits = (p.phone || "").replace(/[^0-9]/g, "");
+  const text = p.message ? `?text=${encodeURIComponent(p.message)}` : "";
+  return `https://wa.me/${digits}${text}`;
+}
+
+export interface AppLinkPayload {
+  name?: string;
+  url: string;
+  fallback?: string;
+}
+
+// For now the destination is just the app URL. Smart per-platform
+// store routing (iOS App Store vs Play) is deferred to Sprint 3.
+export function encodeAppLink(p: AppLinkPayload): string {
+  return p.url || "";
+}

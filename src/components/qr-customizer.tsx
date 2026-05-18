@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import QrPreview from "@/components/qr-preview";
-import { encodeEmail, encodePhone, encodeSms, encodeVCard, encodeWifi } from "@/lib/content-types";
+import { encodeEmail, encodePhone, encodeSms, encodeVCard, encodeWifi, encodeWhatsapp } from "@/lib/content-types";
 import { normalizeUrl } from "@/lib/url";
 import type { ContentKind, QrKind } from "@/types/database";
 import { appUrl } from "@/lib/utils";
@@ -36,10 +36,18 @@ const CONTENT_TABS: { key: ContentKind; label: string }[] = [
   { key: "email", label: "Email" },
   { key: "sms",   label: "SMS" },
   { key: "phone", label: "Phone" },
+  { key: "whatsapp", label: "WhatsApp" },
 ];
 
 const DOT_STYLES = ["square", "dots", "rounded", "classy", "classy-rounded", "extra-rounded"];
 const CORNER_STYLES = ["square", "dot", "extra-rounded"];
+
+// Content types that produce a URL and so can route through /r/ (dynamic,
+// trackable, editable). Everything else encodes its payload directly and
+// is inherently static.
+const DYNAMIC_CAPABLE: ContentKind[] = ["url", "whatsapp"];
+
+const WA_COUNTRY_CODES = ["+966", "+971", "+974", "+973", "+965", "+968"];
 
 export default function QrCustomizer({ initialShortId, onSave, saving }: Props) {
   // Generate the shortId once, client-side, so the QR the user previews
@@ -68,6 +76,11 @@ export default function QrCustomizer({ initialShortId, onSave, saving }: Props) 
   const [email, setEmail] = useState({ to: "", subject: "", body: "" });
   const [sms, setSms] = useState({ number: "", message: "" });
   const [phone, setPhone] = useState("");
+  const [whatsapp, setWhatsapp] = useState({
+    countryCode: "+966",
+    number: "",
+    message: "",
+  });
 
   // Styling
   const [fgColor, setFgColor] = useState("#0070cc");
@@ -86,30 +99,36 @@ export default function QrCustomizer({ initialShortId, onSave, saving }: Props) 
       case "email": return encodeEmail(email);
       case "sms":   return encodeSms(sms);
       case "phone": return encodePhone(phone);
-      // Builder tabs for these land in Session A part 2 (§8/§9); the UI
-      // can't select them yet, so a placeholder keeps the switch
-      // exhaustive (TS still flags any future un-handled ContentKind).
       case "whatsapp":
+        return encodeWhatsapp({
+          phone: whatsapp.countryCode + whatsapp.number,
+          message: whatsapp.message,
+        });
+      // App Link builder tab lands in §9 (2c); placeholder keeps the
+      // switch exhaustive (TS flags any future un-handled ContentKind).
       case "app_link":
         return "";
     }
-  }, [content_kind, urlValue, textValue, vcard, wifi, email, sms, phone]);
+  }, [content_kind, urlValue, textValue, vcard, wifi, email, sms, phone, whatsapp]);
 
   // For dynamic URL QRs, the embedded value is the Masaar short link.
   // For static QRs, the embedded value is the raw destination itself.
   const previewData = useMemo(() => {
-    if (kind === "dynamic" && content_kind === "url") {
+    // Any dynamic QR encodes the Masaar short link (that's the point of
+    // dynamic — the printed code never changes).
+    if (kind === "dynamic") {
       return `${appUrl()}/r/${shortId}`;
     }
     return rawDestination || " ";
-  }, [kind, content_kind, shortId, rawDestination]);
+  }, [kind, shortId, rawDestination]);
 
   // What we persist as the destination field.
   // For dynamic URL QRs we store the real destination (server adds short_id
   // separately). A bare "karakexpress.com" is normalized to
   // "https://karakexpress.com" so it passes parseHttpUrl on save.
-  const persistedDestination =
-    content_kind === "url" ? normalizeUrl(urlValue) : rawDestination;
+  const persistedDestination = DYNAMIC_CAPABLE.includes(content_kind)
+    ? normalizeUrl(rawDestination)
+    : rawDestination;
 
   // Structured payload to store alongside (for re-editing vCard etc.)
   const payloadJson = useMemo(() => {
@@ -119,9 +138,10 @@ export default function QrCustomizer({ initialShortId, onSave, saving }: Props) 
       case "email": return email;
       case "sms":   return sms;
       case "phone": return { number: phone };
+      case "whatsapp": return whatsapp;
       default:      return null;
     }
-  }, [content_kind, vcard, wifi, email, sms, phone]);
+  }, [content_kind, vcard, wifi, email, sms, phone, whatsapp]);
 
   // Non-URL content types encode their payload directly into the QR —
   // there's nothing to redirect, so they're inherently STATIC. Picking
@@ -129,7 +149,7 @@ export default function QrCustomizer({ initialShortId, onSave, saving }: Props) 
   // dynamic default (the "only URL is exposed" report).
   function selectContent(k: ContentKind) {
     setContentKind(k);
-    if (k !== "url") setKind("static");
+    if (!DYNAMIC_CAPABLE.includes(k)) setKind("static");
   }
 
   async function handleSave() {
@@ -167,7 +187,7 @@ export default function QrCustomizer({ initialShortId, onSave, saving }: Props) 
           <div className="grid grid-cols-2 gap-3">
             <KindCard
               active={kind === "dynamic"}
-              disabled={content_kind !== "url"}
+              disabled={!DYNAMIC_CAPABLE.includes(content_kind)}
               title="Dynamic"
               body="Editable destination, tracked scans. URL content only."
               onClick={() => setKind("dynamic")}
@@ -199,8 +219,8 @@ export default function QrCustomizer({ initialShortId, onSave, saving }: Props) 
             ))}
           </div>
           <p className="mt-2 text-xs text-gray-500">
-            {content_kind === "url"
-              ? "URL can be dynamic (editable, tracked) or static."
+            {DYNAMIC_CAPABLE.includes(content_kind)
+              ? "Routes through your Masaar link — can be dynamic (editable, tracked) or static."
               : `${CONTENT_TABS.find((t) => t.key === content_kind)?.label} is encoded directly into the QR — it's a static code (no redirect or tracking).`}
           </p>
 
@@ -260,6 +280,33 @@ export default function QrCustomizer({ initialShortId, onSave, saving }: Props) 
             )}
             {content_kind === "phone" && (
               <Input label="Phone number" value={phone} onChange={setPhone} placeholder="+9665XXXXXXXX" />
+            )}
+            {content_kind === "whatsapp" && (
+              <div className="space-y-3">
+                <div className="grid grid-cols-[110px_1fr] gap-3">
+                  <Select
+                    label="Code"
+                    value={whatsapp.countryCode}
+                    onChange={(v) => setWhatsapp({ ...whatsapp, countryCode: v })}
+                    options={WA_COUNTRY_CODES}
+                  />
+                  <Input
+                    label="WhatsApp number"
+                    value={whatsapp.number}
+                    onChange={(v) => setWhatsapp({ ...whatsapp, number: v })}
+                    placeholder="5XXXXXXXX"
+                  />
+                </div>
+                <Textarea
+                  label="Pre-filled message (optional)"
+                  value={whatsapp.message}
+                  onChange={(v) => setWhatsapp({ ...whatsapp, message: v })}
+                />
+                <p className="text-xs text-gray-500">
+                  Opens a chat to {whatsapp.countryCode}
+                  {whatsapp.number || "…"} with your message pre-typed.
+                </p>
+              </div>
             )}
           </div>
         </Section>
