@@ -91,11 +91,84 @@ export default function Step2Content({
             </div>
           )}
 
-          {!["url", "text", "vcard"].includes(type) && (
+          {type === "wifi" && (
+            <div className="grid grid-cols-2 gap-3">
+              <div className="col-span-2">
+                <Field label="Network name (SSID)">
+                  <input value={form.ssid ?? ""} onChange={(e) => set("ssid", e.target.value)} className={inputCls} />
+                </Field>
+              </div>
+              <Field label="Password">
+                <input value={form.password ?? ""} onChange={(e) => set("password", e.target.value)} className={inputCls} />
+              </Field>
+              <Field label="Encryption">
+                <select value={form.encryption ?? "WPA"} onChange={(e) => set("encryption", e.target.value)} className={inputCls}>
+                  <option value="WPA">WPA/WPA2</option>
+                  <option value="WEP">WEP</option>
+                  <option value="nopass">None</option>
+                </select>
+              </Field>
+              <label className="col-span-2 flex items-center gap-2 text-sm text-charcoal/70">
+                <input type="checkbox" checked={!!form.hidden} onChange={(e) => set("hidden", e.target.checked)} />
+                Hidden network
+              </label>
+            </div>
+          )}
+
+          {type === "email" && (
+            <div className="space-y-4">
+              <Field label="To"><input value={form.to ?? ""} onChange={(e) => set("to", e.target.value)} placeholder="hello@example.com" className={inputCls} /></Field>
+              <Field label="Subject"><input value={form.subject ?? ""} onChange={(e) => set("subject", e.target.value)} className={inputCls} /></Field>
+              <Field label="Body"><textarea value={form.body ?? ""} onChange={(e) => set("body", e.target.value)} rows={3} className={inputCls} /></Field>
+            </div>
+          )}
+
+          {type === "sms" && (
+            <div className="space-y-4">
+              <Field label="Phone number"><input value={form.number ?? ""} onChange={(e) => set("number", e.target.value)} placeholder="+9665XXXXXXXX" className={inputCls} /></Field>
+              <Field label="Message"><textarea value={form.message ?? ""} onChange={(e) => set("message", e.target.value)} rows={3} className={inputCls} /></Field>
+            </div>
+          )}
+
+          {type === "phone" && (
+            <Field label="Phone number">
+              <input value={form.number ?? ""} onChange={(e) => set("number", e.target.value)} placeholder="+9665XXXXXXXX" className={inputCls} />
+            </Field>
+          )}
+
+          {type === "whatsapp" && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-[110px_1fr] gap-3">
+                <Field label="Code">
+                  <select value={form.countryCode ?? "+966"} onChange={(e) => set("countryCode", e.target.value)} className={inputCls}>
+                    {["+966", "+971", "+974", "+973", "+965", "+968"].map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </Field>
+                <Field label="WhatsApp number">
+                  <input value={form.number ?? ""} onChange={(e) => set("number", e.target.value)} placeholder="5XXXXXXXX" className={inputCls} />
+                </Field>
+              </div>
+              <Field label="Pre-filled message (optional)">
+                <textarea value={form.message ?? ""} onChange={(e) => set("message", e.target.value)} rows={3} className={inputCls} />
+              </Field>
+            </div>
+          )}
+
+          {type === "app_link" && (
+            <div className="space-y-4">
+              <Field label="App name"><input value={form.name ?? ""} onChange={(e) => set("name", e.target.value)} placeholder="My App" className={inputCls} /></Field>
+              <Field label="App URL (App Store / Play Store)"><input value={form.url ?? "https://"} onChange={(e) => set("url", e.target.value)} placeholder="https://apps.apple.com/..." className={inputCls} /></Field>
+              <Field label="Fallback URL (desktop, optional)"><input value={form.fallback ?? ""} onChange={(e) => set("fallback", e.target.value)} className={inputCls} /></Field>
+            </div>
+          )}
+
+          {!meta.ready && (
             <div className="rounded-xl border border-charcoal/10 bg-sand-light/50 p-6 text-sm text-charcoal/60">
-              The <strong>{meta.label}</strong> form is wired up later in
-              this session. Pick <strong>Website</strong>, <strong>Text</strong>{" "}
-              or <strong>vCard</strong> to go end-to-end now.
+              The <strong>{meta.label}</strong> form lands in a later
+              session (its backend isn’t live yet). Pick a ready type to
+              go end-to-end now.
             </div>
           )}
 
