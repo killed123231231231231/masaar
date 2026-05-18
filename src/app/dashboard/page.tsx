@@ -45,7 +45,7 @@ export default async function DashboardPage() {
           </p>
         </div>
         <Link
-          href="/dashboard/qr/new"
+          href="/create"
           className="inline-flex items-center gap-2 rounded-lg bg-deep-teal px-4 py-2 text-sm font-semibold text-white hover:bg-deep-teal-dark transition-colors duration-200"
         >
           <Plus className="h-4 w-4" /> New QR Code
@@ -109,7 +109,7 @@ function EmptyState() {
         Create your first dynamic QR code and watch scans roll in.
       </p>
       <Link
-        href="/dashboard/qr/new"
+        href="/create"
         className="mt-6 inline-flex items-center gap-2 rounded-lg bg-deep-teal px-4 py-2 text-sm font-semibold text-white hover:bg-terracotta transition-colors duration-200"
       >
         <Plus className="h-4 w-4" /> Create QR Code
