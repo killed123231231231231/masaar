@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import QrPreview from "@/components/qr-preview";
 import { encodeEmail, encodePhone, encodeSms, encodeVCard, encodeWifi } from "@/lib/content-types";
+import { normalizeUrl } from "@/lib/url";
 import type { ContentKind, QrKind } from "@/types/database";
 import { appUrl } from "@/lib/utils";
 import { generateShortId } from "@/lib/shortid";
@@ -95,8 +96,11 @@ export default function QrCustomizer({ initialShortId, onSave, saving }: Props) 
   }, [kind, content_kind, shortId, rawDestination]);
 
   // What we persist as the destination field.
-  // For dynamic URL QRs we store the real destination (server adds short_id separately).
-  const persistedDestination = rawDestination;
+  // For dynamic URL QRs we store the real destination (server adds short_id
+  // separately). A bare "karakexpress.com" is normalized to
+  // "https://karakexpress.com" so it passes parseHttpUrl on save.
+  const persistedDestination =
+    content_kind === "url" ? normalizeUrl(urlValue) : rawDestination;
 
   // Structured payload to store alongside (for re-editing vCard etc.)
   const payloadJson = useMemo(() => {
