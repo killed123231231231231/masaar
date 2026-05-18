@@ -46,9 +46,9 @@ export default async function DashboardPage() {
         </div>
         <Link
           href="/create"
-          className="inline-flex items-center gap-2 rounded-lg bg-deep-teal px-4 py-2 text-sm font-semibold text-white hover:bg-deep-teal-dark transition-colors duration-200"
+          className="inline-flex items-center gap-2 rounded-lg bg-deep-teal px-5 py-2.5 text-sm md:text-base font-semibold text-white shadow-sm hover:bg-deep-teal-dark transition-colors duration-200"
         >
-          <Plus className="h-4 w-4" /> New QR Code
+          <Plus className="h-5 w-5" /> New QR
         </Link>
       </div>
 
@@ -110,9 +110,9 @@ function EmptyState() {
       </p>
       <Link
         href="/create"
-        className="mt-6 inline-flex items-center gap-2 rounded-lg bg-deep-teal px-4 py-2 text-sm font-semibold text-white hover:bg-terracotta transition-colors duration-200"
+        className="mt-6 inline-flex items-center gap-2 rounded-lg bg-deep-teal px-6 py-3 text-base font-semibold text-white shadow-sm hover:bg-terracotta transition-colors duration-200"
       >
-        <Plus className="h-4 w-4" /> Create QR Code
+        <Plus className="h-5 w-5" /> Create your first QR
       </Link>
     </div>
   );
