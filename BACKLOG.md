@@ -250,3 +250,60 @@ prompts). One per session; deploy + smoke-test after each.
     `vercel env ls production` check that asserts
     `SUPABASE_SERVICE_ROLE_KEY` is present in the Production scope.
     Would have caught the prod-missing-key gap pre-merge.
+
+## 6. Session B follow-ups (visual upgrade)
+
+- **Mobile sidebar drawer.** The deep-teal `Sidebar` is `hidden
+  lg:flex` on the Overview / qr-codes / per-QR-analytics pages. At
+  <lg the `MobileTopBar` (back link + page label) is the only nav.
+  A proper slide-out drawer with the full nav + plan card would close
+  the gap. Phase-1.5 trade-off — not blocking.
+- **`SECURITY DEFINER` RPC to replace admin-client `recentQrCount`.**
+  `/checkout/[shortId]` calls `createAdminClient()` to count 24h-old
+  QRs for the social-proof card. This widens preview/prod attack
+  surface (pairs with §5 "rotate / restrict service-role key"). A
+  SECURITY DEFINER function
+  `count_recent_qrs(since timestamptz) returns int` with
+  `GRANT EXECUTE ... TO authenticated, anon` lets the regular Supabase
+  client run it without the service-role key. Same pattern as
+  `resolve_qr_v2` / `create_anon_qr` / `claim_draft_qrs` (migrations
+  005–009).
+- **Custom date-range picker on analytics filter pills.** Stretch
+  goal from Phase 1. Add a "Custom range" pill that opens a date
+  picker; URL params become `?from=…&to=…` alongside `?period=`.
+- **Trend-chart polish.** Spike annotations (top 3 days marked),
+  X-axis tick density per period (every 7d for 30d, every 30d for 90d,
+  monthly for all-time), hover tooltip restyle. Phase 1 nice-to-haves.
+- **`window.location.search` reader bug class.** Almost shipped a
+  `bundle_period_safe()` helper that read URL params on every render —
+  would have been an SSR/CSR mismatch (the server has no `window`).
+  Add a lint rule (or a CLAUDE.md note) that any `window.*` read in a
+  client component must be inside `useEffect` (or SSR-safe via
+  `typeof window` check).
+- **Hydration-mismatch lint.** Same family as the previous item. Any
+  `Math.random()`, `Date.now()`, `new Date()` in a JSX expression
+  should be flagged (or required to be wrapped in a stable seed).
+  Phase 2 hydration nit (`9d15b7e`) prompted this.
+- **Real PayPal / Google Pay / Mada wiring (Sprint 3).** All three
+  payment buttons currently route through the same flag-off endpoint.
+  `TODO(Sprint 3)` comments mark the gateway routing locations. PayPal
+  = PayPal SDK, GPay = Google Pay JS API, Card = Tap Payments /
+  HyperPay / Mada per STRATEGY.md §5. Decision pending on whether to
+  surface Card-first (regional dominant method) instead of PayPal-first
+  for the Saudi launch.
+- **Brand-safe GPay mark.** The black GPay button shows a stylized "G"
+  in a white circle, NOT the real Google "G" logo (can't ship the real
+  one without brand permission). Sprint 3 should either get Google Pay
+  brand-asset approval or keep the placeholder.
+- **Testimonial system.** The 4 checkout testimonials are all
+  `Example`-tagged placeholders. Build a simple
+  `testimonials(id, name, city, body, rating, when_text, approved bool)`
+  table; replace the static array once real entries land. The
+  "Example" tag stays on any un-approved entries.
+- **`text-sea-teal` typo class (lint).** Tailwind doesn't fail on
+  unknown utility classes — they're silently dropped. Almost shipped
+  `text-sea-teal` in Phase 2 (the brand-palette mental model uses
+  "sea-teal" but `tailwind.config.ts` exposes it as
+  `deep-teal-light`). Add the
+  [tailwindcss/no-custom-classname](https://github.com/francoismassart/eslint-plugin-tailwindcss)
+  rule (or equivalent) to catch typos at lint time.
