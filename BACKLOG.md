@@ -233,13 +233,20 @@ prompts). One per session; deploy + smoke-test after each.
   — set unconditionally at anon checkout while `PAYMENTS_ENABLED=false`.
   When real payments wire up (Sprint 3) this must only be set on a
   verified payment webhook, not at account creation.
-- **JWT role validation at app startup (Sprint 3 hardening).** A.7
-  pre-merge bug: the Vercel `SUPABASE_SERVICE_ROLE_KEY` value was the
-  anon JWT (both are `eyJ…`); Supabase REST returned the opaque
-  `"Invalid API key"` 400 for every admin call. Add a tiny check in
-  `lib/supabase/admin.ts` (or a boot guard): decode the JWT payload
-  (no signature verification needed — we don't trust it, just inspect
-  it), assert `role === "service_role"`, and throw a clear error on
-  mismatch. Same idea for the anon key (assert `role === "anon"`).
-  Catches the wrong-paste at build / first-call time instead of
-  during a smoke test. Out of scope for A.7 (the value's fixed now).
+- **JWT role validation at app startup (Sprint 3 hardening — bumped).**
+  A.7 had TWO related env failures masked by insufficient verification:
+  (1) the Vercel `SUPABASE_SERVICE_ROLE_KEY` value was originally the
+  anon JWT (both are `eyJ…`); Supabase REST returned an opaque 400
+  `"Invalid API key"`. (2) Production scope was missing the key
+  entirely, but my post-A.7 verification used an empty-body POST that
+  failed at email-validation *before* the admin client constructed,
+  hiding the 503. Two complementary checks:
+  - **App-level**: in `lib/supabase/admin.ts` (or a boot guard),
+    decode the SERVICE_ROLE_KEY payload (no signature verify needed —
+    we don't trust it, just inspect), assert `role === "service_role"`,
+    throw a clear error on mismatch. Same for anon (`role === "anon"`).
+    Catches wrong-paste at first call instead of during a smoke.
+  - **CI-level**: before promoting to production, run a
+    `vercel env ls production` check that asserts
+    `SUPABASE_SERVICE_ROLE_KEY` is present in the Production scope.
+    Would have caught the prod-missing-key gap pre-merge.

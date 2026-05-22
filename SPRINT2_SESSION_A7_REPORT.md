@@ -146,3 +146,86 @@ preview — PATCH returns 200, no misleading errors, redirect to
 assert `role === "service_role"`, fail-fast with a clear error if
 wrong) — so an anon-vs-service-role mix-up surfaces immediately on
 boot/build instead of as an opaque 400 during a smoke.
+
+---
+
+## Post-merge hotfixes (anon Pay → /login symptom)
+
+**Symptom:** Usama reported anon Pay on `/checkout/[shortId]` was
+redirecting to `/auth/login` instead of completing checkout.
+
+**Real cause:** the Pay button correctly POSTed `/api/checkout/anon`
+and the POST succeeded — but both the API and the client returned
+`redirect_url: "/dashboard?welcome_new_qr=1&first_login=1"`, and
+`/dashboard` is middleware-gated; the anon browser has no session
+(`admin.createUser` doesn't set cookies), so middleware bounced to
+`/login`. Symptom looked like "Pay redirects to login"; really it was
+the destination being unreachable.
+
+### Hotfix #1 — `07d85c7` (PR #6)
+- New **public** `src/app/checkout/success/page.tsx` confirming
+  "Your QR is live!" + welcome-email magic-link hint + Back-to-home.
+- `/api/checkout/anon` `redirect_url` and `checkout-client` fallback
+  changed to `/checkout/success?email=<encoded>`.
+- Middleware verified — only `/dashboard` is gated; `/checkout/*`
+  isn't. `checkout-client` error display already surfaces real server
+  messages (from §6) — no change needed there.
+
+### Honest correction — earlier A.7 prod "verification" was wrong
+The post-A.7-merge check I ran (`POST {} → 400 invalid_email`) was
+insufficient: validation rejected the empty body at step 2, *before*
+`createAdminClient` was even constructed. The admin-client path was
+never exercised. The real situation was that
+`SUPABASE_SERVICE_ROLE_KEY` was only in **Preview** scope (not
+Production), so anon checkout had silently been 503-ing on prod since
+the A.7 merge. Usama's "Pay → /login" bug was on preview; the same
+endpoint on prod would have returned 503. I should have done a
+valid-payload POST.
+
+### Env-scope fix (Usama, dashboard)
+`SUPABASE_SERVICE_ROLE_KEY` scope expanded to **Production + Preview +
+Development** (same JWT value; no rotation). Production redeployed via
+`vercel redeploy <prod> --target=production` → ● Ready. Confirmed at
+this point that the env scope had been the masking issue.
+
+### Hotfix #2 — `c08c27b` (PR #7)
+A REAL POST to `/api/checkout/anon` with a valid payload returned 200
+but with the OLD `/dashboard?…` `redirect_url`, exposing a second
+miss: my Hotfix #1 used `Edit replace_all=true` expecting two
+identical occurrences, but lines 65 and 175 had **different leading
+whitespace** (6 spaces vs 4), so only line 65 matched. Replaced line
+175 explicitly; one-line fix, merged, redeployed.
+
+### Final prod verification (`masaar-pgayht2qr…`, ● Ready)
+| Check | Result |
+|---|---|
+| `/create` wizard renders | 200 + markers (Choose QR type, Complete Content) ✓ |
+| Lock-in `/r/pendsmk1` | 302 → `/activate/pendsmk1` ✓ |
+| Existing active `/r/WgcQX3E` | 302 → `https://anthropic.com/` ✓ |
+| `/checkout/success` (public) | 200 ✓ |
+| **`POST /api/checkout/anon` (valid payload)** | **200**, `success:true`, `redirect_url:"/checkout/success?email=…"` ✓ |
+
+Welcome email reported `email_delivery: "failed"` — Resend's
+`onboarding@resend.dev` test-mode restriction with `+alias` recipients
+(documented in BACKLOG §5); lifts in Sprint 3 with a verified domain.
+
+### Sprint 3 hardening — bumped priority (BACKLOG §5)
+- **JWT role-claim assertion at app startup** (catches wrong-paste at
+  boot, not during a smoke).
+- **CI env-scope assertion**: before promoting to production, run a
+  `vercel env ls production` check that asserts
+  `SUPABASE_SERVICE_ROLE_KEY` is present in the Production scope.
+  Would have caught the masked 503 pre-merge.
+
+### Test data left in place (per Usama)
+- Draft rows: `hfvrfy7` (claimed by first verify POST), `hfvrfy8`
+  (claimed by second verify POST).
+- `auth.users` rows: `usamaahmed047+a7hotfixverify@gmail.com`,
+  `usamaahmed047+a7verify2@gmail.com`.
+- To be purged in the launch-prep sweep alongside the other SMOKE
+  rows.
+
+### Branches kept
+`hotfix/anon-checkout-pay-button` (PR #6) and
+`hotfix/anon-checkout-redirect-url-line175` (PR #7) preserved for
+history per instruction.
