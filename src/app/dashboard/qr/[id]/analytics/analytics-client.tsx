@@ -168,7 +168,8 @@ function Sidebar({ me, qrId }: { me: Me; qrId: string }) {
 
 function Main({ bundle }: { bundle: AnalyticsBundle }) {
   return (
-    <main className="min-w-0 flex-1 px-5 py-6 lg:px-8">
+    <main className="min-w-0 flex-1 px-4 py-5 sm:px-5 sm:py-6 lg:px-8">
+      <MobileTopBar bundle={bundle} />
       <PageHeader bundle={bundle} />
       <FailedCallout bundle={bundle} />
       <KpiRow bundle={bundle} />
@@ -176,6 +177,22 @@ function Main({ bundle }: { bundle: AnalyticsBundle }) {
       <BreakdownsGrid bundle={bundle} />
       <TablesGrid bundle={bundle} />
     </main>
+  );
+}
+
+// Mobile only — the deep-teal sidebar is hidden < lg, so give phones
+// a way back to /dashboard + a brand anchor.
+function MobileTopBar({ bundle }: { bundle: AnalyticsBundle }) {
+  return (
+    <div className="mb-4 flex items-center justify-between lg:hidden">
+      <Link href="/dashboard" className="inline-flex items-center gap-2 text-sm font-semibold text-charcoal/65 hover:text-deep-teal">
+        <span className="grid h-7 w-7 place-items-center rounded-md bg-deep-teal p-1">
+          <LogoMark className="h-full w-full brightness-0 invert" />
+        </span>
+        Dashboard
+      </Link>
+      <span className="truncate text-xs text-charcoal/45">{bundle.qr.name}</span>
+    </div>
   );
 }
 
@@ -509,7 +526,7 @@ function RecentActivityTable({ bundle }: { bundle: AnalyticsBundle }) {
         Recent activity
       </h2>
       {bundle.recentScans.length ? (
-        <table className="mt-3 w-full text-xs">
+        <div className="-mx-1 mt-3 overflow-x-auto"><table className="w-full text-xs">
           <thead className="text-[10px] uppercase tracking-wider text-charcoal/45">
             <tr className="text-left">
               <th className="pb-2 font-semibold">When</th>
@@ -530,7 +547,7 @@ function RecentActivityTable({ bundle }: { bundle: AnalyticsBundle }) {
               </tr>
             ))}
           </tbody>
-        </table>
+        </table></div>
       ) : (
         <p className="mt-4 text-xs text-charcoal/45">No recent activity in this period.</p>
       )}
