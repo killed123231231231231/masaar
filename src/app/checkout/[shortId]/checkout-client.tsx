@@ -75,8 +75,13 @@ export default function CheckoutClient({
       });
       const data = await res.json().catch(() => null);
       if (res.ok && data?.success) {
+        // Anon → public /checkout/success (no session yet; /dashboard is
+        // middleware-gated and would bounce to /login). The welcome
+        // email carries the magic-link login. Post-checkout auto-login
+        // is BACKLOGed.
         router.push(
-          data.redirect_url || "/dashboard?welcome_new_qr=1&first_login=1"
+          data.redirect_url ||
+            `/checkout/success?email=${encodeURIComponent(anon.email)}`
         );
         return;
       }

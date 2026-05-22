@@ -62,7 +62,7 @@ export async function POST(request: Request) {
   if (draftRows.every((r) => r.user_id)) {
     return NextResponse.json({
       success: true,
-      redirect_url: "/dashboard?welcome_new_qr=1&first_login=1",
+      redirect_url: `/checkout/success?email=${encodeURIComponent(email)}`,
     });
   }
 
