@@ -217,13 +217,17 @@ function HeroPreview() {
               <p className="text-[10px] font-display font-bold text-charcoal">
                 Today’s specials
               </p>
-              {["Saffron risotto", "Grilled hammour", "Karak tea"].map((d) => (
+              {[
+                { name: "Saffron risotto", price: 68 },
+                { name: "Grilled hammour", price: 84 },
+                { name: "Karak tea", price: 18 },
+              ].map((d) => (
                 <div
-                  key={d}
+                  key={d.name}
                   className="flex items-center justify-between border-b border-charcoal/5 pb-1 text-[9px] text-charcoal/65 last:border-b-0"
                 >
-                  <span>{d}</span>
-                  <span className="font-semibold text-charcoal">SAR {Math.floor(Math.random() * 60) + 30}</span>
+                  <span>{d.name}</span>
+                  <span className="font-semibold text-charcoal">SAR {d.price}</span>
                 </div>
               ))}
               <div className="mt-2 rounded-md bg-deep-teal py-1 text-center text-[9px] font-semibold text-white">
