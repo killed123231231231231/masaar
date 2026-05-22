@@ -288,3 +288,240 @@ export async function getAnalytics(
     failedScansCount,
   };
 }
+
+/* ────────────────────────── ACCOUNT-LEVEL ────────────────────────── */
+
+export interface AccountRecentScan extends ScanRow {
+  id: string;
+  qr_id: string;
+  qr_name: string;
+  qr_short_id: string | null;
+}
+
+export interface AccountAnalyticsBundle {
+  period: Period;
+
+  // KPIs
+  total: number;
+  uniqueScanners: number;
+  mobileShare: number;
+  topCountry: string | null;
+  activeQrCount: number;
+  totalQrCount: number;
+
+  // Deltas
+  totalDeltaPct: number | null;
+  uniqueDeltaPct: number | null;
+  mobileDeltaPct: number | null;
+
+  // Charts
+  timeSeries: Bucket[];
+  byCountry: Bucket[];
+  byCity: Bucket[];
+  byDevice: Bucket[];
+  byBrowser: Bucket[];
+  byOs: Bucket[];
+
+  // Tables
+  recentScans: AccountRecentScan[];
+  userQrs: { id: string; name: string; short_id: string | null; status: string; scan_count: number }[];
+
+  // Conversion callout
+  failedScansCount: number;
+  firstPendingQrId: string | null;
+  firstPendingQrShortId: string | null;
+}
+
+const EMPTY_ACCOUNT = (period: Period): AccountAnalyticsBundle => ({
+  period,
+  total: 0, uniqueScanners: 0, mobileShare: 0, topCountry: null,
+  activeQrCount: 0, totalQrCount: 0,
+  totalDeltaPct: null, uniqueDeltaPct: null, mobileDeltaPct: null,
+  timeSeries: [], byCountry: [], byCity: [], byDevice: [], byBrowser: [], byOs: [],
+  recentScans: [], userQrs: [],
+  failedScansCount: 0, firstPendingQrId: null, firstPendingQrShortId: null,
+});
+
+export async function getAccountAnalytics(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  period: Period
+): Promise<AccountAnalyticsBundle> {
+  // All of the user's QRs.
+  const { data: myQrs } = await supabase
+    .from("qr_codes")
+    .select("id, name, short_id, status, created_at")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+  const qrs = (myQrs ?? []) as { id: string; name: string; short_id: string | null; status: string; created_at: string }[];
+  if (qrs.length === 0) return EMPTY_ACCOUNT(period);
+
+  const ids = qrs.map((q) => q.id);
+  const pendingIds = qrs.filter((q) => q.status === "pending_payment" || q.status === "suspended").map((q) => q.id);
+  const activeQrCount = qrs.filter((q) => q.status === "active").length;
+  const totalQrCount = qrs.length;
+
+  const { startISO, endISO, prevStartISO, prevEndISO } = periodBounds(period);
+
+  // Accurate counts.
+  const totalQ = supabase
+    .from("scans")
+    .select("id", { count: "exact", head: true })
+    .in("qr_code_id", ids);
+  const scopedTotalQ = period === "all"
+    ? totalQ
+    : totalQ.gte("scanned_at", startISO).lte("scanned_at", endISO);
+  const { count: totalCount } = await scopedTotalQ;
+  const total = totalCount ?? 0;
+
+  let previousTotal = 0;
+  if (prevStartISO && prevEndISO) {
+    const { count } = await supabase
+      .from("scans")
+      .select("id", { count: "exact", head: true })
+      .in("qr_code_id", ids)
+      .gte("scanned_at", prevStartISO)
+      .lt("scanned_at", prevEndISO);
+    previousTotal = count ?? 0;
+  }
+
+  // Rows for breakdowns / unique / mobile / time series.
+  const rowsQ = supabase
+    .from("scans")
+    .select("scanned_at, country, city, device_type, browser, os, ip_hash")
+    .in("qr_code_id", ids)
+    .order("scanned_at", { ascending: false })
+    .limit(ROW_FETCH_CAP);
+  const scopedRowsQ = period === "all"
+    ? rowsQ
+    : rowsQ.gte("scanned_at", startISO).lte("scanned_at", endISO);
+  const { data: rowsRaw } = await scopedRowsQ;
+  const rows = (rowsRaw ?? []) as ScanRow[];
+
+  let prevRows: ScanRow[] = [];
+  if (prevStartISO && prevEndISO) {
+    const { data: prev } = await supabase
+      .from("scans")
+      .select("scanned_at, country, city, device_type, browser, os, ip_hash")
+      .in("qr_code_id", ids)
+      .gte("scanned_at", prevStartISO)
+      .lt("scanned_at", prevEndISO)
+      .limit(ROW_FETCH_CAP);
+    prevRows = (prev ?? []) as ScanRow[];
+  }
+
+  const uniq = (xs: ScanRow[]) => new Set(xs.map((r) => r.ip_hash || "")).size;
+  const mobileShareOf = (xs: ScanRow[]) => {
+    if (xs.length === 0) return 0;
+    const m = xs.filter((r) => (r.device_type || "").toLowerCase() === "mobile").length;
+    return Math.round((m / xs.length) * 100);
+  };
+  const uniqueScanners = uniq(rows);
+  const previousUnique = uniq(prevRows);
+  const mobileShare = mobileShareOf(rows);
+  const previousMobile = mobileShareOf(prevRows);
+
+  const delta = (curr: number, prev: number): number | null => {
+    if (prev === 0) return curr === 0 ? 0 : null;
+    return Math.round(((curr - prev) / prev) * 100);
+  };
+  const totalDeltaPct = period === "all" ? null : delta(total, previousTotal);
+  const uniqueDeltaPct = period === "all" ? null : delta(uniqueScanners, previousUnique);
+  const mobileDeltaPct = period === "all" ? null : delta(mobileShare, previousMobile);
+
+  const groupTop = (xs: ScanRow[], key: keyof ScanRow, n: number): Bucket[] => {
+    const m = new Map<string, number>();
+    for (const r of xs) {
+      const v = (r[key] as string | null) || "Unknown";
+      m.set(v, (m.get(v) ?? 0) + 1);
+    }
+    return Array.from(m.entries())
+      .map(([label, count]) => ({ label, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, n);
+  };
+  const byCountry = groupTop(rows, "country", 8);
+  const byCity = groupTop(rows, "city", 8);
+  const byDevice = groupTop(rows, "device_type", 6);
+  const byBrowser = groupTop(rows, "browser", 6);
+  const byOs = groupTop(rows, "os", 6);
+  const topCountry = byCountry[0]?.label || null;
+
+  // Time series — Riyadh-day bucketed.
+  const buckets = new Map<string, number>();
+  const days = periodDays(period);
+  if (days) {
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date(Date.now() - i * DAY_MS);
+      buckets.set(dayBucket(d.toISOString()), 0);
+    }
+  }
+  for (const r of rows) {
+    const k = dayBucket(r.scanned_at);
+    buckets.set(k, (buckets.get(k) ?? 0) + 1);
+  }
+  const timeSeries: Bucket[] = Array.from(buckets.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([label, count]) => ({ label, count }));
+
+  // Recent scans + QR info (embedded select).
+  const recentQ = supabase
+    .from("scans")
+    .select("id, scanned_at, country, city, device_type, browser, os, ip_hash, qr_codes(id, name, short_id)")
+    .in("qr_code_id", ids)
+    .order("scanned_at", { ascending: false })
+    .limit(10);
+  const recentScoped = period === "all"
+    ? recentQ
+    : recentQ.gte("scanned_at", startISO).lte("scanned_at", endISO);
+  const { data: recentRowsRaw } = await recentScoped;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const recentScans: AccountRecentScan[] = (recentRowsRaw ?? []).map((r: any) => {
+    const q = Array.isArray(r.qr_codes) ? r.qr_codes[0] : r.qr_codes;
+    return {
+      id: String(r.id),
+      qr_id: q?.id ?? "",
+      qr_name: q?.name ?? "Unknown",
+      qr_short_id: q?.short_id ?? null,
+      scanned_at: r.scanned_at,
+      country: r.country, city: r.city,
+      device_type: r.device_type, browser: r.browser, os: r.os,
+      ip_hash: r.ip_hash,
+    };
+  });
+
+  // Best performing — already have qrs, just need scan counts.
+  const countsMap: Record<string, number> = {};
+  const { data: countsRows } = await supabase.rpc("scan_counts", { p_ids: ids });
+  for (const c of countsRows ?? []) countsMap[c.qr_code_id] = Number(c.count);
+  const userQrs = qrs
+    .map((q) => ({ id: q.id, name: q.name, short_id: q.short_id, status: q.status, scan_count: countsMap[q.id] ?? 0 }))
+    .sort((a, b) => b.scan_count - a.scan_count);
+
+  // Failed scans (period-scoped, across pending/suspended QRs).
+  let failedScansCount = 0;
+  let firstPendingQrId: string | null = null;
+  let firstPendingQrShortId: string | null = null;
+  if (pendingIds.length > 0) {
+    const failQ = supabase
+      .from("scans")
+      .select("id", { count: "exact", head: true })
+      .in("qr_code_id", pendingIds);
+    const scopedFailQ = period === "all" ? failQ : failQ.gte("scanned_at", startISO).lte("scanned_at", endISO);
+    const { count } = await scopedFailQ;
+    failedScansCount = count ?? 0;
+    const firstPending = qrs.find((q) => q.id === pendingIds[0]);
+    firstPendingQrId = firstPending?.id ?? null;
+    firstPendingQrShortId = firstPending?.short_id ?? null;
+  }
+
+  return {
+    period,
+    total, uniqueScanners, mobileShare, topCountry,
+    activeQrCount, totalQrCount,
+    totalDeltaPct, uniqueDeltaPct, mobileDeltaPct,
+    timeSeries, byCountry, byCity, byDevice, byBrowser, byOs,
+    recentScans, userQrs,
+    failedScansCount, firstPendingQrId, firstPendingQrShortId,
+  };
+}
