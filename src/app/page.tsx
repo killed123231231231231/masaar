@@ -124,7 +124,7 @@ function HeroCopy() {
   return (
     <div className="relative z-10">
       <span className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-deep-teal">
-        <Sparkles className="h-3.5 w-3.5 text-sea-teal" strokeWidth={2.25} />
+        <Sparkles className="h-3.5 w-3.5 text-deep-teal-light" strokeWidth={2.25} />
         Adaptive QR platform
       </span>
 
