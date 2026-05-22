@@ -34,6 +34,11 @@ export default function EmailGateModal({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    // Diagnostic: confirms in devtools that the NEW-USER path ran, NOT
+    // signInWithOtp. If you see "[auth] new-user submit" you are on
+    // the email-holding path (no magic link). If instead you see
+    // "[auth] login submit" your click hit the Log-in modal.
+    console.info("[auth] new-user submit → /checkout (no magic link)");
     setLoading(true);
     setErr(null);
     const em = email.trim().toLowerCase();
