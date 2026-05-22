@@ -1,209 +1,251 @@
 "use client";
 
-import { useMemo } from "react";
+import Link from "next/link";
 import {
-  AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  BarChart, Bar, CartesianGrid, PieChart, Pie, Cell,
-} from "recharts";
+  Activity, Download, Filter, Globe2, MapPin, QrCode, Smartphone,
+  Sparkles, Star, Users, Wallet,
+} from "lucide-react";
+import { toast } from "sonner";
+import LogoMark from "@/components/logo-mark";
+import Sidebar, { type SidebarMe } from "@/components/dashboard/sidebar";
+import {
+  BarCard, DonutCard, KpiCard, PeriodPills, TrendCard, fmtTime,
+} from "@/components/dashboard/widgets";
+import { PERIODS, type AnalyticsBundle } from "@/lib/analytics";
 
-interface Scan {
-  scanned_at: string;
-  country: string | null;
-  city: string | null;
-  device_type: string | null;
-  browser: string | null;
-  os: string | null;
+export default function AnalyticsClient({
+  bundle,
+  me,
+}: {
+  bundle: AnalyticsBundle;
+  me: SidebarMe;
+}) {
+  const exportHref = `/api/qr/${bundle.qr.id}/scans.csv?period=${bundle.period}`;
+  return (
+    <div className="min-h-screen bg-[#F6F4EE] text-charcoal">
+      <div className="mx-auto flex max-w-[1440px]">
+        <Sidebar
+          me={me}
+          current="analytics"
+          analyticsHref={`/dashboard/qr/${bundle.qr.id}/analytics`}
+          reportsHref={exportHref}
+          upgradeHref={`/checkout/${bundle.qr.short_id ?? bundle.qr.id}`}
+        />
+        <div className="flex min-w-0 flex-1 flex-col xl:flex-row">
+          <Main bundle={bundle} exportHref={exportHref} />
+          <RightRail bundle={bundle} />
+        </div>
+      </div>
+    </div>
+  );
 }
 
-// Brand palette: deep-teal (primary), terracotta (accent), sea-teal
-// (tertiary), then on-brand variants for any extra pie slices.
-const COLORS = ["#0F5B55", "#E07A5F", "#3FA39A", "#073d3a", "#B85F47", "#D6D1C6"];
+function Main({ bundle, exportHref }: { bundle: AnalyticsBundle; exportHref: string }) {
+  return (
+    <main className="min-w-0 flex-1 px-4 py-5 sm:px-5 sm:py-6 lg:px-8">
+      <MobileTopBar bundle={bundle} />
+      <PageHeader bundle={bundle} exportHref={exportHref} />
+      <FailedCallout bundle={bundle} />
+      <KpiRow bundle={bundle} />
+      <TrendCard period={bundle.period} series={bundle.timeSeries} />
+      <BreakdownsGrid bundle={bundle} />
+      <TablesGrid bundle={bundle} />
+    </main>
+  );
+}
 
-export default function AnalyticsClient({ scans }: { scans: Scan[] }) {
-  // Time series — group scans by day (last 30 days)
-  const timeSeries = useMemo(() => {
-    const today = new Date();
-    const buckets = new Map<string, number>();
-    for (let i = 29; i >= 0; i--) {
-      const d = new Date(today);
-      d.setDate(d.getDate() - i);
-      buckets.set(d.toISOString().slice(0, 10), 0);
-    }
-    scans.forEach((s) => {
-      const day = s.scanned_at.slice(0, 10);
-      if (buckets.has(day)) buckets.set(day, (buckets.get(day) ?? 0) + 1);
-    });
-    return Array.from(buckets.entries()).map(([date, count]) => ({ date, count }));
-  }, [scans]);
+function MobileTopBar({ bundle }: { bundle: AnalyticsBundle }) {
+  return (
+    <div className="mb-4 flex items-center justify-between lg:hidden">
+      <Link href="/dashboard" className="inline-flex items-center gap-2 text-sm font-semibold text-charcoal/65 hover:text-deep-teal">
+        <span className="grid h-7 w-7 place-items-center rounded-md bg-deep-teal p-1">
+          <LogoMark className="h-full w-full brightness-0 invert" />
+        </span>
+        Dashboard
+      </Link>
+      <span className="truncate text-xs text-charcoal/45">{bundle.qr.name}</span>
+    </div>
+  );
+}
 
-  const byDevice = useMemo(() => groupBy(scans, (s) => s.device_type || "desktop"), [scans]);
-  const byCountry = useMemo(() => groupBy(scans, (s) => s.country || "Unknown").slice(0, 8), [scans]);
-  const byCity = useMemo(() => groupBy(scans, (s) => s.city || "Unknown").slice(0, 8), [scans]);
-  const byBrowser = useMemo(() => groupBy(scans, (s) => s.browser || "Unknown").slice(0, 6), [scans]);
-  const byOs = useMemo(() => groupBy(scans, (s) => s.os || "Unknown").slice(0, 6), [scans]);
+function PageHeader({ bundle, exportHref }: { bundle: AnalyticsBundle; exportHref: string }) {
+  return (
+    <div className="mb-6">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="font-display text-2xl font-bold tracking-tight">Analytics Overview</h1>
+          <p className="mt-1 text-sm text-charcoal/55">
+            Track scans and performance for{" "}
+            <span className="font-medium text-charcoal/75">{bundle.qr.name}</span>
+            {bundle.qr.short_id && (<> · <code className="text-xs">/r/{bundle.qr.short_id}</code></>)}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <a href={exportHref} className="inline-flex items-center gap-1.5 rounded-lg border border-charcoal/15 bg-white px-3 py-1.5 text-sm font-medium text-charcoal/75 hover:bg-sand-light">
+            <Download className="h-4 w-4" /> Export
+          </a>
+          <button type="button" onClick={() => toast("Custom filters coming in Sprint 3")} className="inline-flex items-center gap-1.5 rounded-lg border border-charcoal/15 bg-white px-3 py-1.5 text-sm font-medium text-charcoal/75 hover:bg-sand-light">
+            <Filter className="h-4 w-4" /> Filters
+          </button>
+        </div>
+      </div>
+      <div className="mt-4">
+        <PeriodPills current={bundle.period} />
+      </div>
+    </div>
+  );
+}
 
-  if (!scans.length) {
-    return (
-      <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-12 text-center">
-        <h3 className="text-lg font-semibold text-gray-900">No scans yet</h3>
-        <p className="mt-2 text-sm text-gray-500">
-          Once someone scans this QR, you&apos;ll see real-time data here.
+function FailedCallout({ bundle }: { bundle: AnalyticsBundle }) {
+  if (bundle.failedScansCount <= 0) return null;
+  return (
+    <div className="mb-6 flex items-start gap-3 rounded-r-lg border-l-4 border-terracotta bg-terracotta/5 p-4">
+      <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-terracotta" />
+      <div className="flex-1">
+        <p className="text-sm font-semibold text-charcoal">
+          {bundle.failedScansCount} scans hit your inactive QR{" "}
+          {bundle.period !== "all" && <>in the {PERIODS.find((p) => p.id === bundle.period)?.label.toLowerCase()}</>}.
+        </p>
+        <p className="mt-1 text-xs text-charcoal/65">
+          Visitors are seeing the activation page instead of your destination.
         </p>
       </div>
-    );
-  }
-
-  return (
-    <div className="space-y-6">
-      {/* KPI row */}
-      <div className="grid gap-4 sm:grid-cols-4">
-        <Kpi label="Total scans" value={scans.length} />
-        <Kpi label="Unique countries" value={new Set(scans.map((s) => s.country).filter(Boolean)).size} />
-        <Kpi label="Mobile share" value={`${pct(byDevice, "mobile")}%`} />
-        <Kpi label="Last scan" value={timeAgo(scans[0]?.scanned_at)} />
-      </div>
-
-      {/* Time series */}
-      <Card title="Scans over time (last 30 days)">
-        <div className="h-72">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={timeSeries}>
-              <defs>
-                <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#0F5B55" stopOpacity={0.4} />
-                  <stop offset="100%" stopColor="#0F5B55" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-              <XAxis dataKey="date" tick={{ fontSize: 11 }} />
-              <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
-              <Tooltip />
-              <Area type="monotone" dataKey="count" stroke="#0F5B55" fill="url(#g1)" strokeWidth={2} />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-      </Card>
-
-      {/* Breakdowns */}
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card title="Top countries">
-          <BreakdownBar data={byCountry} />
-        </Card>
-        <Card title="Top cities">
-          <BreakdownBar data={byCity} />
-        </Card>
-        <Card title="Devices">
-          <BreakdownPie data={byDevice} />
-        </Card>
-        <Card title="Browsers">
-          <BreakdownBar data={byBrowser} />
-        </Card>
-        <Card title="Operating systems">
-          <BreakdownBar data={byOs} />
-        </Card>
-      </div>
+      <Link href={`/checkout/${bundle.qr.short_id ?? bundle.qr.id}`} className="rounded-md bg-terracotta px-3 py-1.5 text-xs font-semibold text-white hover:bg-terracotta-dark">
+        Activate now
+      </Link>
     </div>
   );
 }
 
-// ----------------- helpers -----------------
-
-function groupBy<T>(rows: T[], keyFn: (r: T) => string) {
-  const m = new Map<string, number>();
-  rows.forEach((r) => {
-    const k = keyFn(r);
-    m.set(k, (m.get(k) ?? 0) + 1);
-  });
-  return Array.from(m.entries())
-    .map(([key, count]) => ({ key, count }))
-    .sort((a, b) => b.count - a.count);
-}
-
-function pct(data: { key: string; count: number }[], key: string) {
-  const total = data.reduce((s, d) => s + d.count, 0);
-  if (!total) return 0;
-  const hit = data.find((d) => d.key === key)?.count ?? 0;
-  return Math.round((hit / total) * 100);
-}
-
-function timeAgo(iso?: string) {
-  if (!iso) return "—";
-  const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
-  if (s < 60) return `${s}s ago`;
-  if (s < 3600) return `${Math.floor(s / 60)}m ago`;
-  if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
-  return `${Math.floor(s / 86400)}d ago`;
-}
-
-// ----------------- presentation -----------------
-
-function Kpi({ label, value }: { label: string; value: string | number }) {
+function KpiRow({ bundle }: { bundle: AnalyticsBundle }) {
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-      <p className="text-xs font-medium uppercase tracking-wider text-gray-500">{label}</p>
-      <p className="mt-2 text-2xl font-bold text-gray-900">{value}</p>
+    <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
+      <KpiCard icon={Activity} tint="deep-teal" label="Total scans" value={bundle.total.toLocaleString()} delta={bundle.totalDeltaPct} series={bundle.timeSeries} />
+      <KpiCard icon={Users} tint="terracotta" label="Unique scanners" value={bundle.uniqueScanners.toLocaleString()} delta={bundle.uniqueDeltaPct} />
+      <KpiCard icon={Smartphone} tint="sea-teal" label="Mobile share" value={`${bundle.mobileShare}%`} delta={bundle.mobileDeltaPct} />
+      <KpiCard icon={Globe2} tint="deep-teal-dark" label="Top country" value={bundle.topCountry || "—"} />
+      <KpiCard icon={MapPin} tint="terracotta-dark" label="Top city" value={bundle.topCity || "—"} />
     </div>
   );
 }
 
-function Card({ title, children }: { title: string; children: React.ReactNode }) {
+function BreakdownsGrid({ bundle }: { bundle: AnalyticsBundle }) {
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-      <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
-      <div className="mt-4">{children}</div>
+    <div className="mb-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <DonutCard title="Device split" series={bundle.byDevice} centerLabel="Total" />
+      <BarCard title="Top cities" series={bundle.byCity} />
+      <BarCard title="Top countries" series={bundle.byCountry} />
+      <BarCard title="Browsers" series={bundle.byBrowser} />
+      <BarCard title="Operating systems" series={bundle.byOs} />
     </div>
   );
 }
 
-function BreakdownBar({ data }: { data: { key: string; count: number }[] }) {
+function TablesGrid({ bundle }: { bundle: AnalyticsBundle }) {
   return (
-    <div className="h-56">
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} layout="vertical" margin={{ left: 24 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-          <XAxis type="number" tick={{ fontSize: 11 }} allowDecimals={false} />
-          <YAxis dataKey="key" type="category" tick={{ fontSize: 11 }} width={100} />
-          <Tooltip />
-          <Bar dataKey="count" fill="#0F5B55" radius={[0, 4, 4, 0]} />
-        </BarChart>
-      </ResponsiveContainer>
+    <div className="grid gap-4 xl:grid-cols-2">
+      <RecentActivityTable bundle={bundle} />
+      <BestPerformingTable userQrs={bundle.userQrs} />
     </div>
   );
 }
 
-function BreakdownPie({ data }: { data: { key: string; count: number }[] }) {
+function RecentActivityTable({ bundle }: { bundle: AnalyticsBundle }) {
   return (
-    <div className="h-56">
-      <ResponsiveContainer width="100%" height="100%">
-        <PieChart>
-          <Pie
-            data={data}
-            dataKey="count"
-            nameKey="key"
-            cx="50%"
-            cy="50%"
-            innerRadius={40}
-            outerRadius={70}
-            paddingAngle={2}
-          >
-            {data.map((_, i) => (
-              <Cell key={i} fill={COLORS[i % COLORS.length]} />
+    <div className="rounded-2xl border border-charcoal/10 bg-white p-5 shadow-sm">
+      <h2 className="font-display text-sm font-bold uppercase tracking-wider text-charcoal/75">Recent activity</h2>
+      {bundle.recentScans.length ? (
+        <div className="-mx-1 mt-3 overflow-x-auto"><table className="w-full text-xs">
+          <thead className="text-[10px] uppercase tracking-wider text-charcoal/45">
+            <tr className="text-left">
+              <th className="pb-2 font-semibold">When</th>
+              <th className="pb-2 font-semibold">Where</th>
+              <th className="pb-2 font-semibold">Device</th>
+              <th className="pb-2 font-semibold">Browser</th>
+            </tr>
+          </thead>
+          <tbody>
+            {bundle.recentScans.map((s) => (
+              <tr key={s.id} className="border-t border-charcoal/5">
+                <td className="py-2 text-charcoal/70 whitespace-nowrap">{fmtTime(s.scanned_at)}</td>
+                <td className="py-2 text-charcoal/70">{[s.city, s.country].filter(Boolean).join(", ") || "—"}</td>
+                <td className="py-2 capitalize text-charcoal/70">{s.device_type || "—"}</td>
+                <td className="py-2 text-charcoal/70">{s.browser || "—"}</td>
+              </tr>
             ))}
-          </Pie>
-          <Tooltip />
-        </PieChart>
-      </ResponsiveContainer>
-      <div className="mt-2 flex flex-wrap justify-center gap-3 text-xs">
-        {data.map((d, i) => (
-          <span key={d.key} className="flex items-center gap-1">
-            <span
-              className="inline-block h-2.5 w-2.5 rounded-full"
-              style={{ background: COLORS[i % COLORS.length] }}
-            />
-            {d.key} ({d.count})
-          </span>
-        ))}
-      </div>
+          </tbody>
+        </table></div>
+      ) : (
+        <p className="mt-4 text-xs text-charcoal/45">No recent activity in this period.</p>
+      )}
     </div>
+  );
+}
+
+function BestPerformingTable({
+  userQrs,
+}: {
+  userQrs: { id: string; name: string; short_id: string | null; scan_count: number }[];
+}) {
+  const top = userQrs.slice(0, 5);
+  const maxScans = Math.max(1, ...top.map((q) => q.scan_count));
+  return (
+    <div className="rounded-2xl border border-charcoal/10 bg-white p-5 shadow-sm">
+      <h2 className="font-display text-sm font-bold uppercase tracking-wider text-charcoal/75">Best performing codes</h2>
+      {top.length ? (
+        <ul className="mt-3 space-y-3">
+          {top.map((q) => (
+            <li key={q.id} className="flex items-center gap-3">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-sand-light text-charcoal/55">
+                <QrCode className="h-4 w-4" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <Link href={`/dashboard/qr/${q.id}/analytics`} className="block truncate text-sm font-semibold text-charcoal hover:text-deep-teal">{q.name}</Link>
+                <div className="mt-1 h-1 overflow-hidden rounded-full bg-sand-light">
+                  <div className="h-full rounded-full bg-deep-teal" style={{ width: `${(q.scan_count / maxScans) * 100}%` }} />
+                </div>
+              </div>
+              <span className="shrink-0 text-xs font-semibold text-charcoal/65">{q.scan_count} scans</span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="mt-4 text-xs text-charcoal/45">No codes yet.</p>
+      )}
+    </div>
+  );
+}
+
+function RightRail({ bundle }: { bundle: AnalyticsBundle }) {
+  return (
+    <aside className="shrink-0 border-t border-charcoal/10 bg-white px-5 py-6 xl:w-[300px] xl:border-l xl:border-t-0">
+      <h2 className="font-display text-sm font-bold uppercase tracking-wider text-charcoal/75">Your QRs</h2>
+      <p className="mt-1 text-[11px] text-charcoal/45">All your codes, sorted by scans.</p>
+      <ul className="mt-4 space-y-2">
+        {bundle.userQrs.length ? bundle.userQrs.slice(0, 10).map((q) => (
+          <li key={q.id}>
+            <Link
+              href={`/dashboard/qr/${q.id}/analytics`}
+              className={`flex items-center gap-3 rounded-lg border p-2.5 transition-colors ${
+                q.id === bundle.qr.id ? "border-deep-teal/40 bg-deep-teal/5" : "border-charcoal/10 hover:bg-sand-light/50"
+              }`}
+            >
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-sand-light text-charcoal/55"><QrCode className="h-4 w-4" /></span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-xs font-semibold">{q.name}</span>
+                <span className="block text-[10px] text-charcoal/45">{q.short_id ? `/r/${q.short_id}` : "static"}</span>
+              </span>
+              <span className="shrink-0 text-xs font-bold text-deep-teal">{q.scan_count}</span>
+            </Link>
+          </li>
+        )) : (
+          <li className="text-xs text-charcoal/45">No QR codes yet.</li>
+        )}
+      </ul>
+      <Link href="/dashboard/qr-codes" className="mt-4 block rounded-lg border border-charcoal/15 px-3 py-2 text-center text-xs font-semibold text-charcoal/75 hover:bg-sand-light">View all</Link>
+      <button type="button" onClick={() => toast("Wallet integration coming in Sprint 3")} className="mt-2 flex w-full items-center justify-center gap-1 rounded-lg border border-dashed border-charcoal/15 px-3 py-2 text-[11px] text-charcoal/45 hover:bg-sand-light">
+        <Wallet className="h-3 w-3" /> Add payment method <Star className="h-3 w-3" />
+      </button>
+    </aside>
   );
 }

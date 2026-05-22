@@ -3,9 +3,30 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import CheckoutClient from "./checkout-client";
 
+export const dynamic = "force-dynamic";
+
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const COLS =
   "id, short_id, name, status, kind, destination, fg_color, bg_color, gradient_color, dot_style, corner_style, creator_email";
+
+// Social proof: count of QRs created in the last 24h, account-wide.
+// Uses the admin client since RLS scopes regular queries to the owner.
+// Returns null on any failure (missing service role, network error) so the
+// client falls back to "Be among the first" instead of fabricating a number.
+async function recentQrCount(): Promise<number | null> {
+  try {
+    const admin = createAdminClient();
+    const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const { count, error } = await admin
+      .from("qr_codes")
+      .select("id", { count: "exact", head: true })
+      .gte("created_at", since);
+    if (error) return null;
+    return count ?? 0;
+  } catch {
+    return null;
+  }
+}
 
 // Authed: RLS-scoped ownership (unchanged). Anon (A.7): a valid
 // draft_token + email combo renders the same UI; Pay → /api/checkout/anon.
@@ -29,15 +50,24 @@ export default async function CheckoutPage({
   } = await supabase.auth.getUser();
 
   if (user) {
-    const { data: qr } = await supabase
-      .from("qr_codes")
-      .select(COLS)
-      .eq("short_id", shortId)
-      .maybeSingle();
+    const [qrRes, socialProof] = await Promise.all([
+      supabase
+        .from("qr_codes")
+        .select(COLS)
+        .eq("short_id", shortId)
+        .maybeSingle(),
+      recentQrCount(),
+    ]);
+    const qr = qrRes.data;
     if (!qr) redirect("/dashboard");
     if (qr.status === "active") redirect("/dashboard?welcome=1");
     return (
-      <CheckoutClient qr={qr} paymentsEnabled={paymentsEnabled} anon={null} />
+      <CheckoutClient
+        qr={qr}
+        paymentsEnabled={paymentsEnabled}
+        anon={null}
+        socialProofCount={socialProof}
+      />
     );
   }
 
@@ -69,11 +99,14 @@ export default async function CheckoutPage({
   }
   if (qr.status === "active") redirect("/dashboard?welcome=1");
 
+  const socialProof = await recentQrCount();
+
   return (
     <CheckoutClient
       qr={qr}
       paymentsEnabled={paymentsEnabled}
       anon={{ draftToken, email }}
+      socialProofCount={socialProof}
     />
   );
 }

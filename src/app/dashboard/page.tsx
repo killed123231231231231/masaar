@@ -1,119 +1,51 @@
-import Link from "next/link";
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import DashboardShell from "@/components/dashboard-shell";
-import { BarChart3, Pencil, QrCode, Plus } from "lucide-react";
-import LogoMark from "@/components/logo-mark";
+import { getAccountAnalytics, parsePeriod } from "@/lib/analytics";
+import OverviewClient from "./overview-client";
 
 export const dynamic = "force-dynamic";
 
-export default async function DashboardPage() {
+// Account-level Overview — the new /dashboard home. The per-QR grid has
+// moved to /dashboard/qr-codes. Per-QR drill-down still lives at
+// /dashboard/qr/<id>/analytics.
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const sp = await searchParams;
+  const period = parsePeriod(sp.period);
+
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: qrs, error: qrsError } = await supabase
-    .from("qr_codes")
-    .select("*")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false });
-  // Don't silently render an empty state on a DB error — surface it.
-  if (qrsError) throw qrsError;
+  const [bundle, profileRes, qrCountRes] = await Promise.all([
+    getAccountAnalytics(supabase, user.id, period),
+    supabase
+      .from("profiles")
+      .select("full_name, subscription_status")
+      .eq("id", user.id)
+      .maybeSingle(),
+    supabase
+      .from("qr_codes")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id),
+  ]);
 
-  // Scan counts per QR — aggregated in Postgres (RLS-scoped to the owner)
-  // instead of transferring every scan row to count in JS.
-  const ids = (qrs ?? []).map((q) => q.id);
-  const counts: Record<string, number> = {};
-  if (ids.length) {
-    const { data: rows, error: countsError } = await supabase.rpc(
-      "scan_counts",
-      { p_ids: ids }
-    );
-    if (countsError) throw countsError;
-    for (const r of rows ?? []) counts[r.qr_code_id] = Number(r.count);
-  }
+  const me = {
+    email: user.email ?? "",
+    name: profileRes.data?.full_name ?? user.email ?? "Account",
+    plan: profileRes.data?.subscription_status === "active" ? "Pro" : "Free",
+    qrCount: qrCountRes.count ?? 0,
+  };
 
   return (
-    <DashboardShell>
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-display font-bold tracking-tight">Your QR codes</h1>
-          <p className="mt-1 text-xs uppercase tracking-wider text-charcoal/60">
-            {qrs?.length ?? 0} {qrs?.length === 1 ? "code" : "codes"} total
-          </p>
-        </div>
-        <Link
-          href="/create"
-          className="inline-flex items-center gap-2 rounded-lg bg-deep-teal px-5 py-2.5 text-sm md:text-base font-semibold text-white shadow-sm hover:bg-deep-teal-dark transition-colors duration-200"
-        >
-          <Plus className="h-5 w-5" /> New QR
-        </Link>
-      </div>
-
-      {!qrs?.length ? (
-        <EmptyState />
-      ) : (
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {qrs.map((q) => (
-            <div
-              key={q.id}
-              className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm hover:-translate-y-0.5 hover:shadow-md transition duration-200"
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="h-10 w-10 rounded-lg bg-deep-teal/10 grid place-items-center text-deep-teal">
-                    <QrCode className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900 line-clamp-1">{q.name}</h3>
-                    <p className="text-xs text-gray-500 capitalize">{q.kind} · {q.content_kind}</p>
-                  </div>
-                </div>
-                <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700">
-                  {counts[q.id] ?? 0} scans
-                </span>
-              </div>
-              <p className="mt-3 truncate text-xs text-gray-500">{q.destination}</p>
-              <div className="mt-4 flex gap-2">
-                <Link
-                  href={`/dashboard/qr/${q.id}`}
-                  className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-charcoal hover:bg-gray-50 hover:text-terracotta"
-                >
-                  <Pencil className="h-3.5 w-3.5" /> Edit
-                </Link>
-                <Link
-                  href={`/dashboard/qr/${q.id}/analytics`}
-                  className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-charcoal hover:bg-gray-50 hover:text-terracotta"
-                >
-                  <BarChart3 className="h-3.5 w-3.5" /> Analytics
-                </Link>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </DashboardShell>
-  );
-}
-
-function EmptyState() {
-  return (
-    <div className="mt-12 rounded-2xl border border-sand-dark bg-sand p-12 text-center">
-      <LogoMark className="mx-auto h-16 w-16 opacity-30" />
-      <h3 className="mt-4 text-lg md:text-xl font-display font-semibold text-charcoal">
-        Your dashboard is empty
-      </h3>
-      <p className="mt-2 mx-auto max-w-sm text-base leading-relaxed text-charcoal/60">
-        Create your first dynamic QR code and watch scans roll in.
-      </p>
-      <Link
-        href="/create"
-        className="mt-6 inline-flex items-center gap-2 rounded-lg bg-deep-teal px-6 py-3 text-base font-semibold text-white shadow-sm hover:bg-terracotta transition-colors duration-200"
-      >
-        <Plus className="h-5 w-5" /> Create your first QR
-      </Link>
-    </div>
+    <Suspense fallback={null}>
+      <OverviewClient bundle={bundle} me={me} />
+    </Suspense>
   );
 }
