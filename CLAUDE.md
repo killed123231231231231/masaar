@@ -353,3 +353,19 @@ Don't-break / BACKLOG ops notes)
 - Re-verify email-confirmation flow on prod URL before launch.
 - Keep Vercel Deployment Protection on previews (separate from the 500;
   protection also applies once the 500 is fixed).
+
+## Funnel (email-holding pattern, A.7)
+
+The anonymous→paid funnel uses the **email-holding pattern**: capture
+email on the gate's Continue, store it on the draft QR row's
+`creator_email`, and send the user **straight to `/checkout`** — no
+magic-link round-trip. Account creation happens at payment time via
+`POST /api/checkout/anon` (`supabase.auth.admin.createUser`,
+`email_confirm:true` since payment is proof of ownership), which also
+claims the draft QR(s), sets `status='active'`, flags
+`profiles.subscription_status='active'`, and sends the welcome email.
+Magic links (`signInWithOtp`) are reserved for the **"Log in" path
+only** (existing users, via the Welcome Back modal). Authed
+subscribers bypass the gate and checkout entirely (A.5).
+`SUPABASE_SERVICE_ROLE_KEY` is server-only (admin client at
+`lib/supabase/admin.ts`); `PAYMENTS_ENABLED=false` keeps Pay a stub.

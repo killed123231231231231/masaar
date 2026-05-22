@@ -1,6 +1,10 @@
 # Masaar — Backlog
 
-Pending work, grouped by urgency. Snapshot: 2026-05-17.
+Pending work, grouped by urgency. Snapshot: 2026-05-18.
+
+**See also:** `SPRINT2.md` (active sprint plan) and `STRATEGY.md`
+(long-form market thesis and product strategy). Items below that are
+folded into Sprint 2 are flagged with **→ Sprint 2**.
 
 ## 0. Blocking the brand-branch merge (do first)
 
@@ -79,17 +83,27 @@ Pending work, grouped by urgency. Snapshot: 2026-05-17.
 These have schema/lib scaffolding ready (see README §6 for detailed
 prompts). One per session; deploy + smoke-test after each.
 1. **Logo upload** — bucket `logos` exists; `qr_codes.logo_url` ready.
-2. **Live scan feed** — Supabase Realtime on `scans`.
-3. **Frames** around the QR — `frame_style` / `frame_text` columns ready.
-4. **Password-gated QRs** — `password_hash` column ready.
-5. **PDF export** — `pdf-lib` already a dep.
-6. **Folders UI** — `folders` table ready.
+   **→ Sprint 2 (Session A)**
+2. **Live scan feed** — Supabase Realtime on `scans`. *Deferred to
+   Sprint 3+.*
+3. **Frames** around the QR — `frame_style` / `frame_text` columns
+   ready. **→ Sprint 2 (Session I)**.
+4. **Password-gated QRs** — `password_hash` column ready. **→ Sprint 2
+   (Session I)**.
+5. **PDF export** — `pdf-lib` already a dep. **→ Sprint 2 (Session I)**.
+   (Distinct from PDF content type, which is **→ Sprint 2 Session C**.)
+6. **Folders UI** — `folders` table ready. *Deferred to Sprint 3+.*
 7. **Full UI redesign** matching `brand/07-landing-page-hero-mockup.png`
    — 3-step wizard, new dashboard, new content types
-   (WhatsApp / PDF / Image / Video / App Link). Big; explicitly out of
-   scope until prioritized.
+   (WhatsApp / PDF / Image / Video / App Link). **→ Sprint 2
+   (Sessions A, C, D).**
 8. **Arabic translation + RTL** — `next-intl`, `dir="rtl"`; Plex Arabic
-   font already wired.
+   font already wired. **→ Sprint 2 (Session E).**
+9. **Restaurant Menu vertical** — new in Sprint 2. Specialized content
+   type, dedicated builder wizard, mobile-first landing renderer,
+   menu-specific analytics, dedicated marketing surface at `/menu`.
+   See `STRATEGY.md` §2.2 and `SPRINT2.md` Phase 2. **→ Sprint 2
+   (Sessions F-H).**
 
 ## 4. Deferred technical debt
 
@@ -183,3 +197,49 @@ prompts). One per session; deploy + smoke-test after each.
     immutability in `api/qr`.
 15. **No client-side length cap** — E1 added server-side caps; a
     matching client `maxLength` on URL/text inputs is a UX nicety.
+
+## 5. Session A.7 follow-ups (frictionless checkout)
+
+- **Post-checkout magic-link login setup** — newly auto-created
+  accounts currently learn to log in via the welcome email's
+  magic-link note. Nicer: a one-time post-checkout link that sets up
+  future logins without rerouting through the email gate. (v1 chose
+  the simpler "log in next time via magic link" per spec.)
+- **Resend integration with branded bilingual templates** — wire a
+  real `RESEND_API_KEY` (account + verified domain) and replace the
+  plain HTML with a branded EN/AR template + plain-text fallback.
+  A test key is now in all 3 Vercel scopes; lib/email.ts auto-switches
+  from stub to real send when the key starts with `re_`.
+  **Default-sender restriction (test-mode):** while sending from
+  Resend's default `onboarding@resend.dev`, deliveries land **only at
+  addresses verified in the Resend dashboard** — i.e. only Usama's
+  verified mailbox (and `+alias` variants that route to the same
+  inbox). Other recipients are silently dropped by Resend. When a
+  real domain is verified in Sprint 3, this restriction lifts. The
+  test key is to be rotated then too.
+- **Anti-fraud on anon checkout** — `/api/checkout/anon` is an
+  account-creation endpoint; abuse vector. Current guard is an
+  approximate per-IP rate limit reusing `creator_ip_hash` (no
+  dedicated table). Add a real rate-limit table + CAPTCHA on the form
+  in Sprint 3 if abuse appears.
+- **SUPABASE_SERVICE_ROLE_KEY scope (Sprint 3 hardening)** — the
+  service-role key is currently in the Vercel **Preview** scope
+  (all branches) so anon-checkout / render.png / anon-email routes
+  work on previews. This widens the preview attack surface. Rotate
+  and/or restrict the key post-launch; ideally move privileged ops
+  behind narrowly-scoped SECURITY DEFINER RPCs so previews don't need
+  the raw service-role key.
+- **`subscription_status='active'` on a brand-new profile is a stub**
+  — set unconditionally at anon checkout while `PAYMENTS_ENABLED=false`.
+  When real payments wire up (Sprint 3) this must only be set on a
+  verified payment webhook, not at account creation.
+- **JWT role validation at app startup (Sprint 3 hardening).** A.7
+  pre-merge bug: the Vercel `SUPABASE_SERVICE_ROLE_KEY` value was the
+  anon JWT (both are `eyJ…`); Supabase REST returned the opaque
+  `"Invalid API key"` 400 for every admin call. Add a tiny check in
+  `lib/supabase/admin.ts` (or a boot guard): decode the JWT payload
+  (no signature verification needed — we don't trust it, just inspect
+  it), assert `role === "service_role"`, and throw a clear error on
+  mismatch. Same idea for the anon key (assert `role === "anon"`).
+  Catches the wrong-paste at build / first-call time instead of
+  during a smoke test. Out of scope for A.7 (the value's fixed now).

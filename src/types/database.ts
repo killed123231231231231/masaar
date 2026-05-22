@@ -43,6 +43,7 @@ export interface QrCode {
   frame_text: string | null;
   is_active: boolean;
   creator_ip_hash: string | null;
+  creator_email: string | null;
   created_at: string;
   updated_at: string;
 }

@@ -2,53 +2,94 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { QrCode } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
 import LoginModal from "@/components/login-modal";
 
 /**
- * Email gate shown after an anonymous QR is saved. Sends a Supabase
- * magic link whose redirect lands on /auth/claim?draft_token=… to adopt
- * the draft. emailRedirectTo uses window.location.origin so it works on
- * preview/prod/localhost regardless of NEXT_PUBLIC_APP_URL. Returning
- * users can switch to the login view.
+ * Email-holding gate (A.7). NEW users: capture email → hold it on the
+ * draft row → straight to /checkout (NO magic link). Returning users:
+ * "Have an account? Log in" → LoginModal which DOES send a magic link
+ * (that path is unchanged).
  */
 export default function EmailGateModal({
   open,
   draftToken,
+  shortId,
   onClose,
 }: {
   open: boolean;
   draftToken: string;
+  shortId: string;
   onClose: () => void;
 }) {
+  const router = useRouter();
   const [view, setView] = useState<"email" | "login">("email");
   const [email, setEmail] = useState("");
   const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [sent, setSent] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
   if (!open) return null;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    // Diagnostic: confirms in devtools that the NEW-USER path ran, NOT
+    // signInWithOtp. If you see "[auth] new-user submit" you are on
+    // the email-holding path (no magic link). If instead you see
+    // "[auth] login submit" your click hit the Log-in modal.
+    console.info("[auth] new-user submit → /checkout (no magic link)");
     setLoading(true);
     setErr(null);
-    const supabase = createClient();
-    const redirectTo = `${window.location.origin}/auth/claim?draft_token=${encodeURIComponent(
-      draftToken
-    )}`;
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: redirectTo },
-    });
-    setLoading(false);
-    if (error) {
-      setErr(error.message);
+    const em = email.trim().toLowerCase();
+
+    try {
+      localStorage.setItem(
+        "masaar.checkout_pending",
+        JSON.stringify({ email: em, draft_token: draftToken, short_id: shortId })
+      );
+    } catch {
+      /* private mode — query params still carry the data */
+    }
+
+    // Hold the email on the draft row so the checkout page can verify
+    // it. Surface real errors and DON'T navigate on failure — a silent
+    // pass-through to /checkout would dead-end the user. Never invent
+    // a message (e.g. "rate limit exceeded"); show what the server
+    // actually said, or a clean generic if the body is opaque.
+    let res: Response;
+    try {
+      res = await fetch("/api/qr/anonymous/email", {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ draft_token: draftToken, email: em }),
+      });
+    } catch {
+      setLoading(false);
+      setErr("Couldn’t save your email — please retry.");
       return;
     }
-    setSent(true);
+
+    if (!res.ok) {
+      const body = (await res.json().catch(() => null)) as
+        | { error?: string; message?: string }
+        | null;
+      setLoading(false);
+      setErr(
+        body?.message ||
+          body?.error ||
+          "Couldn’t save your email — please retry."
+      );
+      return;
+    }
+
+    setLoading(false);
+    const seg = shortId || "draft";
+    router.push(
+      `/checkout/${seg}?draft_token=${encodeURIComponent(
+        draftToken
+      )}&email=${encodeURIComponent(em)}`
+    );
   }
 
   return (
@@ -69,84 +110,66 @@ export default function EmailGateModal({
           className="w-full max-w-sm rounded-2xl border border-charcoal/10 bg-white p-7 shadow-xl"
           onClick={(e) => e.stopPropagation()}
         >
-          {sent ? (
-            <div className="text-center">
-              <h2 className="font-display text-lg font-bold text-charcoal">
-                Check your email
-              </h2>
-              <p className="mt-3 text-sm leading-relaxed text-charcoal/65">
-                We sent a magic link to <strong>{email}</strong>. Open it on
-                this device to claim your QR code and finish setup.
-              </p>
-              <button
-                onClick={onClose}
-                className="mt-6 text-xs font-medium text-charcoal/55 hover:text-deep-teal"
-              >
-                Close
-              </button>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit}>
-              <span className="grid h-12 w-12 place-items-center rounded-xl bg-deep-teal/10 text-deep-teal">
-                <QrCode className="h-6 w-6" />
-              </span>
-              <h2 className="mt-4 font-display text-lg font-bold text-charcoal">
-                Last Step!
-              </h2>
-              <p className="mt-1 text-sm text-charcoal/60">
-                Tell us where to send your QR code.
-              </p>
+          <form onSubmit={handleSubmit}>
+            <span className="grid h-12 w-12 place-items-center rounded-xl bg-deep-teal/10 text-deep-teal">
+              <QrCode className="h-6 w-6" />
+            </span>
+            <h2 className="mt-4 font-display text-lg font-bold text-charcoal">
+              Last Step!
+            </h2>
+            <p className="mt-1 text-sm text-charcoal/60">
+              Tell us where to send your QR code.
+            </p>
+            <input
+              type="email"
+              required
+              autoFocus
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              className="mt-5 w-full rounded-lg border border-charcoal/15 px-3 py-2.5 text-sm outline-none focus:border-deep-teal focus:ring-2 focus:ring-deep-teal/20"
+            />
+            <label className="mt-3 flex items-start gap-2 text-xs text-charcoal/60">
               <input
-                type="email"
+                type="checkbox"
                 required
-                autoFocus
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                className="mt-5 w-full rounded-lg border border-charcoal/15 px-3 py-2.5 text-sm outline-none focus:border-deep-teal focus:ring-2 focus:ring-deep-teal/20"
+                checked={agreed}
+                onChange={(e) => setAgreed(e.target.checked)}
+                className="mt-0.5"
               />
-              <label className="mt-3 flex items-start gap-2 text-xs text-charcoal/60">
-                <input
-                  type="checkbox"
-                  required
-                  checked={agreed}
-                  onChange={(e) => setAgreed(e.target.checked)}
-                  className="mt-0.5"
-                />
-                <span>
-                  I agree to the{" "}
-                  <Link href="/terms" target="_blank" className="font-medium text-deep-teal hover:underline">
-                    Terms &amp; Conditions
-                  </Link>{" "}
-                  and{" "}
-                  <Link href="/privacy" target="_blank" className="font-medium text-deep-teal hover:underline">
-                    Privacy Policy
-                  </Link>
-                </span>
-              </label>
-              {err && <p className="mt-2 text-xs text-terracotta-dark">{err}</p>}
+              <span>
+                I agree to the{" "}
+                <Link href="/terms" target="_blank" className="font-medium text-deep-teal hover:underline">
+                  Terms &amp; Conditions
+                </Link>{" "}
+                and{" "}
+                <Link href="/privacy" target="_blank" className="font-medium text-deep-teal hover:underline">
+                  Privacy Policy
+                </Link>
+              </span>
+            </label>
+            {err && <p className="mt-2 text-xs text-terracotta-dark">{err}</p>}
+            <button
+              type="submit"
+              disabled={loading || !agreed}
+              className="mt-4 w-full rounded-lg bg-deep-teal px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-terracotta disabled:opacity-50"
+            >
+              {loading ? "Continuing…" : "Continue"}
+            </button>
+            <p className="mt-3 text-center text-xs text-charcoal/45">
+              Free forever. No credit card.
+            </p>
+            <p className="mt-3 text-center text-xs text-charcoal/55">
+              Have an account?{" "}
               <button
-                type="submit"
-                disabled={loading || !agreed}
-                className="mt-4 w-full rounded-lg bg-deep-teal px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-terracotta disabled:opacity-50"
+                type="button"
+                onClick={() => setView("login")}
+                className="font-semibold text-deep-teal hover:underline"
               >
-                {loading ? "Sending…" : "Continue"}
+                Log in
               </button>
-              <p className="mt-3 text-center text-xs text-charcoal/45">
-                Free forever. No credit card.
-              </p>
-              <p className="mt-3 text-center text-xs text-charcoal/55">
-                Have an account?{" "}
-                <button
-                  type="button"
-                  onClick={() => setView("login")}
-                  className="font-semibold text-deep-teal hover:underline"
-                >
-                  Log in
-                </button>
-              </p>
-            </form>
-          )}
+            </p>
+          </form>
         </div>
       )}
     </div>

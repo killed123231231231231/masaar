@@ -39,6 +39,7 @@ export default function WizardClient({ isAuthed }: { isAuthed: boolean }) {
   const [maxStep, setMaxStep] = useState<Step>(1);
   const [saving, setSaving] = useState(false);
   const [gateOpen, setGateOpen] = useState(false);
+  const [gateShortId, setGateShortId] = useState("");
   const draftToken = useRef<string>("");
   const shortId = useRef<string>("");
   const restored = useRef(false);
@@ -198,6 +199,8 @@ export default function WizardClient({ isAuthed }: { isAuthed: boolean }) {
       toast.error(e || "Couldn’t create the QR.");
       return;
     }
+    const row = await res.json().catch(() => null);
+    setGateShortId(row?.short_id || "");
     setGateOpen(true);
   }
 
@@ -309,6 +312,7 @@ export default function WizardClient({ isAuthed }: { isAuthed: boolean }) {
       <EmailGateModal
         open={gateOpen}
         draftToken={draftToken.current}
+        shortId={gateShortId}
         onClose={() => setGateOpen(false)}
       />
     </div>

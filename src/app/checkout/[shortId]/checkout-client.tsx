@@ -30,14 +30,17 @@ const PLANS = [
 export default function CheckoutClient({
   qr,
   paymentsEnabled,
+  anon,
 }: {
   qr: CheckoutQr;
   paymentsEnabled: boolean;
+  anon?: { draftToken: string; email: string } | null;
 }) {
   const router = useRouter();
   const [plan, setPlan] = useState<string>("pro");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [loginHint, setLoginHint] = useState<string | null>(null);
 
   const style: QrStyle = useMemo(
     () => ({
@@ -57,6 +60,39 @@ export default function CheckoutClient({
   async function handlePay() {
     setBusy(true);
     setErr(null);
+    setLoginHint(null);
+
+    if (anon) {
+      // Email-holding path: creates the account + activates + emails.
+      const res = await fetch("/api/checkout/anon", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          draft_token: anon.draftToken,
+          email: anon.email,
+          plan,
+        }),
+      });
+      const data = await res.json().catch(() => null);
+      if (res.ok && data?.success) {
+        router.push(
+          data.redirect_url || "/dashboard?welcome_new_qr=1&first_login=1"
+        );
+        return;
+      }
+      setBusy(false);
+      if (res.status === 409) {
+        setErr(
+          data?.message ||
+            "This email already has an account. Please log in instead."
+        );
+        setLoginHint("/login");
+        return;
+      }
+      setErr(data?.message || data?.error || "Could not complete checkout.");
+      return;
+    }
+
     const res = await fetch("/api/checkout/activate", {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -111,7 +147,19 @@ export default function CheckoutClient({
             ))}
           </div>
 
-          {err && <p className="mt-4 text-sm text-terracotta-dark">{err}</p>}
+          {err && (
+            <p className="mt-4 text-sm text-terracotta-dark">
+              {err}
+              {loginHint && (
+                <>
+                  {" "}
+                  <a href={loginHint} className="font-semibold underline">
+                    Log in
+                  </a>
+                </>
+              )}
+            </p>
+          )}
 
           <button
             onClick={handlePay}

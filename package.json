@@ -18,6 +18,7 @@
     "next": "15.0.5",
     "pdf-lib": "^1.17.1",
     "qr-code-styling": "^1.8.4",
+    "qrcode": "^1.5.4",
     "react": "19.0.0-rc-66855b96-20241106",
     "react-dom": "19.0.0-rc-66855b96-20241106",
     "recharts": "^2.13.3",
@@ -27,6 +28,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.9.0",
+    "@types/qrcode": "^1.5.6",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@types/ua-parser-js": "^0.7.39",

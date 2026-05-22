@@ -26,6 +26,10 @@ export default function LoginModal({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    // Diagnostic: confirms the legitimate Log-in (magic-link) path
+    // ran. If you see this on the "new-user" smoke, you clicked
+    // "Have an account? Log in" and Supabase's OTP rate limit applies.
+    console.info("[auth] login submit → signInWithOtp (magic link)");
     setLoading(true);
     setErr(null);
     const supabase = createClient();
