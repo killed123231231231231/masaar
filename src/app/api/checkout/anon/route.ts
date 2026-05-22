@@ -172,7 +172,7 @@ export async function POST(request: Request) {
 
   return NextResponse.json({
     success: true,
-    redirect_url: "/dashboard?welcome_new_qr=1&first_login=1",
+    redirect_url: `/checkout/success?email=${encodeURIComponent(email)}`,
     email_delivery: emailResult.sent
       ? "sent"
       : emailResult.stubbed
