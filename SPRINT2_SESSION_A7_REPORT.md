@@ -101,3 +101,48 @@ stub-on-create caveat (real payment webhook in Sprint 3).
 2. Confirm the Supabase Redirect URL add landed (Test B only).
 3. OK that `subscription_status='active'` is set at create-time while
    payments are stubbed (documented; flips to webhook-gated Sprint 3)?
+
+---
+
+## Addendum — pre-merge bug & fix
+
+**Symptom (Usama smoke):** `PATCH /api/qr/anonymous/email` → **400**
+with body `{error: "Invalid API key"}`; UI message *"email rate limit
+exceeded"* (carried over from an earlier LoginModal click — not from
+this PATCH).
+
+**Audit:** code intact. Only two `signInWithOtp` references in `src`:
+a comment in `auth/claim/route.ts` and the LoginModal magic-link
+(legitimate). The Resend wire-up touched only `BACKLOG.md`. Added
+one-line `console.info` diagnostics in each submit handler to
+disambiguate the path in devtools (`9a3eaaa`).
+
+**Real cause:** `SUPABASE_SERVICE_ROLE_KEY` in Vercel Preview was the
+**anon JWT** (`role:"anon"`), not the service-role JWT
+(`role:"service_role"`). Both are `eyJ…`; only the embedded claim
+distinguishes them. Supabase REST therefore returned its literal
+`"Invalid API key"` for every admin call — surfaced through our
+routes as 400 (env was *set*, just wrong; if it had been *absent*
+we'd see 503 from the `createAdminClient` throw).
+
+**Fixes:**
+- Usama replaced the value in the Vercel dashboard with the correct
+  `service_role` secret; redeploy (`masaar-45mu5zcz7…`) picked it up
+  cleanly.
+- `4ff7d8a` — `email-gate-modal.tsx` no longer silently swallows the
+  PATCH error. Network error or HTTP `!ok` → parse the server's real
+  `{message|error}` and show it (or a clean *"Couldn't save your
+  email — please retry"* if opaque); **stay on the modal** so the
+  user can retry; **never** show a hardcoded "rate limit" message.
+
+**Post-fix smoke (Usama):** Test A passed end-to-end on the rebuilt
+preview — PATCH returns 200, no misleading errors, redirect to
+`/checkout`, full flow lands in dashboard. "Invalid API key" closed.
+
+**Lesson learned — Sprint 3 hardening (logged to BACKLOG §5):** an
+`"Invalid API key"` from Supabase is a *value*-level issue, not a
+*code*-level one. The right defense is to **validate the JWT's
+`role` claim at app startup** (decode the SERVICE_ROLE_KEY payload,
+assert `role === "service_role"`, fail-fast with a clear error if
+wrong) — so an anon-vs-service-role mix-up surfaces immediately on
+boot/build instead of as an opaque 400 during a smoke.

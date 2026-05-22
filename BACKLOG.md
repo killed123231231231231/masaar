@@ -233,3 +233,13 @@ prompts). One per session; deploy + smoke-test after each.
   — set unconditionally at anon checkout while `PAYMENTS_ENABLED=false`.
   When real payments wire up (Sprint 3) this must only be set on a
   verified payment webhook, not at account creation.
+- **JWT role validation at app startup (Sprint 3 hardening).** A.7
+  pre-merge bug: the Vercel `SUPABASE_SERVICE_ROLE_KEY` value was the
+  anon JWT (both are `eyJ…`); Supabase REST returned the opaque
+  `"Invalid API key"` 400 for every admin call. Add a tiny check in
+  `lib/supabase/admin.ts` (or a boot guard): decode the JWT payload
+  (no signature verification needed — we don't trust it, just inspect
+  it), assert `role === "service_role"`, and throw a clear error on
+  mismatch. Same idea for the anon key (assert `role === "anon"`).
+  Catches the wrong-paste at build / first-call time instead of
+  during a smoke test. Out of scope for A.7 (the value's fixed now).
