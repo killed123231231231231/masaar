@@ -52,15 +52,36 @@ export default function EmailGateModal({
       /* private mode — query params still carry the data */
     }
 
-    // Best-effort: hold the email on the draft row so the checkout
-    // page can verify it. The anon-checkout API also sets it at claim
-    // time, so a failure here (e.g. no service-role on preview) is
-    // non-fatal — keep the funnel moving.
-    await fetch("/api/qr/anonymous/email", {
-      method: "PATCH",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ draft_token: draftToken, email: em }),
-    }).catch(() => {});
+    // Hold the email on the draft row so the checkout page can verify
+    // it. Surface real errors and DON'T navigate on failure — a silent
+    // pass-through to /checkout would dead-end the user. Never invent
+    // a message (e.g. "rate limit exceeded"); show what the server
+    // actually said, or a clean generic if the body is opaque.
+    let res: Response;
+    try {
+      res = await fetch("/api/qr/anonymous/email", {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ draft_token: draftToken, email: em }),
+      });
+    } catch {
+      setLoading(false);
+      setErr("Couldn’t save your email — please retry.");
+      return;
+    }
+
+    if (!res.ok) {
+      const body = (await res.json().catch(() => null)) as
+        | { error?: string; message?: string }
+        | null;
+      setLoading(false);
+      setErr(
+        body?.message ||
+          body?.error ||
+          "Couldn’t save your email — please retry."
+      );
+      return;
+    }
 
     setLoading(false);
     const seg = shortId || "draft";
