@@ -208,8 +208,15 @@ prompts). One per session; deploy + smoke-test after each.
 - **Resend integration with branded bilingual templates** — wire a
   real `RESEND_API_KEY` (account + verified domain) and replace the
   plain HTML with a branded EN/AR template + plain-text fallback.
-  Currently the welcome email is **stubbed** (HTML built + logged, not
-  sent) when no key is present.
+  A test key is now in all 3 Vercel scopes; lib/email.ts auto-switches
+  from stub to real send when the key starts with `re_`.
+  **Default-sender restriction (test-mode):** while sending from
+  Resend's default `onboarding@resend.dev`, deliveries land **only at
+  addresses verified in the Resend dashboard** — i.e. only Usama's
+  verified mailbox (and `+alias` variants that route to the same
+  inbox). Other recipients are silently dropped by Resend. When a
+  real domain is verified in Sprint 3, this restriction lifts. The
+  test key is to be rotated then too.
 - **Anti-fraud on anon checkout** — `/api/checkout/anon` is an
   account-creation endpoint; abuse vector. Current guard is an
   approximate per-IP rate limit reusing `creator_ip_hash` (no
