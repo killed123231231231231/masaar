@@ -167,6 +167,18 @@ export async function POST(request: Request) {
     })
     .eq("id", userId);
 
+  // B5/Audit Finding 2 — derive the QR image URL from the actual
+  // request origin instead of the hardcoded PROD constant. The email
+  // is then self-consistent with the deploy the user just checked out
+  // on: prod-checkout -> prod render URL (has the logo composite
+  // shipped on main); preview-checkout -> preview render URL (has
+  // whatever's on the branch). The old hardcoded PROD broke logo
+  // rendering for any preview-deploy testing because preview-only
+  // fixes never landed at masaar-zeta.vercel.app.
+  const host = request.headers.get("host");
+  const proto = request.headers.get("x-forwarded-proto") || "https";
+  const origin = host ? `${proto}://${host}` : PROD;
+
   // Welcome email (stubbed if no RESEND key).
   const first = claimed?.[0];
   let emailResult = { sent: false, stubbed: true } as Awaited<
@@ -176,7 +188,7 @@ export async function POST(request: Request) {
     emailResult = await sendWelcomeEmail({
       to: email,
       shortId: first.short_id || first.id,
-      qrImageUrl: `${PROD}/api/qr/${first.id}/render.png?size=512`,
+      qrImageUrl: `${origin}/api/qr/${first.id}/render.png?size=512`,
       // B5/Fix 22 — include the generated password so the user can log
       // in immediately. Sent in plain text in the email body, clearly
       // marked, with "change anytime in Settings" instructions.

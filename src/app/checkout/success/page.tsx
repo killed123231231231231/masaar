@@ -3,10 +3,11 @@ import { CheckCircle2 } from "lucide-react";
 import LogoMark from "@/components/logo-mark";
 
 // Public success page for the anon checkout path. The user has no
-// browser session (admin.createUser doesn't set one) so we deliberately
-// land them here instead of /dashboard (middleware-gated). The welcome
-// email contains the magic-link login they use to access the dashboard
-// next time. Post-checkout auto-login is BACKLOGed.
+// browser session (admin.createUser doesn't set one), so we land them
+// here instead of /dashboard (middleware-gated). The welcome email
+// contains email + password (Fix 22) — magic-link / password-reset
+// stays available as Bug 16's fallback but is no longer the primary
+// login path. Copy reflects that.
 export default async function CheckoutSuccessPage({
   searchParams,
 }: {
@@ -29,19 +30,22 @@ export default async function CheckoutSuccessPage({
           Account created and QR activated.{" "}
           {email ? (
             <>
-              We sent a welcome email to <strong>{email}</strong> with your
-              QR attached and a magic link to log in.
+              We sent the QR + your login credentials (email and password) to{" "}
+              <strong>{email}</strong>.
             </>
           ) : (
-            <>We sent a welcome email with your QR attached and a magic link to log in.</>
+            <>
+              We sent the QR + your login credentials (email and password) to
+              your inbox.
+            </>
           )}
         </p>
 
         <div className="mt-6 rounded-xl bg-sand-light/70 p-4 text-left text-xs text-charcoal/60">
           <p>
-            <strong>Next time you visit:</strong> click <em>“Log in”</em>{" "}
-            from the email gate to get a one-time magic link — no password
-            needed.
+            <strong>Next time you visit:</strong> click <em>“Log in”</em> in
+            the header and use the email + password from your welcome email.
+            You can change the password anytime in Settings.
           </p>
         </div>
 
