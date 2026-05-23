@@ -200,45 +200,57 @@ function TablesGrid({ bundle }: { bundle: AccountAnalyticsBundle }) {
 }
 
 function RecentActivityTable({ rows }: { rows: AccountRecentScan[] }) {
+  // B5/Item 7 — cap at the 5 most-recent scans on the Overview; full
+  // activity-list page is a Sprint 3 backlog item, so "View all activity"
+  // routes to /dashboard/qr-codes for now (closest existing landing).
+  const visible = rows.slice(0, 5);
   return (
-    <div className="rounded-2xl border border-charcoal/10 bg-white p-5 shadow-sm">
+    <div className="rounded-2xl border border-charcoal/10 bg-white p-5 shadow-[0_1px_2px_rgba(15,91,85,0.06),0_2px_8px_-2px_rgba(15,91,85,0.08)]">
       <h2 className="font-display text-sm font-bold uppercase tracking-wider text-charcoal/75">Recent activity</h2>
-      {rows.length ? (
-        <div className="-mx-1 mt-3 overflow-x-auto">
-          <table className="w-full text-xs">
-            <thead className="text-[10px] uppercase tracking-wider text-charcoal/45">
-              <tr className="text-left">
-                <th className="pb-2 font-semibold">When</th>
-                <th className="pb-2 font-semibold">QR</th>
-                <th className="pb-2 font-semibold">Where</th>
-                <th className="pb-2 font-semibold">Device</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((s) => (
-                <tr key={s.id} className="border-t border-charcoal/5">
-                  <td className="py-2 whitespace-nowrap text-charcoal/70">{fmtTime(s.scanned_at)}</td>
-                  <td className="py-2 text-charcoal/70">
-                    {s.qr_id ? (
-                      <Link
-                        href={`/dashboard/qr/${s.qr_id}/analytics`}
-                        className="truncate font-medium text-charcoal hover:text-deep-teal"
-                      >
-                        {s.qr_name}
-                      </Link>
-                    ) : (
-                      <span className="text-charcoal/45">Unknown</span>
-                    )}
-                  </td>
-                  <td className="py-2 text-charcoal/70">
-                    {[s.city, s.country].filter(Boolean).join(", ") || "—"}
-                  </td>
-                  <td className="py-2 capitalize text-charcoal/70">{s.device_type || "—"}</td>
+      {visible.length ? (
+        <>
+          <div className="-mx-1 mt-3 overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead className="text-[10px] uppercase tracking-wider text-charcoal/45">
+                <tr className="text-left">
+                  <th className="pb-2 font-semibold">When</th>
+                  <th className="pb-2 font-semibold">QR</th>
+                  <th className="pb-2 font-semibold">Where</th>
+                  <th className="pb-2 font-semibold">Device</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {visible.map((s) => (
+                  <tr key={s.id} className="border-t border-charcoal/5">
+                    <td className="py-2 whitespace-nowrap text-charcoal/70">{fmtTime(s.scanned_at)}</td>
+                    <td className="py-2 text-charcoal/70">
+                      {s.qr_id ? (
+                        <Link
+                          href={`/dashboard/qr/${s.qr_id}/analytics`}
+                          className="truncate font-medium text-charcoal hover:text-deep-teal"
+                        >
+                          {s.qr_name}
+                        </Link>
+                      ) : (
+                        <span className="text-charcoal/45">Unknown</span>
+                      )}
+                    </td>
+                    <td className="py-2 text-charcoal/70">
+                      {[s.city, s.country].filter(Boolean).join(", ") || "—"}
+                    </td>
+                    <td className="py-2 capitalize text-charcoal/70">{s.device_type || "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <Link
+            href="/dashboard/qr-codes"
+            className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-deep-teal hover:underline"
+          >
+            View all activity →
+          </Link>
+        </>
       ) : (
         <p className="mt-4 text-xs text-charcoal/45">No recent activity in this period.</p>
       )}
