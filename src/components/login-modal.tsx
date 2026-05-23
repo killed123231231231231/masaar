@@ -5,17 +5,22 @@ import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 
 /**
- * Returning-user login, shown from the email gate ("Have an account?").
- * Sends the same magic link (claim flow adopts the in-progress draft
- * into the existing account). Google OAuth is stubbed — wiring it needs
- * Supabase + Google Cloud config (separate task, deferred).
+ * Returning-user login. Two entry points:
+ *   1. From the email gate ("Have an account?") — passes the in-progress
+ *      `draftToken` so the magic-link claim flow adopts the draft.
+ *   2. From the landing header ("Log in") — no draft in flight, so
+ *      `draftToken` is omitted. The magic link still goes through
+ *      `/auth/claim` which falls through to `/dashboard?welcome=1` when
+ *      no `draft_token` query param is present.
+ * Google OAuth is stubbed — wiring it needs Supabase + Google Cloud
+ * config (separate task, deferred).
  */
 export default function LoginModal({
   draftToken,
   onClose,
   onSwitchToSignup,
 }: {
-  draftToken: string;
+  draftToken?: string;
   onClose: () => void;
   onSwitchToSignup: () => void;
 }) {
@@ -33,9 +38,9 @@ export default function LoginModal({
     setLoading(true);
     setErr(null);
     const supabase = createClient();
-    const redirectTo = `${window.location.origin}/auth/claim?draft_token=${encodeURIComponent(
-      draftToken
-    )}`;
+    const redirectTo = draftToken
+      ? `${window.location.origin}/auth/claim?draft_token=${encodeURIComponent(draftToken)}`
+      : `${window.location.origin}/auth/claim`;
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: { emailRedirectTo: redirectTo },

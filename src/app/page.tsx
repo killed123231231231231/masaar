@@ -16,6 +16,7 @@ import {
   Globe,
 } from "lucide-react";
 import LogoMark from "@/components/logo-mark";
+import HeaderLoginButton from "@/components/header-login-button";
 
 const NAV = [
   { label: "Product", href: "/product" },
@@ -79,12 +80,7 @@ function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <Link
-            href="/login"
-            className="hidden px-3 py-2 text-sm font-medium text-charcoal transition-colors hover:text-deep-teal sm:inline-block"
-          >
-            Log in
-          </Link>
+          <HeaderLoginButton />
           <Link
             href="/create"
             className="rounded-lg bg-deep-teal px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-deep-teal-dark"
