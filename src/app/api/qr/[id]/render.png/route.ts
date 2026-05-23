@@ -26,7 +26,7 @@ export async function GET(
 
   const { data: qr } = await supabase
     .from("qr_codes")
-    .select("short_id, kind, destination, fg_color, bg_color")
+    .select("short_id, kind, destination, fg_color, bg_color, name")
     .eq("id", id)
     .maybeSingle();
 
@@ -37,8 +37,10 @@ export async function GET(
       ? `${appUrl()}/r/${qr.short_id}`
       : qr.destination || " ";
 
-  const sizeParam = Number(new URL(_req.url).searchParams.get("size"));
+  const url = new URL(_req.url);
+  const sizeParam = Number(url.searchParams.get("size"));
   const width = Math.min(1024, Math.max(128, sizeParam || 512));
+  const wantsDownload = url.searchParams.get("download") === "1";
 
   const buf = await QRCode.toBuffer(data, {
     width,
@@ -49,10 +51,18 @@ export async function GET(
     },
   });
 
+  const safeName = (qr.name || "masaar-qr")
+    .replace(/[^a-z0-9_-]+/gi, "-")
+    .slice(0, 60);
+  const filename = `${safeName}-${qr.short_id || id.slice(0, 8)}.png`;
+
   return new Response(new Uint8Array(buf), {
     headers: {
       "content-type": "image/png",
-      "cache-control": "public, max-age=300",
+      "cache-control": wantsDownload ? "no-store" : "public, max-age=300",
+      ...(wantsDownload
+        ? { "content-disposition": `attachment; filename="${filename}"` }
+        : {}),
     },
   });
 }
