@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { randomBytes } from "crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendWelcomeEmail } from "@/lib/email";
 
@@ -107,9 +108,18 @@ export async function POST(request: Request) {
     );
   }
 
+  // B5/Fix 22 — generate a secure random password at account creation
+  // and include it in the welcome email. Lets users log in immediately
+  // with email+password (no password-reset round trip). Bug 16's reset
+  // flow stays as the fallback for lost-email cases.
+  // base64url over 12 bytes = 16-char alphanumeric; satisfies Supabase's
+  // default 6-char minimum and gives ~96 bits of entropy.
+  const generatedPassword = randomBytes(12).toString("base64url");
+
   // Payment is proof of email ownership → skip confirmation.
   const { data: created, error: cErr } = await admin.auth.admin.createUser({
     email,
+    password: generatedPassword,
     email_confirm: true,
     user_metadata: { signup_source: "frictionless_checkout" },
   });
@@ -167,6 +177,10 @@ export async function POST(request: Request) {
       to: email,
       shortId: first.short_id || first.id,
       qrImageUrl: `${PROD}/api/qr/${first.id}/render.png?size=512`,
+      // B5/Fix 22 — include the generated password so the user can log
+      // in immediately. Sent in plain text in the email body, clearly
+      // marked, with "change anytime in Settings" instructions.
+      generatedPassword,
     });
   }
 

@@ -6,10 +6,38 @@ const RESEND_ENDPOINT = "https://api.resend.com/emails";
 const PROD = "https://masaar-zeta.vercel.app";
 
 export function buildWelcomeEmailHtml(args: {
+  email: string;
   shortId: string;
   qrImageUrl: string;
+  /** B5/Fix 22 — generated password included so the user can log in
+   *  immediately without going through the password-reset flow. */
+  generatedPassword?: string;
 }): string {
-  const { shortId, qrImageUrl } = args;
+  const { email, shortId, qrImageUrl, generatedPassword } = args;
+  const loginBlock = generatedPassword
+    ? `
+<h2 style="margin-top:24px;font-size:16px;">Your login</h2>
+<p style="font-size:14px;">We've set up your account with these credentials:</p>
+<table style="border-collapse:collapse;font-size:14px;">
+  <tr>
+    <td style="padding:4px 12px 4px 0;color:#666;">Email</td>
+    <td style="padding:4px 0;"><code style="background:#F4F2EE;padding:2px 6px;border-radius:4px;">${email}</code></td>
+  </tr>
+  <tr>
+    <td style="padding:4px 12px 4px 0;color:#666;">Password</td>
+    <td style="padding:4px 0;"><code style="background:#F4F2EE;padding:2px 6px;border-radius:4px;">${generatedPassword}</code></td>
+  </tr>
+</table>
+<p style="font-size:13px;color:#666;margin-top:12px;">
+  Log in at <a href="${PROD}/">masaar.sa</a> with these. You can change
+  the password anytime under Settings.
+</p>`
+    : `
+<p style="color:#666;font-size:14px;">
+  Want to log in again later? Click "Log in" on the homepage and use
+  your email + password. <a href="${PROD}/">masaar.sa</a>
+</p>`;
+
   return `
 <h1>Hi! Your QR is live.</h1>
 <p>Your QR code is now active and ready to share. Scan it, print it, drop it on a table tent — every scan is tracked in your Masaar dashboard.</p>
@@ -20,11 +48,7 @@ export function buildWelcomeEmailHtml(args: {
 <p>
   <a href="${PROD}/dashboard" style="background:#0F5B55;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;">Manage your QR</a>
 </p>
-<p style="color:#666;font-size:14px;">
-  Want to log in again later? Click "Log in" on the homepage and use
-  your email + password (the password-reset link below will set one if
-  you haven't yet). <a href="${PROD}/">masaar.sa</a>
-</p>
+${loginBlock}
 <hr />
 <p style="color:#999;font-size:12px;">
   Masaar — Smart QR codes for Saudi businesses<br />
@@ -106,8 +130,15 @@ export async function sendWelcomeEmail(args: {
   to: string;
   shortId: string;
   qrImageUrl: string;
+  /** B5/Fix 22 — when set, rendered in a "Your login" block. */
+  generatedPassword?: string;
 }): Promise<{ sent: boolean; stubbed: boolean; error?: string }> {
-  const html = buildWelcomeEmailHtml(args);
+  const html = buildWelcomeEmailHtml({
+    email: args.to,
+    shortId: args.shortId,
+    qrImageUrl: args.qrImageUrl,
+    generatedPassword: args.generatedPassword,
+  });
   const key = process.env.RESEND_API_KEY;
 
   // Real Resend keys start with "re_". Anything else → stub.
