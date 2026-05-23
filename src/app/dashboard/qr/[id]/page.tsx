@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { BarChart3 } from "lucide-react";
+import { ArrowLeft, BarChart3 } from "lucide-react";
 import Sidebar from "@/components/dashboard/sidebar";
 import LogoMark from "@/components/logo-mark";
 import { createClient } from "@/lib/supabase/server";
@@ -73,6 +73,17 @@ export default async function EditQrPage({
             </Link>
             <span className="truncate text-xs text-charcoal/45">Edit QR</span>
           </div>
+
+          {/* B5/Fix 18 — Back button above the page header so the
+              user has a clear escape back to the QR list without
+              hunting through the sidebar. Matches the brand outlined
+              button family ("View analytics" right next door). */}
+          <Link
+            href="/dashboard/qr-codes"
+            className="inline-flex w-fit items-center gap-1.5 rounded-lg border border-charcoal/15 bg-white px-3 py-1.5 text-sm font-medium text-charcoal/75 hover:bg-sand-light hover:text-deep-teal"
+          >
+            <ArrowLeft className="h-4 w-4" /> Back to QR codes
+          </Link>
 
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
