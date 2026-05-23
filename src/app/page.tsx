@@ -202,12 +202,12 @@ function HeroCopy() {
         >
           Create QR Code <ArrowRight className="h-4 w-4" />
         </Link>
-        <a
-          href="mailto:hello@masaar.sa?subject=Masaar%20demo%20request"
+        <Link
+          href="/contact"
           className="inline-flex items-center justify-center rounded-lg border border-charcoal/15 bg-white px-6 py-3 text-base font-semibold text-charcoal transition-colors hover:bg-sand-light hover:text-deep-teal"
         >
           Book a demo
-        </a>
+        </Link>
       </div>
 
       <ul className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs font-medium text-charcoal/55">
@@ -712,6 +712,7 @@ const FOOTER_COLS = [
     links: [
       { label: "About", href: "/about" },
       { label: "Solutions", href: "/solutions" },
+      { label: "Contact", href: "/contact" },
     ],
   },
   {

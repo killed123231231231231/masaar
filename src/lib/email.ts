@@ -32,6 +32,76 @@ export function buildWelcomeEmailHtml(args: {
 </p>`.trim();
 }
 
+/**
+ * Internal notification when someone submits the /contact form. Goes to
+ * hello@masaar.sa (or whoever RESEND_NOTIFY_TO is set to). Same stub-
+ * safe behavior as the welcome email — logs and returns when the key
+ * isn't a real Resend key.
+ */
+export async function sendContactNotification(args: {
+  name: string;
+  email: string;
+  phone?: string | null;
+  message: string;
+  preferredTime?: string | null;
+}): Promise<{ sent: boolean; stubbed: boolean; error?: string }> {
+  const to = process.env.RESEND_NOTIFY_TO || "hello@masaar.sa";
+  const key = process.env.RESEND_API_KEY;
+  const html = `
+<h2>New contact request — Masaar</h2>
+<table style="border-collapse:collapse;">
+  <tr><td style="padding:4px 12px 4px 0;color:#666;">Name</td><td style="padding:4px 0;"><strong>${escapeHtml(args.name)}</strong></td></tr>
+  <tr><td style="padding:4px 12px 4px 0;color:#666;">Email</td><td style="padding:4px 0;"><a href="mailto:${escapeHtml(args.email)}">${escapeHtml(args.email)}</a></td></tr>
+  ${args.phone ? `<tr><td style="padding:4px 12px 4px 0;color:#666;">Phone</td><td style="padding:4px 0;">${escapeHtml(args.phone)}</td></tr>` : ""}
+  ${args.preferredTime ? `<tr><td style="padding:4px 12px 4px 0;color:#666;">Preferred time</td><td style="padding:4px 0;">${escapeHtml(args.preferredTime)}</td></tr>` : ""}
+</table>
+<h3 style="margin-top:24px;">Message</h3>
+<p style="white-space:pre-wrap;background:#F4F2EE;padding:14px;border-radius:8px;">${escapeHtml(args.message)}</p>
+<hr />
+<p style="color:#999;font-size:12px;">Submitted from masaar-zeta.vercel.app — reply directly to the email above.</p>`.trim();
+
+  if (!key || !key.startsWith("re_")) {
+    console.log(
+      `[email:STUB] contact notification → ${to} from ${args.email} (${args.name}); ` +
+        `RESEND_API_KEY unset — not sent. HTML built OK (${html.length} chars).`
+    );
+    return { sent: false, stubbed: true };
+  }
+
+  try {
+    const res = await fetch(RESEND_ENDPOINT, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${key}`,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        from: process.env.RESEND_FROM || "Masaar <onboarding@resend.dev>",
+        to,
+        reply_to: args.email,
+        subject: `Contact: ${args.name} wants a demo`,
+        html,
+      }),
+    });
+    if (!res.ok) {
+      const t = await res.text().catch(() => "");
+      return { sent: false, stubbed: false, error: `resend ${res.status}: ${t.slice(0, 200)}` };
+    }
+    return { sent: true, stubbed: false };
+  } catch (e) {
+    return { sent: false, stubbed: false, error: String(e) };
+  }
+}
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 export async function sendWelcomeEmail(args: {
   to: string;
   shortId: string;
