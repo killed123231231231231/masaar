@@ -1,12 +1,16 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { BarChart3 } from "lucide-react";
-import DashboardShell from "@/components/dashboard-shell";
+import Sidebar from "@/components/dashboard/sidebar";
+import LogoMark from "@/components/logo-mark";
 import { createClient } from "@/lib/supabase/server";
 import EditQrClient from "./edit-client";
 
 export const dynamic = "force-dynamic";
 
+// Edit a single QR. B5/Item 6 — migrated off the legacy DashboardShell
+// onto the new deep-teal Sidebar shell so the sidebar is locked on every
+// authed surface (Overview, Analytics, QR Codes, this edit page).
 export default async function EditQrPage({
   params,
 }: {
@@ -19,36 +23,78 @@ export default async function EditQrPage({
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: qr, error: qrError } = await supabase
-    .from("qr_codes")
-    .select("*")
-    .eq("id", id)
-    .eq("user_id", user.id)
-    .single();
+  const [qrRes, profileRes, qrCountRes] = await Promise.all([
+    supabase
+      .from("qr_codes")
+      .select("*")
+      .eq("id", id)
+      .eq("user_id", user.id)
+      .single(),
+    supabase
+      .from("profiles")
+      .select("full_name, subscription_status")
+      .eq("id", user.id)
+      .maybeSingle(),
+    supabase
+      .from("qr_codes")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id),
+  ]);
 
   // PGRST116 = no rows: not found / not owned -> redirect. Anything else
   // (e.g. DB unavailable) is a real error and must not be swallowed.
-  if (qrError && qrError.code !== "PGRST116") throw qrError;
+  if (qrRes.error && qrRes.error.code !== "PGRST116") throw qrRes.error;
+  const qr = qrRes.data;
   if (!qr) redirect("/dashboard");
 
+  const me = {
+    email: user.email ?? "",
+    name: profileRes.data?.full_name ?? user.email ?? "Account",
+    plan: profileRes.data?.subscription_status === "active" ? "Pro" : "Free",
+    qrCount: qrCountRes.count ?? 0,
+  };
+
   return (
-    <DashboardShell>
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Edit “{qr.name}”</h1>
-          <p className="mt-1 text-sm text-gray-500 capitalize">
-            {qr.kind} · {qr.content_kind}
-            {qr.short_id ? ` · /r/${qr.short_id}` : ""}
-          </p>
-        </div>
-        <Link
-          href={`/dashboard/qr/${qr.id}/analytics`}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
-        >
-          <BarChart3 className="h-4 w-4" /> View analytics
-        </Link>
+    <div className="min-h-screen bg-[#F6F4EE] text-charcoal">
+      <div className="mx-auto flex max-w-[1440px]">
+        <Sidebar
+          me={me}
+          current="qrcodes"
+          analyticsHref={`/dashboard/qr/${qr.id}/analytics`}
+        />
+        <main className="min-w-0 flex-1 space-y-7 px-4 py-5 sm:px-5 sm:py-6 lg:px-8">
+          {/* Mobile top bar mirrors the analytics/overview pattern. */}
+          <div className="flex items-center justify-between lg:hidden">
+            <Link href="/dashboard" className="inline-flex items-center gap-2 text-sm font-semibold text-charcoal/65 hover:text-deep-teal">
+              <span className="grid h-7 w-7 place-items-center rounded-md bg-deep-teal p-1">
+                <LogoMark className="h-full w-full brightness-0 invert" />
+              </span>
+              Dashboard
+            </Link>
+            <span className="truncate text-xs text-charcoal/45">Edit QR</span>
+          </div>
+
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h1 className="font-display text-2xl font-bold tracking-tight">
+                Edit “{qr.name}”
+              </h1>
+              <p className="mt-1 text-sm text-charcoal/55 capitalize">
+                {qr.kind} · {qr.content_kind}
+                {qr.short_id ? ` · /r/${qr.short_id}` : ""}
+              </p>
+            </div>
+            <Link
+              href={`/dashboard/qr/${qr.id}/analytics`}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-charcoal/15 bg-white px-3 py-1.5 text-sm font-medium text-charcoal/75 hover:bg-sand-light hover:text-deep-teal"
+            >
+              <BarChart3 className="h-4 w-4" /> View analytics
+            </Link>
+          </div>
+
+          <EditQrClient initial={qr} />
+        </main>
       </div>
-      <EditQrClient initial={qr} />
-    </DashboardShell>
+    </div>
   );
 }

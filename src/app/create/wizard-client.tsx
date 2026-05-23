@@ -8,6 +8,7 @@ import { generateShortId } from "@/lib/shortid";
 import { createClient } from "@/lib/supabase/client";
 import { appUrl } from "@/lib/utils";
 import EmailGateModal from "@/components/email-gate-modal";
+import Sidebar, { type SidebarMe } from "@/components/dashboard/sidebar";
 import ProgressBar from "./_components/progress-bar";
 import Step1Type from "./_components/step-1-type";
 import Step2Content from "./_components/step-2-content";
@@ -26,7 +27,14 @@ import {
 
 type Step = 1 | 2 | 3;
 
-export default function WizardClient({ isAuthed }: { isAuthed: boolean }) {
+export default function WizardClient({
+  isAuthed,
+  me,
+}: {
+  isAuthed: boolean;
+  /** Sidebar profile data — present only when isAuthed; null for anon. */
+  me?: SidebarMe | null;
+}) {
   const router = useRouter();
   const params = useSearchParams();
 
@@ -231,11 +239,14 @@ export default function WizardClient({ isAuthed }: { isAuthed: boolean }) {
     return payload?.destination || " ";
   })();
 
-  return (
-    <div className="min-h-screen bg-sand-light/30">
+  // B5/Item 6 — authed users get the wizard wrapped in the deep-teal
+  // Sidebar shell so the sidebar stays locked on every authed surface.
+  // Anon users keep the bare wizard layout (no account context to show).
+  const wizardBody = (
+    <>
       <ProgressBar current={step} maxStep={maxStep} onJump={(n) => goStep(n)} />
 
-      <div className="mx-auto max-w-4xl px-5 py-8">
+      <div className={me ? "mx-auto max-w-4xl px-5 py-6" : "mx-auto max-w-4xl px-5 py-8"}>
         {step === 1 && (
           <Step1Type
             selected={type}
@@ -315,6 +326,19 @@ export default function WizardClient({ isAuthed }: { isAuthed: boolean }) {
         shortId={gateShortId}
         onClose={() => setGateOpen(false)}
       />
-    </div>
+    </>
   );
+
+  if (me) {
+    return (
+      <div className="min-h-screen bg-[#F6F4EE] text-charcoal">
+        <div className="mx-auto flex max-w-[1440px]">
+          <Sidebar me={me} current="none" />
+          <div className="min-w-0 flex-1">{wizardBody}</div>
+        </div>
+      </div>
+    );
+  }
+
+  return <div className="min-h-screen bg-sand-light/30">{wizardBody}</div>;
 }
