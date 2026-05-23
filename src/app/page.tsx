@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import LogoMark from "@/components/logo-mark";
 import HeaderLoginButton from "@/components/header-login-button";
+import HeaderProfileMenu from "@/components/header-profile-menu";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -78,7 +79,6 @@ function SiteHeader({
   isAuthed: boolean;
   userEmail: string | null;
 }) {
-  const initial = (userEmail?.[0] ?? "U").toUpperCase();
   return (
     <header className="sticky top-0 z-40 border-b border-charcoal/10 bg-white/85 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
@@ -116,16 +116,10 @@ function SiteHeader({
               >
                 Create QR Code
               </Link>
-              {/* Read-only avatar chip — Phase 2 / Item 12 turns this
-                  into the same Settings/Sign-out dropdown used in the
-                  dashboard sidebar. Title shows the email on hover. */}
-              <span
-                title={userEmail ?? undefined}
-                aria-label={userEmail ? `Signed in as ${userEmail}` : "Signed in"}
-                className="grid h-9 w-9 place-items-center rounded-full bg-deep-teal text-xs font-bold uppercase text-white"
-              >
-                {initial}
-              </span>
+              {/* B5/Item 13 completion — the read-only chip is now a real
+                  dropdown (Dashboard / Settings / Sign out) mirroring the
+                  sidebar's ProfileChip. */}
+              <HeaderProfileMenu email={userEmail} />
             </>
           ) : (
             <>
