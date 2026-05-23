@@ -21,10 +21,11 @@ export default function ProgressBar({
 }) {
   return (
     <div className="sticky top-0 z-30 border-b border-charcoal/10 bg-white/90 backdrop-blur">
-      {/* Bumped vertical padding (py-4 -> py-5) per the design target —
-          the step bar reads more "header band" than "thin strip" now,
-          matching the mockup's breathing room. */}
-      <div className="mx-auto flex max-w-4xl items-center justify-center gap-2 px-4 py-5 sm:gap-4">
+      {/* B5/HANDOFF — step row uses justify-between so Step 1 anchors
+          left, Step 3 anchors right, Step 2 floats centered, with the
+          chevrons sitting in the gaps. max-w-7xl matches the wizard
+          body container so the bar lines up with the content below. */}
+      <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-8 py-6">
         {STEPS.map((s, i) => {
           const active = s.n === current;
           // Completed = reached before (≤ maxStep) and not the current
