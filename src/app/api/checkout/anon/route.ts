@@ -189,6 +189,10 @@ export async function POST(request: Request) {
       to: email,
       shortId: first.short_id || first.id,
       qrImageUrl: `${origin}/api/qr/${first.id}/render.png?size=512`,
+      // B5/Audit — also pass origin so the email body's "Manage your
+      // QR" + "Log in at" links match the deploy that sent this email
+      // (was hardcoded PROD, broke preview-test flow self-consistency).
+      origin,
       // B5/Fix 22 — include the generated password so the user can log
       // in immediately. Sent in plain text in the email body, clearly
       // marked, with "change anytime in Settings" instructions.

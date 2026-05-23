@@ -9,11 +9,18 @@ export function buildWelcomeEmailHtml(args: {
   email: string;
   shortId: string;
   qrImageUrl: string;
+  /** B5/Audit Findings — origin of the deploy that received the
+   *  checkout. Threaded through so the email's "Manage your QR" and
+   *  "Log in at" links match the deploy the user just signed up on
+   *  (preview-test emails work standalone; prod emails go to prod).
+   *  Falls back to PROD if omitted. */
+  origin?: string;
   /** B5/Fix 22 — generated password included so the user can log in
    *  immediately without going through the password-reset flow. */
   generatedPassword?: string;
 }): string {
   const { email, shortId, qrImageUrl, generatedPassword } = args;
+  const o = args.origin || PROD;
   const loginBlock = generatedPassword
     ? `
 <h2 style="margin-top:24px;font-size:16px;">Your login</h2>
@@ -29,13 +36,13 @@ export function buildWelcomeEmailHtml(args: {
   </tr>
 </table>
 <p style="font-size:13px;color:#666;margin-top:12px;">
-  Log in at <a href="${PROD}/">masaar.sa</a> with these. You can change
+  Log in at <a href="${o}/">${o.replace(/^https?:\/\//, "")}</a> with these. You can change
   the password anytime under Settings.
 </p>`
     : `
 <p style="color:#666;font-size:14px;">
   Want to log in again later? Click "Log in" on the homepage and use
-  your email + password. <a href="${PROD}/">masaar.sa</a>
+  your email + password. <a href="${o}/">${o.replace(/^https?:\/\//, "")}</a>
 </p>`;
 
   return `
@@ -46,7 +53,7 @@ export function buildWelcomeEmailHtml(args: {
   <p><strong>QR ID:</strong> <code>${shortId}</code></p>
 </div>
 <p>
-  <a href="${PROD}/dashboard" style="background:#0F5B55;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;">Manage your QR</a>
+  <a href="${o}/dashboard" style="background:#0F5B55;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;">Manage your QR</a>
 </p>
 ${loginBlock}
 <hr />
@@ -130,6 +137,10 @@ export async function sendWelcomeEmail(args: {
   to: string;
   shortId: string;
   qrImageUrl: string;
+  /** B5/Audit — origin of the deploy that sent this email (request
+   *  host), threaded into the dashboard + login links inside the body
+   *  so preview-test emails are self-consistent for that deploy. */
+  origin?: string;
   /** B5/Fix 22 — when set, rendered in a "Your login" block. */
   generatedPassword?: string;
 }): Promise<{ sent: boolean; stubbed: boolean; error?: string }> {
@@ -137,6 +148,7 @@ export async function sendWelcomeEmail(args: {
     email: args.to,
     shortId: args.shortId,
     qrImageUrl: args.qrImageUrl,
+    origin: args.origin,
     generatedPassword: args.generatedPassword,
   });
   const key = process.env.RESEND_API_KEY;
