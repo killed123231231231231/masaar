@@ -85,7 +85,7 @@ function SiteHeader() {
             href="/create"
             className="rounded-lg bg-deep-teal px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-deep-teal-dark"
           >
-            Start free trial
+            Create QR Code
           </Link>
         </div>
       </div>
@@ -149,7 +149,7 @@ function HeroCopy() {
           href="/create"
           className="inline-flex items-center justify-center gap-2 rounded-lg bg-deep-teal px-6 py-3 text-base font-semibold text-white shadow-sm transition-colors hover:bg-deep-teal-dark"
         >
-          Start free trial <ArrowRight className="h-4 w-4" />
+          Create QR Code <ArrowRight className="h-4 w-4" />
         </Link>
         <a
           href="mailto:hello@masaar.sa?subject=Masaar%20demo%20request"
