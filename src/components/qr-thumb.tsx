@@ -10,11 +10,14 @@ import { createQr, type QrStyle } from "@/lib/qr";
  * their customizations (color, dot style, corners). Browser-only
  * renderer (qr-code-styling).
  *
- * Skeleton placeholder while loading (so an empty/whitespace `data` —
- * which happens during SSR / first paint before `origin` is read on
- * the client — doesn't dump a half-rendered QR into the DOM). Logo is
- * deliberately skipped at thumbnail size: it competes too much with
- * the data area at <80px and slows the render path.
+ * B5/Fix 19 — the previous version conditionally returned three
+ * different root divs (loading / error / ready) and only the "ready"
+ * branch carried `ref={ref}`. Because the effect runs while status is
+ * still "loading", `ref.current` was null when createQr resolved →
+ * `if (!ref.current) return;` bailed before `setStatus("ready")` ever
+ * fired → thumbs stayed in the skeleton forever. Now the ref-bearing
+ * div is ALWAYS mounted; the skeleton and error fallbacks are absolute
+ * overlays that React unmounts when status flips.
  */
 export default function QrThumb({
   style,
@@ -75,46 +78,33 @@ export default function QrThumb({
     size,
   ]);
 
-  // Skeleton while we wait for origin / async createQr. Static QRs
-  // skip this branch immediately because their data resolves on first
-  // render. Dynamic QRs briefly flash this before the SVG drops in.
-  if (status === "loading") {
-    return (
-      <div
-        aria-hidden
-        className={`grid shrink-0 animate-pulse place-items-center rounded-md bg-sand-light/70 ${className}`}
-        style={{ width: size, height: size }}
-      >
-        <QrCodeIcon
-          className="text-charcoal/25"
-          style={{ width: size * 0.5, height: size * 0.5 }}
-        />
-      </div>
-    );
-  }
-
-  if (status === "error") {
-    return (
-      <div
-        aria-hidden
-        className={`grid shrink-0 place-items-center rounded-md bg-sand-light text-charcoal/40 ${className}`}
-        style={{ width: size, height: size }}
-        title="Couldn’t render preview"
-      >
-        <QrCodeIcon
-          className="text-charcoal/35"
-          style={{ width: size * 0.5, height: size * 0.5 }}
-        />
-      </div>
-    );
-  }
-
   return (
     <div
-      ref={ref}
       aria-hidden
-      className={`shrink-0 overflow-hidden rounded-md ${className}`}
+      className={`relative shrink-0 overflow-hidden rounded-md ${className}`}
       style={{ width: size, height: size }}
-    />
+    >
+      {/* QR canvas — ALWAYS mounted so the useEffect's ref.current is
+          non-null by the time createQr's async promise resolves. */}
+      <div ref={ref} className="absolute inset-0" />
+      {/* Skeleton / error sits ON TOP, unmounted by React when status
+          flips to "ready" (which only happens after qr.append succeeded,
+          so the QR svg is already in the ref div underneath). */}
+      {status !== "ready" && (
+        <div
+          className={`absolute inset-0 grid place-items-center rounded-md ${
+            status === "loading"
+              ? "animate-pulse bg-sand-light/70"
+              : "bg-sand-light text-charcoal/40"
+          }`}
+          title={status === "error" ? "Couldn’t render preview" : undefined}
+        >
+          <QrCodeIcon
+            className={status === "loading" ? "text-charcoal/25" : "text-charcoal/35"}
+            style={{ width: size * 0.5, height: size * 0.5 }}
+          />
+        </div>
+      )}
+    </div>
   );
 }
