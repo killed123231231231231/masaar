@@ -226,9 +226,13 @@ function BreakdownsGrid({ bundle }: { bundle: AccountAnalyticsBundle }) {
 }
 
 function TablesGrid({ bundle }: { bundle: AccountAnalyticsBundle }) {
+  // B5/Fix 23 — Recent Activity moved out to the dedicated /dashboard/activity
+  // page (sidebar nav: "Activity"). The Best Performing Codes table stays
+  // here as the only Overview table. RecentActivityTable definition is
+  // kept below the file (unused) so a future "show last 5 on Overview"
+  // could re-mount it without re-implementing.
   return (
-    <div className="grid gap-4 xl:grid-cols-2">
-      <RecentActivityTable rows={bundle.recentScans} />
+    <div className="grid gap-4">
       <BestPerformingTable userQrs={bundle.userQrs} />
     </div>
   );

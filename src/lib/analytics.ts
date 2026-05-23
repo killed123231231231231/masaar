@@ -296,6 +296,10 @@ export interface AccountRecentScan extends ScanRow {
   qr_id: string;
   qr_name: string;
   qr_short_id: string | null;
+  /** B5/Fix 23 — optional, populated by getAccountActivity for the
+   *  /dashboard/activity table; existing right-rail recentScans don't
+   *  need it. */
+  qr_destination?: string | null;
 }
 
 // B5/Item 10 — extended with the style fields needed to render the
@@ -611,5 +615,95 @@ export async function getAccountAnalytics(
     timeSeries, byCountry, byCity, byDevice, byBrowser, byOs, byTimeOfDay,
     recentScans, userQrs,
     failedScansCount, firstPendingQrId, firstPendingQrShortId,
+  };
+}
+
+/* ────────────────────────── ACCOUNT ACTIVITY ──────────────────────────
+ * B5/Fix 23 — paginated, period-scoped, account-wide scan feed for the
+ * new /dashboard/activity page. Same RLS path as the per-QR analytics
+ * (.in('qr_code_id', userQrIds) — RLS enforces ownership). Returns
+ * count + hasMore so the page can paginate. */
+
+export interface AccountActivityPage {
+  scans: AccountRecentScan[];
+  page: number;       // 1-based
+  pageSize: number;
+  hasMore: boolean;
+  totalCount: number; // 0 when query couldn't count (treated same as empty)
+}
+
+export async function getAccountActivity(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  period: Period,
+  page: number = 1,
+  pageSize: number = 50
+): Promise<AccountActivityPage> {
+  // User's QR ids first — same shape getAccountAnalytics uses.
+  const { data: myQrs } = await supabase
+    .from("qr_codes")
+    .select("id")
+    .eq("user_id", userId);
+  const ids = (myQrs ?? []).map((q) => q.id as string);
+  if (ids.length === 0) {
+    return { scans: [], page, pageSize, hasMore: false, totalCount: 0 };
+  }
+
+  const { startISO, endISO } = periodBounds(period);
+
+  // Accurate count via head:true (same fix as the BACKLOG #4 KPI cap).
+  const countQ = supabase
+    .from("scans")
+    .select("id", { count: "exact", head: true })
+    .in("qr_code_id", ids);
+  const scopedCount = period === "all"
+    ? countQ
+    : countQ.gte("scanned_at", startISO).lte("scanned_at", endISO);
+  const { count } = await scopedCount;
+  const totalCount = count ?? 0;
+
+  const safePage = Math.max(1, page);
+  const from = (safePage - 1) * pageSize;
+  const to = from + pageSize - 1;
+
+  const rowsQ = supabase
+    .from("scans")
+    .select(
+      "id, scanned_at, country, city, device_type, browser, os, ip_hash, " +
+        "qr_codes(id, name, short_id, destination)"
+    )
+    .in("qr_code_id", ids)
+    .order("scanned_at", { ascending: false })
+    .range(from, to);
+  const scopedRows = period === "all"
+    ? rowsQ
+    : rowsQ.gte("scanned_at", startISO).lte("scanned_at", endISO);
+  const { data: rowsRaw } = await scopedRows;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const scans: AccountRecentScan[] = (rowsRaw ?? []).map((r: any) => {
+    const q = Array.isArray(r.qr_codes) ? r.qr_codes[0] : r.qr_codes;
+    return {
+      id: String(r.id),
+      qr_id: q?.id ?? "",
+      qr_name: q?.name ?? "Unknown",
+      qr_short_id: q?.short_id ?? null,
+      qr_destination: q?.destination ?? null,
+      scanned_at: r.scanned_at,
+      country: r.country,
+      city: r.city,
+      device_type: r.device_type,
+      browser: r.browser,
+      os: r.os,
+      ip_hash: r.ip_hash,
+    };
+  });
+
+  return {
+    scans,
+    page: safePage,
+    pageSize,
+    hasMore: totalCount > from + scans.length,
+    totalCount,
   };
 }
