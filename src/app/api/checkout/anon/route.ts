@@ -101,7 +101,7 @@ export async function POST(request: Request) {
       {
         error: "email_already_registered",
         message: "This email already has an account. Please log in instead.",
-        login_url: `/auth/login?email=${encodeURIComponent(email)}`,
+        login_url: `/?login=1&email=${encodeURIComponent(email)}`,
       },
       { status: 409 }
     );
@@ -120,7 +120,7 @@ export async function POST(request: Request) {
         {
           error: "email_already_registered",
           message: "This email already has an account. Please log in instead.",
-          login_url: `/auth/login?email=${encodeURIComponent(email)}`,
+          login_url: `/?login=1&email=${encodeURIComponent(email)}`,
         },
         { status: 409 }
       );

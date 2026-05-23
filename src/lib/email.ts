@@ -21,8 +21,9 @@ export function buildWelcomeEmailHtml(args: {
   <a href="${PROD}/dashboard" style="background:#0F5B55;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;">Manage your QR</a>
 </p>
 <p style="color:#666;font-size:14px;">
-  Want to log in again later? Just request a magic link at
-  <a href="${PROD}/auth/login">masaar.sa/auth/login</a> — no password needed.
+  Want to log in again later? Click "Log in" on the homepage and use
+  your email + password (the password-reset link below will set one if
+  you haven't yet). <a href="${PROD}/">masaar.sa</a>
 </p>
 <hr />
 <p style="color:#999;font-size:12px;">
