@@ -23,12 +23,15 @@ export default function Step3Customize({
   previewData,
   shortId,
   isAuthed,
+  draftToken,
   c,
   setC,
 }: {
   previewData: string;
   shortId: string;
   isAuthed: boolean;
+  /** B5/Fix 21 — wizard's stable draft token, scopes anon logo uploads. */
+  draftToken: string;
   c: Customization;
   setC: (c: Customization) => void;
 }) {
@@ -99,13 +102,15 @@ export default function Step3Customize({
           </Acc>
 
           <Acc title="Logo" defaultOpen={false}>
-            {isAuthed ? (
-              <LogoUpload shortId={shortId} value={c.logo_url} onChange={(v) => set("logo_url", v)} />
-            ) : (
-              <p className="text-sm text-charcoal/55">
-                Sign in (finish the email step) to add a custom logo.
-              </p>
-            )}
+            {/* B5/Fix 21 — anon users can upload too. LogoUpload branches
+                internally based on isAuthed + draftToken. */}
+            <LogoUpload
+              shortId={shortId}
+              isAuthed={isAuthed}
+              draftToken={draftToken}
+              value={c.logo_url}
+              onChange={(v) => set("logo_url", v)}
+            />
           </Acc>
 
           <Acc title="Protect this QR with a password" defaultOpen={false}>
@@ -227,15 +232,24 @@ function SelectRow({
 
 function LogoUpload({
   shortId,
+  isAuthed,
+  draftToken,
   value,
   onChange,
 }: {
   shortId: string;
+  isAuthed: boolean;
+  draftToken: string;
   value: string | null;
   onChange: (v: string | null) => void;
 }) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+
+  // Anon path caps at 500 KB (server-enforced via /api/qr/anonymous/logo);
+  // authed path is the existing 5 MB direct-to-storage upload.
+  const maxBytes = isAuthed ? 5 * 1024 * 1024 : 500 * 1024;
+  const maxLabel = isAuthed ? "5 MB" : "500 KB";
 
   async function handle(file: File) {
     setErr(null);
@@ -243,28 +257,50 @@ function LogoUpload({
       setErr("PNG, JPG or SVG only.");
       return;
     }
-    if (file.size > 5 * 1024 * 1024) {
-      setErr("Logo must be under 5 MB.");
+    if (file.size > maxBytes) {
+      setErr(`Logo must be under ${maxLabel}.`);
       return;
     }
     setBusy(true);
     try {
-      const sb = createClient();
-      const { data: { user } } = await sb.auth.getUser();
-      if (!user) {
-        setErr("Sign in to upload a logo.");
-        return;
+      if (isAuthed) {
+        // Authed direct upload — RLS scopes path to user.id.
+        const sb = createClient();
+        const { data: { user } } = await sb.auth.getUser();
+        if (!user) {
+          setErr("Sign in to upload a logo.");
+          return;
+        }
+        const ext = file.name.split(".").pop()?.toLowerCase() || "png";
+        const path = `${user.id}/${shortId}/${crypto.randomUUID()}.${ext}`;
+        const { error: e } = await sb.storage
+          .from("logos")
+          .upload(path, file, { upsert: false, contentType: file.type });
+        if (e) {
+          setErr(e.message);
+          return;
+        }
+        onChange(sb.storage.from("logos").getPublicUrl(path).data.publicUrl);
+      } else {
+        // Anon path — POST to /api/qr/anonymous/logo. Server validates,
+        // rate-limits per IP (5/hr via migration 012's RPC), and uploads
+        // via the admin client to anon/<draft_token>/<uuid>.<ext>.
+        const fd = new FormData();
+        fd.append("draft_token", draftToken);
+        fd.append("file", file);
+        const res = await fetch("/api/qr/anonymous/logo", {
+          method: "POST",
+          body: fd,
+        });
+        const data = (await res.json().catch(() => null)) as
+          | { url?: string; error?: string; message?: string }
+          | null;
+        if (!res.ok || !data?.url) {
+          setErr(data?.message || data?.error || "Couldn’t upload logo.");
+          return;
+        }
+        onChange(data.url);
       }
-      const ext = file.name.split(".").pop()?.toLowerCase() || "png";
-      const path = `${user.id}/${shortId}/${crypto.randomUUID()}.${ext}`;
-      const { error: e } = await sb.storage
-        .from("logos")
-        .upload(path, file, { upsert: false, contentType: file.type });
-      if (e) {
-        setErr(e.message);
-        return;
-      }
-      onChange(sb.storage.from("logos").getPublicUrl(path).data.publicUrl);
     } finally {
       setBusy(false);
     }
@@ -298,7 +334,7 @@ function LogoUpload({
         )}
       </div>
       {err && <p className="mt-1 text-xs text-red-600">{err}</p>}
-      <p className="mt-1 text-xs text-charcoal/45">PNG/JPG/SVG · under 5 MB</p>
+      <p className="mt-1 text-xs text-charcoal/45">PNG/JPG/SVG · under {maxLabel}</p>
     </div>
   );
 }

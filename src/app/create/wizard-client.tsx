@@ -283,6 +283,7 @@ export default function WizardClient({
             previewData={preview}
             shortId={shortId.current}
             isAuthed={isAuthed}
+            draftToken={draftToken.current}
             c={custom}
             setC={setCustom}
           />
