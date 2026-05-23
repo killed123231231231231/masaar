@@ -46,7 +46,8 @@ export default function LandingPage() {
       <HowItWorks />
       <AnalyticsPreview />
       <BuiltForGCC />
-      <Faq />
+      {/* FAQ section removed from landing per B5/Item 4. The Faq component
+          stays defined below so it can be reused on /pricing later. */}
       <FinalCta />
 
       <SiteFooter />
