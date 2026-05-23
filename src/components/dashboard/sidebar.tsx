@@ -1,9 +1,10 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import {
-  BarChart3, Crown, Download, LayoutGrid, Link2, Megaphone,
+  BarChart3, Crown, Download, Home, LayoutGrid, Link2, LogOut, Megaphone,
   MonitorSmartphone, Plug, QrCode, Settings, Users,
   type LucideIcon,
 } from "lucide-react";
@@ -57,19 +58,26 @@ export default function Sidebar({
       ? { label: "Reports",   icon: Download,         href: reportsHref }
       : { label: "Reports",   icon: Download,         soon: true },
     { label: "Integrations", icon: Plug,              soon: true },
-    { label: "Settings",     icon: Settings,          soon: true },
+    // B5/Item 12 — Settings is now a real page.
+    { label: "Settings",     icon: Settings,          href: "/dashboard/settings", active: false },
   ];
 
   return (
     <aside className="sticky top-0 hidden h-screen w-[220px] shrink-0 flex-col bg-deep-teal text-white lg:flex">
-      <div className="flex items-center gap-2 px-5 py-5">
+      {/* B5/Item 13 — logo click routes to /. Hover affordance keeps the
+          chip readable without breaking the brand wordmark layout. */}
+      <Link
+        href="/"
+        title="Back to public site"
+        className="group flex items-center gap-2 px-5 py-5 transition-colors hover:bg-white/5"
+      >
         <span className="grid h-8 w-8 place-items-center rounded-md bg-white p-1">
           <LogoMark className="h-full w-full" />
         </span>
         <span className="font-display text-base font-bold">
           Masaar <span className="font-arabic text-deep-teal-light">مسار</span>
         </span>
-      </div>
+      </Link>
 
       <nav className="flex-1 space-y-0.5 px-3">
         {nav.map((n) => {
@@ -129,15 +137,88 @@ export default function Sidebar({
         )}
       </div>
 
-      <div className="flex items-center gap-2 border-t border-white/10 px-4 py-3">
+      <ProfileChip me={me} />
+    </aside>
+  );
+}
+
+// B5/Item 12 — clickable profile chip with a Settings + Sign out menu.
+// Outside-click + Escape dismiss; absolute-positioned popover opens
+// above the chip (it sits at the bottom of a tall sidebar).
+function ProfileChip({ me }: { me: SidebarMe }) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function onDown(e: MouseEvent) {
+      if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  return (
+    <div ref={rootRef} className="relative border-t border-white/10">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        className="flex w-full items-center gap-2 px-4 py-3 text-left transition-colors hover:bg-white/5"
+      >
         <span className="grid h-8 w-8 place-items-center rounded-full bg-white/15 text-xs font-bold uppercase">
           {(me.name?.[0] || me.email?.[0] || "U").toUpperCase()}
         </span>
-        <span className="min-w-0">
+        <span className="min-w-0 flex-1">
           <p className="truncate text-xs font-semibold">{me.name}</p>
           <p className="truncate text-[10px] text-white/55">{me.email}</p>
         </span>
-      </div>
-    </aside>
+      </button>
+
+      {open && (
+        <div
+          role="menu"
+          className="absolute inset-x-3 bottom-full mb-2 overflow-hidden rounded-lg border border-charcoal/10 bg-white text-charcoal shadow-xl"
+        >
+          <Link
+            href="/dashboard/settings"
+            role="menuitem"
+            onClick={() => setOpen(false)}
+            className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium text-charcoal/80 hover:bg-sand-light hover:text-deep-teal"
+          >
+            <Settings className="h-4 w-4" /> Settings
+          </Link>
+          <Link
+            href="/"
+            role="menuitem"
+            onClick={() => setOpen(false)}
+            className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium text-charcoal/80 hover:bg-sand-light hover:text-deep-teal"
+          >
+            <Home className="h-4 w-4" /> Back to public site
+          </Link>
+          <form
+            action="/auth/signout"
+            method="post"
+            className="border-t border-charcoal/10"
+          >
+            <button
+              type="submit"
+              role="menuitem"
+              className="flex w-full items-center gap-2 px-3 py-2.5 text-sm font-medium text-terracotta-dark hover:bg-terracotta/10"
+            >
+              <LogOut className="h-4 w-4" /> Sign out
+            </button>
+          </form>
+        </div>
+      )}
+    </div>
   );
 }
