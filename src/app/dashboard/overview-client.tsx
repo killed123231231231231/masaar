@@ -328,7 +328,12 @@ function RightRail({ bundle }: { bundle: AccountAnalyticsBundle }) {
   // for discoverability when N > 6.
   const hasOverflow = bundle.userQrs.length > 6;
   return (
-    <aside className="shrink-0 border-t border-charcoal/10 bg-white px-5 py-6 xl:w-[300px] xl:border-l xl:border-t-0">
+    /* B5/Round2 C3 — `xl:self-start` prevents the rail from flex-stretching
+       to match Main's height. Was leaving ~1167px of empty cream space
+       inside the rail container below the actual content. Now the rail
+       takes its natural height; the cream page bg fills the column
+       below it. */
+    <aside className="shrink-0 border-t border-charcoal/10 bg-white px-5 py-6 xl:w-[300px] xl:self-start xl:border-l xl:border-t-0">
       <h2 className="font-display text-sm font-bold uppercase tracking-wider text-charcoal/75">Your QRs</h2>
       <p className="mt-1 text-[11px] text-charcoal/45">All your codes, sorted by scans.</p>
       <div className="relative mt-4">
