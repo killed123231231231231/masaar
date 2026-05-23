@@ -94,7 +94,7 @@ export default function EmailGateModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 grid place-items-center bg-charcoal/40 px-5 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-charcoal/40 px-4 py-6 backdrop-blur-sm"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
