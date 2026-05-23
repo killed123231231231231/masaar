@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import LoginModal from "@/components/login-modal";
 
 /**
@@ -18,11 +18,27 @@ import LoginModal from "@/components/login-modal";
  */
 export default function HeaderLoginButton() {
   const router = useRouter();
+  const params = useSearchParams();
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   // createPortal needs document — guard SSR.
   useEffect(() => setMounted(true), []);
+
+  // B5/Round2 H4 — autohook for the email→landing→login flow. When the
+  // welcome-email's "Manage your QR" button bounces an unauthed user
+  // to /?redirectTo=%2Fdashboard via middleware (or /api/checkout/anon
+  // 409 sends ?login=1&email=), we want them to land WITH the login
+  // modal already open instead of hunting for the "Log in" button.
+  // Triggers on either ?login=1 OR ?redirectTo=... .
+  useEffect(() => {
+    const wantsLogin =
+      params.get("login") === "1" || params.has("redirectTo");
+    if (wantsLogin) setOpen(true);
+    // intentionally one-shot — don't re-open if user closes + reload
+    // with the same query; they made an explicit dismissal.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Esc-to-close + body-scroll lock while open.
   useEffect(() => {
@@ -48,6 +64,7 @@ export default function HeaderLoginButton() {
       onClick={() => setOpen(false)}
     >
       <LoginModal
+        initialEmail={params.get("email") ?? undefined}
         onClose={() => setOpen(false)}
         onSwitchToSignup={() => {
           setOpen(false);

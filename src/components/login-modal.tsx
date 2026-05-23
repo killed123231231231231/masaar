@@ -29,15 +29,19 @@ import { createClient } from "@/lib/supabase/client";
  */
 export default function LoginModal({
   draftToken,
+  initialEmail,
   onClose,
   onSwitchToSignup,
 }: {
   draftToken?: string;
+  /** B5/Round2 H4 — prefill from ?email= query (e.g. /api/checkout/anon
+   *  409-already-registered redirects to /?login=1&email=...). */
+  initialEmail?: string;
   onClose: () => void;
   onSwitchToSignup: () => void;
 }) {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(initialEmail ?? "");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
