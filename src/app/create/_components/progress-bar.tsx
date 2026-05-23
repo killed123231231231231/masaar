@@ -21,7 +21,10 @@ export default function ProgressBar({
 }) {
   return (
     <div className="sticky top-0 z-30 border-b border-charcoal/10 bg-white/90 backdrop-blur">
-      <div className="mx-auto flex max-w-4xl items-center justify-center gap-2 px-4 py-4 sm:gap-4">
+      {/* Bumped vertical padding (py-4 -> py-5) per the design target —
+          the step bar reads more "header band" than "thin strip" now,
+          matching the mockup's breathing room. */}
+      <div className="mx-auto flex max-w-4xl items-center justify-center gap-2 px-4 py-5 sm:gap-4">
         {STEPS.map((s, i) => {
           const active = s.n === current;
           // Completed = reached before (≤ maxStep) and not the current
@@ -59,7 +62,8 @@ export default function ProgressBar({
                         : "text-charcoal/40"
                   }`}
                 >
-                  <span className="text-xs uppercase tracking-wide text-charcoal/40">
+                  {/* Sentence case per mockup ("Step 1", not "STEP 1"). */}
+                  <span className="text-xs tracking-wide text-charcoal/40">
                     Step {s.n}
                   </span>
                   <br />
