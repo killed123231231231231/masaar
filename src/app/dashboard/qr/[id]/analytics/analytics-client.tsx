@@ -26,7 +26,7 @@ export default function AnalyticsClient({
       <div className="flex">
         <Sidebar
           me={me}
-          current="analytics"
+          current="qrcodes"
           analyticsHref={`/dashboard/qr/${bundle.qr.id}/analytics`}
           reportsHref={exportHref}
           upgradeHref={`/checkout/${bundle.qr.short_id ?? bundle.qr.id}`}

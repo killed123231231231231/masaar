@@ -40,7 +40,7 @@ export default async function SettingsPage() {
   return (
     <div className="min-h-screen bg-[#F6F4EE] text-charcoal">
       <div className="flex">
-        <Sidebar me={me} current="none" />
+        <Sidebar me={me} current="settings" />
         <main className="min-w-0 flex-1 space-y-7 px-4 py-5 sm:px-5 sm:py-6 lg:px-8">
           {/* Mobile top bar — same pattern as the other surfaces. */}
           <div className="flex items-center justify-between lg:hidden">

@@ -2,15 +2,25 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { toast } from "sonner";
 import {
-  BarChart3, Crown, Download, Home, LayoutGrid, Link2, LogOut, Megaphone,
-  MonitorSmartphone, Plug, QrCode, Settings, Users,
+  Activity, Crown, Home, LayoutGrid, LogOut, QrCode, Settings, UtensilsCrossed,
   type LucideIcon,
 } from "lucide-react";
 import LogoMark from "@/components/logo-mark";
 
-export type SidebarCurrent = "overview" | "analytics" | "qrcodes" | "none";
+// B5/Fix 20 — sidebar nav slimmed to 5 items. Aspirational stubs
+// (Campaigns / Destinations / Audience / Devices / Reports /
+// Integrations) removed entirely; AI Menu Builder is a real nav item
+// (placeholder page until Session F lands the actual builder); Activity
+// is the new home for what used to be the Overview's Recent Activity
+// table (Fix 23).
+export type SidebarCurrent =
+  | "overview"
+  | "qrcodes"
+  | "menu"
+  | "activity"
+  | "settings"
+  | "none";
 
 export interface SidebarMe {
   email: string;
@@ -24,42 +34,34 @@ const PLAN_LIMITS: Record<string, number> = { Free: 5, Pro: 5000 };
 interface Props {
   me: SidebarMe;
   current: SidebarCurrent;
-  /** Per-QR analytics URL when a QR is in context; null on account-level pages
-   *  (Analytics item becomes a "create-a-QR-first" toast). */
-  analyticsHref?: string | null;
-  /** Per-QR CSV export URL; undefined on account-level pages (Reports → Soon). */
-  reportsHref?: string;
   /** Where the "Upgrade to Pro" CTA in the Free-plan card goes. */
   upgradeHref?: string;
+  /**
+   * Per-QR analytics URL — accepted but unused after Fix 20 (the
+   * Analytics nav item is gone). Kept as an optional prop so existing
+   * callers compile without edits; will be dropped in a follow-up
+   * cleanup.
+   */
+  analyticsHref?: string | null;
+  /** Same story as analyticsHref — accepted but unused. */
+  reportsHref?: string;
 }
 
 export default function Sidebar({
-  me, current, analyticsHref = null, reportsHref, upgradeHref = "/pricing",
+  me, current, upgradeHref = "/pricing",
 }: Props) {
   const limit = PLAN_LIMITS[me.plan] ?? 5;
   const used = Math.min(me.qrCount, limit);
   const usagePct = Math.round((used / limit) * 100);
 
-  type NavSpec =
-    | { label: string; icon: LucideIcon; href: string; active?: boolean; soon?: false }
-    | { label: string; icon: LucideIcon; href?: undefined; active?: false; soon: true };
+  type NavSpec = { label: string; icon: LucideIcon; href: string; active: boolean };
 
   const nav: NavSpec[] = [
-    { label: "Overview",     icon: LayoutGrid,        href: "/dashboard", active: current === "overview" },
-    analyticsHref
-      ? { label: "Analytics", icon: BarChart3,        href: analyticsHref, active: current === "analytics" }
-      : { label: "Analytics", icon: BarChart3,        soon: true },
-    { label: "QR Codes",     icon: QrCode,            href: "/dashboard/qr-codes", active: current === "qrcodes" },
-    { label: "Campaigns",    icon: Megaphone,         soon: true },
-    { label: "Destinations", icon: Link2,             soon: true },
-    { label: "Audience",     icon: Users,             soon: true },
-    { label: "Devices",      icon: MonitorSmartphone, soon: true },
-    reportsHref
-      ? { label: "Reports",   icon: Download,         href: reportsHref }
-      : { label: "Reports",   icon: Download,         soon: true },
-    { label: "Integrations", icon: Plug,              soon: true },
-    // B5/Item 12 — Settings is now a real page.
-    { label: "Settings",     icon: Settings,          href: "/dashboard/settings", active: false },
+    { label: "Overview",        icon: LayoutGrid,      href: "/dashboard",            active: current === "overview" },
+    { label: "QR Codes",        icon: QrCode,          href: "/dashboard/qr-codes",   active: current === "qrcodes" },
+    { label: "AI Menu Builder", icon: UtensilsCrossed, href: "/dashboard/menu",       active: current === "menu" },
+    { label: "Activity",        icon: Activity,        href: "/dashboard/activity",   active: current === "activity" },
+    { label: "Settings",        icon: Settings,        href: "/dashboard/settings",   active: current === "settings" },
   ];
 
   return (
@@ -80,40 +82,20 @@ export default function Sidebar({
       </Link>
 
       <nav className="flex-1 space-y-0.5 px-3">
-        {nav.map((n) => {
-          const inner = (
+        {nav.map((n) => (
+          <Link key={n.label} href={n.href}>
             <span
-              className={`flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
+              className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
                 n.active
                   ? "bg-white font-semibold text-deep-teal"
-                  : n.soon
-                    ? "cursor-not-allowed text-white/45 hover:bg-white/5"
-                    : "text-white/80 hover:bg-white/10 hover:text-white"
+                  : "text-white/80 hover:bg-white/10 hover:text-white"
               }`}
             >
-              <span className="flex items-center gap-3">
-                <n.icon className="h-4 w-4 shrink-0" strokeWidth={1.75} />
-                {n.label}
-              </span>
-              {n.soon && (
-                <span className="rounded-md bg-white/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white/55">
-                  Soon
-                </span>
-              )}
+              <n.icon className="h-4 w-4 shrink-0" strokeWidth={1.75} />
+              {n.label}
             </span>
-          );
-          if (n.href) return <Link key={n.label} href={n.href}>{inner}</Link>;
-          return (
-            <button
-              key={n.label}
-              type="button"
-              className="block w-full text-left"
-              onClick={() => toast("This feature is coming in Sprint 3")}
-            >
-              {inner}
-            </button>
-          );
-        })}
+          </Link>
+        ))}
       </nav>
 
       <div className="mx-3 mb-3 rounded-xl bg-deep-teal-dark p-4">
