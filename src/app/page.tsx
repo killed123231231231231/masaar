@@ -17,6 +17,9 @@ import {
 } from "lucide-react";
 import LogoMark from "@/components/logo-mark";
 import HeaderLoginButton from "@/components/header-login-button";
+import { createClient } from "@/lib/supabase/server";
+
+export const dynamic = "force-dynamic";
 
 const NAV = [
   { label: "Product", href: "/product" },
@@ -35,10 +38,21 @@ const TRUST_LOGOS = [
   "Hilal",
 ];
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  // B5/Item 13 (partial) — SiteHeader is now auth-aware. Fetch the
+  // session server-side and pass auth state down as props. The Phase 2
+  // commit (Item 12) will swap the read-only avatar chip for a real
+  // profile dropdown (Settings / Sign out).
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const isAuthed = !!user;
+  const userEmail = user?.email ?? null;
+
   return (
     <main className="min-h-screen bg-white text-charcoal">
-      <SiteHeader />
+      <SiteHeader isAuthed={isAuthed} userEmail={userEmail} />
 
       <Hero />
       <TrustStrip />
@@ -57,7 +71,14 @@ export default function LandingPage() {
 
 /* ------------------------------------------------------------------ */
 
-function SiteHeader() {
+function SiteHeader({
+  isAuthed,
+  userEmail,
+}: {
+  isAuthed: boolean;
+  userEmail: string | null;
+}) {
+  const initial = (userEmail?.[0] ?? "U").toUpperCase();
   return (
     <header className="sticky top-0 z-40 border-b border-charcoal/10 bg-white/85 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
@@ -81,13 +102,42 @@ function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <HeaderLoginButton />
-          <Link
-            href="/create"
-            className="rounded-lg bg-deep-teal px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-deep-teal-dark"
-          >
-            Create QR Code
-          </Link>
+          {isAuthed ? (
+            <>
+              <Link
+                href="/dashboard"
+                className="hidden px-3 py-2 text-sm font-medium text-charcoal/75 transition-colors hover:text-deep-teal sm:inline-block"
+              >
+                Dashboard
+              </Link>
+              <Link
+                href="/create"
+                className="rounded-lg bg-deep-teal px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-deep-teal-dark"
+              >
+                Create QR Code
+              </Link>
+              {/* Read-only avatar chip — Phase 2 / Item 12 turns this
+                  into the same Settings/Sign-out dropdown used in the
+                  dashboard sidebar. Title shows the email on hover. */}
+              <span
+                title={userEmail ?? undefined}
+                aria-label={userEmail ? `Signed in as ${userEmail}` : "Signed in"}
+                className="grid h-9 w-9 place-items-center rounded-full bg-deep-teal text-xs font-bold uppercase text-white"
+              >
+                {initial}
+              </span>
+            </>
+          ) : (
+            <>
+              <HeaderLoginButton />
+              <Link
+                href="/create"
+                className="rounded-lg bg-deep-teal px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-deep-teal-dark"
+              >
+                Create QR Code
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </header>
