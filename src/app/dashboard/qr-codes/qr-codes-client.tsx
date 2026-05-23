@@ -73,13 +73,6 @@ export default function QrCodesClient({
   counts: Record<string, number>;
   me: SidebarMe;
 }) {
-  // origin is browser-only — read post-mount and thread it into the QR
-  // thumbnails. QrThumb skeletons itself while data is empty / relative.
-  const [origin, setOrigin] = useState("");
-  useEffect(() => {
-    setOrigin(window.location.origin);
-  }, []);
-
   return (
     <div className="min-h-screen bg-[#F6F4EE] text-charcoal">
       <div className="flex">
@@ -90,7 +83,7 @@ export default function QrCodesClient({
           {qrs.length === 0 ? (
             <EmptyState />
           ) : (
-            <ListBlock qrs={qrs} counts={counts} origin={origin} />
+            <ListBlock qrs={qrs} counts={counts} />
           )}
         </main>
       </div>
@@ -138,11 +131,9 @@ function PageHeader({ total }: { total: number }) {
 function ListBlock({
   qrs,
   counts,
-  origin,
 }: {
   qrs: QrCardData[];
   counts: Record<string, number>;
-  origin: string;
 }) {
   const [query, setQuery] = useState("");
   const filtered = useMemo(() => {
@@ -189,7 +180,6 @@ function ListBlock({
               key={q.id}
               q={q}
               scans={counts[q.id] ?? 0}
-              origin={origin}
               isLast={i === filtered.length - 1}
             />
           ))}
@@ -202,19 +192,15 @@ function ListBlock({
 function ListRow({
   q,
   scans,
-  origin,
   isLast,
 }: {
   q: QrCardData;
   scans: number;
-  origin: string;
   isLast: boolean;
 }) {
   const tm = typeMeta(q.content_kind);
   const TypeIcon = tm.icon;
   const statusTint = STATUS_TINT[q.status] ?? STATUS_TINT.active;
-  const thumbData =
-    q.kind === "dynamic" && q.short_id ? `${origin}/r/${q.short_id}` : q.destination || " ";
 
   return (
     <li
@@ -222,17 +208,11 @@ function ListRow({
         !isLast ? "border-b border-charcoal/5" : ""
       }`}
     >
-      {/* Thumbnail */}
+      {/* Thumbnail — server-rendered PNG via /api/qr/<id>/render.png. */}
       <QrThumb
+        qrId={q.id}
+        bgColor={q.bg_color}
         size={56}
-        style={{
-          data: thumbData,
-          fgColor: q.fg_color,
-          bgColor: q.bg_color,
-          gradientColor: q.gradient_color,
-          dotStyle: q.dot_style,
-          cornerStyle: q.corner_style,
-        }}
         className="border border-charcoal/10"
       />
 

@@ -1,110 +1,56 @@
-"use client";
-
-import { useEffect, useRef, useState } from "react";
-import { QrCode as QrCodeIcon } from "lucide-react";
-import { createQr, type QrStyle } from "@/lib/qr";
-
 /**
- * Small QR thumbnail — used in the dashboard right rail and the
- * /dashboard/qr-codes list so each row shows the user's REAL code with
- * their customizations (color, dot style, corners). Browser-only
- * renderer (qr-code-styling).
+ * Small QR thumbnail — used in the dashboard right rail, the
+ * /dashboard/qr-codes list, and anywhere else we need to show "the
+ * user's actual QR" at small size.
  *
- * B5/Fix 19 — the previous version conditionally returned three
- * different root divs (loading / error / ready) and only the "ready"
- * branch carried `ref={ref}`. Because the effect runs while status is
- * still "loading", `ref.current` was null when createQr resolved →
- * `if (!ref.current) return;` bailed before `setStatus("ready")` ever
- * fired → thumbs stayed in the skeleton forever. Now the ref-bearing
- * div is ALWAYS mounted; the skeleton and error fallbacks are absolute
- * overlays that React unmounts when status flips.
+ * B5/Fix 19+24 — bulletproof refactor. The previous client-side
+ * qr-code-styling implementation had three render-order hazards
+ * (ref-mount race, async createQr cancellation, dynamic-import
+ * failure) that all converged on the same visible symptom: the
+ * thumbnail stuck on the skeleton state. This version drops the
+ * client-rendering path entirely and uses an `<img>` pointed at the
+ * existing server endpoint /api/qr/<id>/render.png — the same route
+ * the welcome email uses, which renders via the `qrcode` npm package
+ * (no DOM, no race). The browser handles caching, retry, and lazy
+ * loading. There is no React state and no useEffect, so it cannot get
+ * stuck in any loading state.
+ *
+ * Trade-off: we lose the per-QR dot_style / corner_style / gradient
+ * subtleties at thumb size, since the server endpoint only honors
+ * fg_color + bg_color. At 36–56 px those are imperceptible anyway,
+ * and reliability matters more than visual fidelity here.
  */
 export default function QrThumb({
-  style,
+  qrId,
   size = 56,
   className = "",
+  bgColor = "#FFFFFF",
 }: {
-  style: QrStyle;
+  /** qr_codes.id — the render route looks up the row and serves PNG. */
+  qrId: string;
+  /** Rendered display size in CSS px (square). Defaults to 56. */
   size?: number;
+  /** Extra Tailwind classes for the wrapper. */
   className?: string;
+  /** QR bg_color — shown behind the image so the transition from
+   *  loading-blank to loaded-png isn't jarring on dark/colored QRs. */
+  bgColor?: string;
 }) {
-  const ref = useRef<HTMLDivElement | null>(null);
-  const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
-
-  useEffect(() => {
-    // Bail on missing / placeholder data. `data === " "` is our
-    // intentional whitespace placeholder for empty destinations;
-    // /r/... is the relative-URL form that means origin hasn't
-    // resolved yet on the client.
-    const data = style.data?.trim() ?? "";
-    if (!data || data === " " || data.startsWith("/r/")) {
-      setStatus("loading");
-      return;
-    }
-    let cancelled = false;
-    (async () => {
-      try {
-        const qr = await createQr({
-          ...style,
-          width: size,
-          height: size,
-          // Skip the logo at thumb size — keep the QR readable.
-          logoUrl: null,
-          logoDataUrl: null,
-          // "M" gives more dot real estate than "H" at small sizes;
-          // we're not embedding a logo, so the higher EC level isn't
-          // earning its keep.
-          errorLevel: "M",
-        });
-        if (cancelled || !ref.current) return;
-        ref.current.innerHTML = "";
-        qr.append(ref.current);
-        if (!cancelled) setStatus("ready");
-      } catch (e) {
-        console.warn("[QrThumb] render failed:", e);
-        if (!cancelled) setStatus("error");
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [
-    style.data,
-    style.fgColor,
-    style.bgColor,
-    style.gradientColor,
-    style.dotStyle,
-    style.cornerStyle,
-    size,
-  ]);
-
+  // Request 2× for retina, capped at the server's 1024 max + 128 min.
+  const renderSize = Math.min(1024, Math.max(128, size * 2));
+  const src = `/api/qr/${qrId}/render.png?size=${renderSize}`;
   return (
-    <div
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={src}
+      alt=""
       aria-hidden
-      className={`relative shrink-0 overflow-hidden rounded-md ${className}`}
-      style={{ width: size, height: size }}
-    >
-      {/* QR canvas — ALWAYS mounted so the useEffect's ref.current is
-          non-null by the time createQr's async promise resolves. */}
-      <div ref={ref} className="absolute inset-0" />
-      {/* Skeleton / error sits ON TOP, unmounted by React when status
-          flips to "ready" (which only happens after qr.append succeeded,
-          so the QR svg is already in the ref div underneath). */}
-      {status !== "ready" && (
-        <div
-          className={`absolute inset-0 grid place-items-center rounded-md ${
-            status === "loading"
-              ? "animate-pulse bg-sand-light/70"
-              : "bg-sand-light text-charcoal/40"
-          }`}
-          title={status === "error" ? "Couldn’t render preview" : undefined}
-        >
-          <QrCodeIcon
-            className={status === "loading" ? "text-charcoal/25" : "text-charcoal/35"}
-            style={{ width: size * 0.5, height: size * 0.5 }}
-          />
-        </div>
-      )}
-    </div>
+      width={size}
+      height={size}
+      loading="lazy"
+      decoding="async"
+      style={{ width: size, height: size, backgroundColor: bgColor }}
+      className={`shrink-0 rounded-md object-contain ${className}`}
+    />
   );
 }

@@ -144,7 +144,11 @@ function Hero() {
   return (
     <section className="relative overflow-hidden bg-[#F6F4EE]">
       <HeroBackdrop />
-      <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 pt-12 pb-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] lg:gap-14 lg:pt-20 lg:pb-20">
+      {/* B5/Fix 24 — pull the hero content up so it doesn't float in
+          a sea of cream below the header. Was pt-12 / lg:pt-20; now
+          pt-6 / lg:pt-10 closes the gap. Bottom padding kept generous
+          so the TrustStrip below still has breathing room. */}
+      <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 pt-6 pb-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] lg:gap-14 lg:pt-10 lg:pb-20">
         <HeroCopy />
         <HeroPreview />
       </div>
