@@ -307,3 +307,59 @@ prompts). One per session; deploy + smoke-test after each.
   `deep-teal-light`). Add the
   [tailwindcss/no-custom-classname](https://github.com/francoismassart/eslint-plugin-tailwindcss)
   rule (or equivalent) to catch typos at lint time.
+
+## 7. Session B.5 follow-ups (UX polish pass)
+
+- **Full per-account activity feed page.** B5/Item 7's "View all
+  activity →" currently routes to `/dashboard/qr-codes` since no
+  dedicated activity page exists. Build `/dashboard/activity` with
+  paginated scan list across all QRs, filterable by QR / period /
+  device / country. Sprint 3.
+- **Migrate `/dashboard/qr/new` off DashboardShell** — or delete it
+  outright. The route still works but is not linked from any active
+  navigation; B5/Item 6 explicitly took it out of minimum scope.
+- **Auth-aware MarketingShell.** /about, /pricing, /product, /privacy,
+  /terms, /resources, /solutions still use the static MarketingShell
+  with a single "Create QR" CTA regardless of session. Mirror the
+  landing's SiteHeader auth-aware treatment (HeaderLoginButton →
+  HeaderProfileMenu when authed) for consistency across the
+  public-site surfaces.
+- **Real QR thumbnails on BestPerformingTable.** B5/Item 10 wired
+  `<QrThumb />` into the right rail (36px) and `/dashboard/qr-codes`
+  grid (56px). The Best Performing Codes table on the Overview kept
+  its placeholder icon — extend with the same pattern.
+- **Preserve error-context on /login → / redirect.** Bug 14 deleted
+  /login and added a static redirect. `/auth/claim` 303s like
+  `/login?error=missing_code` / `?error=link_expired` now lose their
+  context. Surface as a `?login_error=...` query on / and have
+  HeaderLoginButton read it to auto-open the modal with an inline
+  error message.
+- **CAPTCHA on /contact form (Sprint 3).** Migration 011's
+  `submit_contact_request` enforces an approximate per-IP rate limit
+  (3/hr) reusing the ip-hash pattern, but a real launch should add
+  hCaptcha or Cloudflare Turnstile to defend against bot floods.
+- **Profile picture upload + display name change in Settings (Sprint 3).**
+  B5/Item 12 only shipped email + password change forms. Add full_name
+  edit + avatar upload (Supabase Storage `avatars` bucket).
+- **Two-factor auth (Sprint 3+).** Explicitly flagged out of scope in
+  the B5 spec; logging here so it doesn't get forgotten.
+- **Sidebar `current="edit"` state on /dashboard/qr/[id].** Currently
+  shows QR Codes as the active nav item while editing. Could be
+  argued either way; flagging for a future opinion.
+- **Portal EmailGateModal too.** B5/Bug 15 portal-fixed
+  HeaderLoginButton because SiteHeader has `backdrop-blur` creating a
+  containing block for fixed children. EmailGateModal currently works
+  (wizard root has no blur parent) but is defenseless if the wizard
+  layout ever gets a blur surface. Defensive portal would prevent the
+  regression.
+- **/contact notification email is undeliverable while Resend is in
+  test mode.** Goes to `hello@masaar.sa` which isn't a verified
+  Resend dashboard address — so the email gets silently dropped per
+  the documented test-mode caveat (§5). Row still lands in
+  `contact_requests` (the source of truth). Real domain in Sprint 3
+  lifts the restriction; the test key needs rotation at the same time.
+- **`subscription_status` plan tier in the Sidebar plan card.** The
+  card maps `subscription_status='active'` → "Pro" with a 5000-QR
+  limit and anything else → "Free" with a 5-QR limit. Once real
+  billing wires up, expand the mapping to read actual plan names
+  (Starter / Pro / Menu Pro / Agency per STRATEGY.md §5).
