@@ -298,6 +298,25 @@ export interface AccountRecentScan extends ScanRow {
   qr_short_id: string | null;
 }
 
+// B5/Item 10 — extended with the style fields needed to render the
+// real QR thumbnail in the right rail + qr-codes grid (no more generic
+// placeholder icon).
+export interface AccountUserQr {
+  id: string;
+  name: string;
+  short_id: string | null;
+  status: string;
+  scan_count: number;
+  kind: string;
+  destination: string;
+  fg_color: string;
+  bg_color: string;
+  gradient_color: string | null;
+  dot_style: string;
+  corner_style: string;
+  logo_url: string | null;
+}
+
 export interface AccountAnalyticsBundle {
   period: Period;
 
@@ -324,7 +343,7 @@ export interface AccountAnalyticsBundle {
 
   // Tables
   recentScans: AccountRecentScan[];
-  userQrs: { id: string; name: string; short_id: string | null; status: string; scan_count: number }[];
+  userQrs: AccountUserQr[];
 
   // Conversion callout
   failedScansCount: number;
@@ -347,13 +366,29 @@ export async function getAccountAnalytics(
   userId: string,
   period: Period
 ): Promise<AccountAnalyticsBundle> {
-  // All of the user's QRs.
+  // All of the user's QRs — including the style fields the right-rail
+  // and qr-codes grid need to render real QR thumbnails (B5/Item 10).
   const { data: myQrs } = await supabase
     .from("qr_codes")
-    .select("id, name, short_id, status, created_at")
+    .select("id, name, short_id, status, created_at, kind, destination, fg_color, bg_color, gradient_color, dot_style, corner_style, logo_url")
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
-  const qrs = (myQrs ?? []) as { id: string; name: string; short_id: string | null; status: string; created_at: string }[];
+  type RawQr = {
+    id: string;
+    name: string;
+    short_id: string | null;
+    status: string;
+    created_at: string;
+    kind: string;
+    destination: string;
+    fg_color: string;
+    bg_color: string;
+    gradient_color: string | null;
+    dot_style: string;
+    corner_style: string;
+    logo_url: string | null;
+  };
+  const qrs = (myQrs ?? []) as RawQr[];
   if (qrs.length === 0) return EMPTY_ACCOUNT(period);
 
   const ids = qrs.map((q) => q.id);
@@ -494,8 +529,22 @@ export async function getAccountAnalytics(
   const countsMap: Record<string, number> = {};
   const { data: countsRows } = await supabase.rpc("scan_counts", { p_ids: ids });
   for (const c of countsRows ?? []) countsMap[c.qr_code_id] = Number(c.count);
-  const userQrs = qrs
-    .map((q) => ({ id: q.id, name: q.name, short_id: q.short_id, status: q.status, scan_count: countsMap[q.id] ?? 0 }))
+  const userQrs: AccountUserQr[] = qrs
+    .map((q) => ({
+      id: q.id,
+      name: q.name,
+      short_id: q.short_id,
+      status: q.status,
+      scan_count: countsMap[q.id] ?? 0,
+      kind: q.kind,
+      destination: q.destination,
+      fg_color: q.fg_color,
+      bg_color: q.bg_color,
+      gradient_color: q.gradient_color,
+      dot_style: q.dot_style,
+      corner_style: q.corner_style,
+      logo_url: q.logo_url,
+    }))
     .sort((a, b) => b.scan_count - a.scan_count);
 
   // Failed scans (period-scoped, across pending/suspended QRs).

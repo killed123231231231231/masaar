@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import {
-  BarChart3, Filter, Pencil, Plus, QrCode, Search,
+  BarChart3, Filter, Pencil, Plus, Search,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import LogoMark from "@/components/logo-mark";
+import QrThumb from "@/components/qr-thumb";
 import Sidebar, { type SidebarMe } from "@/components/dashboard/sidebar";
 
 export interface QrCardData {
@@ -18,6 +19,13 @@ export interface QrCardData {
   short_id: string | null;
   status: string;
   created_at: string;
+  // B5/Item 10 — style fields for real QR thumbnails in the grid.
+  fg_color: string;
+  bg_color: string;
+  gradient_color: string | null;
+  dot_style: string;
+  corner_style: string;
+  logo_url: string | null;
 }
 
 const STATUS_TINT: Record<string, string> = {
@@ -36,6 +44,13 @@ export default function QrCodesClient({
   counts: Record<string, number>;
   me: SidebarMe;
 }) {
+  // B5/Item 10 — origin is browser-only. Read post-mount and pass down
+  // so QrThumb has the right encoded URL for dynamic QRs.
+  const [origin, setOrigin] = useState("");
+  useEffect(() => {
+    setOrigin(window.location.origin);
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#F6F4EE] text-charcoal">
       <div className="mx-auto flex max-w-[1440px]">
@@ -46,7 +61,7 @@ export default function QrCodesClient({
           {qrs.length === 0 ? (
             <EmptyState />
           ) : (
-            <Grid qrs={qrs} counts={counts} />
+            <Grid qrs={qrs} counts={counts} origin={origin} />
           )}
         </main>
       </div>
@@ -89,7 +104,7 @@ function PageHeader({ total }: { total: number }) {
   );
 }
 
-function Grid({ qrs, counts }: { qrs: QrCardData[]; counts: Record<string, number> }) {
+function Grid({ qrs, counts, origin }: { qrs: QrCardData[]; counts: Record<string, number>; origin: string }) {
   const [query, setQuery] = useState("");
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -131,7 +146,7 @@ function Grid({ qrs, counts }: { qrs: QrCardData[]; counts: Record<string, numbe
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((q) => (
-            <Card key={q.id} q={q} scans={counts[q.id] ?? 0} />
+            <Card key={q.id} q={q} scans={counts[q.id] ?? 0} origin={origin} />
           ))}
         </div>
       )}
@@ -139,15 +154,27 @@ function Grid({ qrs, counts }: { qrs: QrCardData[]; counts: Record<string, numbe
   );
 }
 
-function Card({ q, scans }: { q: QrCardData; scans: number }) {
+function Card({ q, scans, origin }: { q: QrCardData; scans: number; origin: string }) {
   const tint = STATUS_TINT[q.status] ?? STATUS_TINT.active;
+  const thumbData =
+    q.kind === "dynamic" && q.short_id ? `${origin}/r/${q.short_id}` : q.destination || " ";
   return (
-    <div className="rounded-2xl border border-charcoal/10 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+    <div className="rounded-2xl border border-charcoal/10 bg-white p-5 shadow-[0_1px_2px_rgba(15,91,85,0.06),0_2px_8px_-2px_rgba(15,91,85,0.08)] transition hover:-translate-y-0.5 hover:shadow-md">
       <div className="flex items-start justify-between gap-2">
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-deep-teal/10 text-deep-teal">
-            <QrCode className="h-5 w-5" />
-          </span>
+        <div className="flex items-center gap-3 min-w-0">
+          <QrThumb
+            size={56}
+            style={{
+              data: thumbData,
+              fgColor: q.fg_color,
+              bgColor: q.bg_color,
+              gradientColor: q.gradient_color,
+              dotStyle: q.dot_style,
+              cornerStyle: q.corner_style,
+              logoUrl: q.logo_url,
+            }}
+            className="border border-charcoal/10"
+          />
           <div className="min-w-0">
             <h3 className="truncate font-display text-sm font-semibold text-charcoal">{q.name}</h3>
             <p className="mt-0.5 text-[11px] uppercase tracking-wider text-charcoal/45">

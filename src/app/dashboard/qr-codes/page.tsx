@@ -17,7 +17,7 @@ export default async function QrCodesPage() {
   const [qrsRes, profileRes, qrCountRes] = await Promise.all([
     supabase
       .from("qr_codes")
-      .select("id, name, kind, content_kind, destination, short_id, status, created_at")
+      .select("id, name, kind, content_kind, destination, short_id, status, created_at, fg_color, bg_color, gradient_color, dot_style, corner_style, logo_url")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false }),
     supabase

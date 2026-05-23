@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   Activity, Filter, Globe2, Plus, QrCode, Smartphone,
@@ -7,11 +8,21 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import LogoMark from "@/components/logo-mark";
+import QrThumb from "@/components/qr-thumb";
 import Sidebar, { type SidebarMe } from "@/components/dashboard/sidebar";
 import {
   BarCard, DonutCard, KpiCard, PeriodPills, TrendCard, fmtTime,
 } from "@/components/dashboard/widgets";
-import { PERIODS, type AccountAnalyticsBundle, type AccountRecentScan } from "@/lib/analytics";
+import { PERIODS, type AccountAnalyticsBundle, type AccountRecentScan, type AccountUserQr } from "@/lib/analytics";
+
+// Build the QrThumb data string the same way QrPreview does: dynamic QRs
+// encode the /r/<short_id> redirect URL, statics encode the destination
+// itself. Falls back to a single space (qr-code-styling rejects empty
+// strings).
+function qrThumbData(q: AccountUserQr, origin: string): string {
+  if (q.kind === "dynamic" && q.short_id) return `${origin}/r/${q.short_id}`;
+  return q.destination || " ";
+}
 
 export default function OverviewClient({
   bundle,
@@ -20,13 +31,22 @@ export default function OverviewClient({
   bundle: AccountAnalyticsBundle;
   me: SidebarMe;
 }) {
+  // B5/Item 10 — origin is browser-only. Read it post-mount and thread
+  // it into the QR-thumbnail data builder. SSR pass renders thumbnails
+  // with origin="" (the QrThumb work runs only in useEffect on client),
+  // so no hydration mismatch.
+  const [origin, setOrigin] = useState("");
+  useEffect(() => {
+    setOrigin(window.location.origin);
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#F6F4EE] text-charcoal">
       <div className="mx-auto flex max-w-[1440px]">
         <Sidebar me={me} current="overview" analyticsHref={null} />
         <div className="flex min-w-0 flex-1 flex-col xl:flex-row">
           <Main bundle={bundle} me={me} />
-          <RightRail bundle={bundle} />
+          <RightRail bundle={bundle} origin={origin} />
         </div>
       </div>
     </div>
@@ -302,7 +322,7 @@ function BestPerformingTable({
   );
 }
 
-function RightRail({ bundle }: { bundle: AccountAnalyticsBundle }) {
+function RightRail({ bundle, origin }: { bundle: AccountAnalyticsBundle; origin: string }) {
   // B5/Item 9 — show 6 QR cards in the visible area; if there are more,
   // the list scrolls (smooth + a gradient fade at the bottom signals
   // there's more below). Each card is ~52px tall (h-9 chip + p-2.5 +
@@ -324,9 +344,19 @@ function RightRail({ bundle }: { bundle: AccountAnalyticsBundle }) {
                 href={`/dashboard/qr/${q.id}/analytics`}
                 className="flex items-center gap-3 rounded-lg border border-charcoal/10 p-2.5 transition-colors hover:bg-sand-light/50"
               >
-                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-sand-light text-charcoal/55">
-                  <QrCode className="h-4 w-4" />
-                </span>
+                <QrThumb
+                  size={36}
+                  style={{
+                    data: qrThumbData(q, origin),
+                    fgColor: q.fg_color,
+                    bgColor: q.bg_color,
+                    gradientColor: q.gradient_color,
+                    dotStyle: q.dot_style,
+                    cornerStyle: q.corner_style,
+                    logoUrl: q.logo_url,
+                  }}
+                  className="border border-charcoal/10"
+                />
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-xs font-semibold">{q.name}</span>
                   <span className="block text-[10px] text-charcoal/45">
