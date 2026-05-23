@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
 import type { SidebarMe } from "@/components/dashboard/sidebar";
+import { getMe } from "@/lib/me";
 import WizardClient from "./wizard-client";
 
 // The 3-step builder wizard (replaces the legacy single-page builder).
@@ -17,23 +18,7 @@ export default async function CreatePage() {
 
   let me: SidebarMe | null = null;
   if (user) {
-    const [profileRes, qrCountRes] = await Promise.all([
-      supabase
-        .from("profiles")
-        .select("full_name, subscription_status")
-        .eq("id", user.id)
-        .maybeSingle(),
-      supabase
-        .from("qr_codes")
-        .select("id", { count: "exact", head: true })
-        .eq("user_id", user.id),
-    ]);
-    me = {
-      email: user.email ?? "",
-      name: profileRes.data?.full_name ?? user.email ?? "Account",
-      plan: profileRes.data?.subscription_status === "active" ? "Pro" : "Free",
-      qrCount: qrCountRes.count ?? 0,
-    };
+    me = await getMe(user.id, user.email ?? "");
   }
 
   return (

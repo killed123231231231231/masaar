@@ -83,7 +83,11 @@ export default function Sidebar({
 
       <nav className="flex-1 space-y-0.5 px-3">
         {nav.map((n) => (
-          <Link key={n.label} href={n.href}>
+          /* B5/Round2 C1 — prefetch={true} forces Next.js to pre-fetch
+             the destination's RSC payload on hover/in-viewport, even
+             for dynamic routes. With sidebar links always visible, the
+             user clicks a "warm" destination → near-zero perceived nav. */
+          <Link key={n.label} href={n.href} prefetch={true}>
             <span
               className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
                 n.active

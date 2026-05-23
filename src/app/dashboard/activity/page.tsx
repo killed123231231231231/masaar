@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getAccountActivity, parsePeriod } from "@/lib/analytics";
+import { getMe } from "@/lib/me";
 import ActivityClient from "./activity-client";
 
 export const dynamic = "force-dynamic";
@@ -25,25 +26,10 @@ export default async function ActivityPage({
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [activity, profileRes, qrCountRes] = await Promise.all([
+  const [activity, me] = await Promise.all([
     getAccountActivity(supabase, user.id, period, page, 50),
-    supabase
-      .from("profiles")
-      .select("full_name, subscription_status")
-      .eq("id", user.id)
-      .maybeSingle(),
-    supabase
-      .from("qr_codes")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id),
+    getMe(user.id, user.email ?? ""),
   ]);
-
-  const me = {
-    email: user.email ?? "",
-    name: profileRes.data?.full_name ?? user.email ?? "Account",
-    plan: profileRes.data?.subscription_status === "active" ? "Pro" : "Free",
-    qrCount: qrCountRes.count ?? 0,
-  };
 
   return (
     <Suspense fallback={null}>

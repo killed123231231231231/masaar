@@ -3,6 +3,7 @@ import Link from "next/link";
 import Sidebar from "@/components/dashboard/sidebar";
 import LogoMark from "@/components/logo-mark";
 import { createClient } from "@/lib/supabase/server";
+import { getMe } from "@/lib/me";
 import SettingsClient from "./settings-client";
 
 export const dynamic = "force-dynamic";
@@ -18,24 +19,7 @@ export default async function SettingsPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/");
 
-  const [profileRes, qrCountRes] = await Promise.all([
-    supabase
-      .from("profiles")
-      .select("full_name, subscription_status")
-      .eq("id", user.id)
-      .maybeSingle(),
-    supabase
-      .from("qr_codes")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id),
-  ]);
-
-  const me = {
-    email: user.email ?? "",
-    name: profileRes.data?.full_name ?? user.email ?? "Account",
-    plan: profileRes.data?.subscription_status === "active" ? "Pro" : "Free",
-    qrCount: qrCountRes.count ?? 0,
-  };
+  const me = await getMe(user.id, user.email ?? "");
 
   return (
     <div className="min-h-screen bg-[#F6F4EE] text-charcoal">
