@@ -44,7 +44,7 @@ export default function OverviewClient({
 
   return (
     <div className="min-h-screen bg-[#F6F4EE] text-charcoal">
-      <div className="mx-auto flex max-w-[1440px]">
+      <div className="flex">
         <Sidebar me={me} current="overview" analyticsHref={null} />
         <div className="flex min-w-0 flex-1 flex-col xl:flex-row">
           <Main bundle={bundle} me={me} />

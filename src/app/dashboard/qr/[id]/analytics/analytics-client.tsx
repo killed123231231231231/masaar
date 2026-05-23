@@ -23,7 +23,7 @@ export default function AnalyticsClient({
   const exportHref = `/api/qr/${bundle.qr.id}/scans.csv?period=${bundle.period}`;
   return (
     <div className="min-h-screen bg-[#F6F4EE] text-charcoal">
-      <div className="mx-auto flex max-w-[1440px]">
+      <div className="flex">
         <Sidebar
           me={me}
           current="analytics"

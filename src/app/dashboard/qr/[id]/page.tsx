@@ -56,7 +56,7 @@ export default async function EditQrPage({
 
   return (
     <div className="min-h-screen bg-[#F6F4EE] text-charcoal">
-      <div className="mx-auto flex max-w-[1440px]">
+      <div className="flex">
         <Sidebar
           me={me}
           current="qrcodes"

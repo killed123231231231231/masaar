@@ -349,7 +349,7 @@ export default function WizardClient({
   if (me) {
     return (
       <div className="min-h-screen bg-white text-charcoal">
-        <div className="mx-auto flex max-w-[1440px]">
+        <div className="flex">
           <Sidebar me={me} current="none" />
           <div className="min-w-0 flex-1">{wizardBody}</div>
         </div>

@@ -82,7 +82,7 @@ export default function QrCodesClient({
 
   return (
     <div className="min-h-screen bg-[#F6F4EE] text-charcoal">
-      <div className="mx-auto flex max-w-[1440px]">
+      <div className="flex">
         <Sidebar me={me} current="qrcodes" />
         <main className="min-w-0 flex-1 space-y-7 px-4 py-5 sm:px-5 sm:py-6 lg:px-8">
           <MobileTopBar />
