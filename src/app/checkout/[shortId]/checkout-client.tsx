@@ -20,6 +20,9 @@ interface CheckoutQr {
   gradient_color: string | null;
   dot_style: string;
   corner_style: string;
+  // B5/Round2 Item 6 — pass through to QrPreview so the checkout-page
+  // QR shows the user's logo BEFORE they pay.
+  logo_url: string | null;
 }
 
 // SAR pricing — strikethrough teases STRATEGY.md §5 (Pro at SAR 99/mo) but
@@ -82,6 +85,11 @@ export default function CheckoutClient({
       gradientColor: qr.gradient_color,
       dotStyle: qr.dot_style,
       cornerStyle: qr.corner_style,
+      // B5/Round2 Item 6 — wire the logo through so QrPreview's
+      // qr-code-styling render composites it. Without this, the user
+      // sees a logo-less QR on the checkout page and only discovers
+      // their logo style after paying.
+      logoUrl: qr.logo_url,
     }),
     [qr]
   );
