@@ -34,8 +34,11 @@ export default function OverviewClient({
 }
 
 function Main({ bundle, me }: { bundle: AccountAnalyticsBundle; me: SidebarMe }) {
+  // B5/Item 5 — `space-y-7` (28px) between top sections so the Overview
+  // matches the per-QR analytics page's breathing room. The MobileTopBar
+  // keeps its own `mb-4` (we don't want it part of the rhythm chain).
   return (
-    <main className="min-w-0 flex-1 px-4 py-5 sm:px-5 sm:py-6 lg:px-8">
+    <main className="min-w-0 flex-1 space-y-7 px-4 py-5 sm:px-5 sm:py-6 lg:px-8">
       <MobileTopBar />
       <PageHeader me={me} period={bundle.period} />
       <FailedCallout bundle={bundle} />
@@ -72,7 +75,7 @@ function MobileTopBar() {
 function PageHeader({ me, period }: { me: SidebarMe; period: AccountAnalyticsBundle["period"] }) {
   const firstName = (me.name ?? "").split(" ")[0] || "there";
   return (
-    <div className="mb-6">
+    <div>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="font-display text-2xl font-bold tracking-tight">
@@ -110,7 +113,7 @@ function FailedCallout({ bundle }: { bundle: AccountAnalyticsBundle }) {
   const target = bundle.firstPendingQrShortId ?? bundle.firstPendingQrId;
   if (!target) return null;
   return (
-    <div className="mb-6 flex items-start gap-3 rounded-r-lg border-l-4 border-terracotta bg-terracotta/5 p-4">
+    <div className="flex items-start gap-3 rounded-r-lg border-l-4 border-terracotta bg-terracotta/5 p-4">
       <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-terracotta" />
       <div className="flex-1">
         <p className="text-sm font-semibold text-charcoal">
@@ -136,7 +139,7 @@ function FailedCallout({ bundle }: { bundle: AccountAnalyticsBundle }) {
 
 function KpiRow({ bundle }: { bundle: AccountAnalyticsBundle }) {
   return (
-    <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
+    <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
       <KpiCard
         icon={Activity}
         tint="deep-teal"
@@ -177,7 +180,7 @@ function KpiRow({ bundle }: { bundle: AccountAnalyticsBundle }) {
 
 function BreakdownsGrid({ bundle }: { bundle: AccountAnalyticsBundle }) {
   return (
-    <div className="mb-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
       <DonutCard title="Device split" series={bundle.byDevice} centerLabel="Total" />
       <BarCard title="Top cities" series={bundle.byCity} />
       <BarCard title="Top countries" series={bundle.byCountry} />

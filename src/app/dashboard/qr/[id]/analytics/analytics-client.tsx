@@ -41,8 +41,11 @@ export default function AnalyticsClient({
 }
 
 function Main({ bundle, exportHref }: { bundle: AnalyticsBundle; exportHref: string }) {
+  // B5/Item 5 — vertical breathing room between top sections via
+  // `space-y-7` (28px) so PageHeader / FailedCallout / KpiRow / TrendCard
+  // / BreakdownsGrid / TablesGrid read as clearly distinct surfaces.
   return (
-    <main className="min-w-0 flex-1 px-4 py-5 sm:px-5 sm:py-6 lg:px-8">
+    <main className="min-w-0 flex-1 space-y-7 px-4 py-5 sm:px-5 sm:py-6 lg:px-8">
       <MobileTopBar bundle={bundle} />
       <PageHeader bundle={bundle} exportHref={exportHref} />
       <FailedCallout bundle={bundle} />
@@ -70,7 +73,7 @@ function MobileTopBar({ bundle }: { bundle: AnalyticsBundle }) {
 
 function PageHeader({ bundle, exportHref }: { bundle: AnalyticsBundle; exportHref: string }) {
   return (
-    <div className="mb-6">
+    <div>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="font-display text-2xl font-bold tracking-tight">Analytics Overview</h1>
@@ -99,7 +102,7 @@ function PageHeader({ bundle, exportHref }: { bundle: AnalyticsBundle; exportHre
 function FailedCallout({ bundle }: { bundle: AnalyticsBundle }) {
   if (bundle.failedScansCount <= 0) return null;
   return (
-    <div className="mb-6 flex items-start gap-3 rounded-r-lg border-l-4 border-terracotta bg-terracotta/5 p-4">
+    <div className="flex items-start gap-3 rounded-r-lg border-l-4 border-terracotta bg-terracotta/5 p-4">
       <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-terracotta" />
       <div className="flex-1">
         <p className="text-sm font-semibold text-charcoal">
@@ -119,7 +122,7 @@ function FailedCallout({ bundle }: { bundle: AnalyticsBundle }) {
 
 function KpiRow({ bundle }: { bundle: AnalyticsBundle }) {
   return (
-    <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
+    <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
       <KpiCard icon={Activity} tint="deep-teal" label="Total scans" value={bundle.total.toLocaleString()} delta={bundle.totalDeltaPct} series={bundle.timeSeries} />
       <KpiCard icon={Users} tint="terracotta" label="Unique scanners" value={bundle.uniqueScanners.toLocaleString()} delta={bundle.uniqueDeltaPct} />
       <KpiCard icon={Smartphone} tint="sea-teal" label="Mobile share" value={`${bundle.mobileShare}%`} delta={bundle.mobileDeltaPct} />
@@ -131,7 +134,7 @@ function KpiRow({ bundle }: { bundle: AnalyticsBundle }) {
 
 function BreakdownsGrid({ bundle }: { bundle: AnalyticsBundle }) {
   return (
-    <div className="mb-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
       <DonutCard title="Device split" series={bundle.byDevice} centerLabel="Total" />
       <BarCard title="Top cities" series={bundle.byCity} />
       <BarCard title="Top countries" series={bundle.byCountry} />

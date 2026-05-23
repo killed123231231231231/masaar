@@ -70,18 +70,20 @@ export function KpiCard({
   delta?: number | null;
   series?: Bucket[];
 }) {
+  // B5/Item 5 — bumped padding + softer 2-layer shadow so adjacent cards
+  // feel clearly distinct on the cream page background instead of merging.
   return (
-    <div className="rounded-2xl border border-charcoal/10 bg-white p-4 shadow-sm">
+    <div className="rounded-2xl border border-charcoal/10 bg-white p-5 shadow-[0_1px_2px_rgba(15,91,85,0.06),0_2px_8px_-2px_rgba(15,91,85,0.08)]">
       <div className="flex items-start justify-between">
-        <span className={`grid h-8 w-8 place-items-center rounded-lg ${TINT_BG[tint]}`}>
+        <span className={`grid h-9 w-9 place-items-center rounded-lg ${TINT_BG[tint]}`}>
           <Icon className="h-4 w-4" strokeWidth={1.75} />
         </span>
         {series && series.length > 0 && <Sparkline series={series} />}
       </div>
-      <p className="mt-3 text-[11px] font-semibold uppercase tracking-wider text-charcoal/45">
+      <p className="mt-4 text-[11px] font-semibold uppercase tracking-wider text-charcoal/45">
         {label}
       </p>
-      <p className="mt-1 font-display text-2xl font-bold leading-tight">{value}</p>
+      <p className="mt-1.5 font-display text-2xl font-bold leading-tight">{value}</p>
       {delta != null && <Delta pct={delta} />}
     </div>
   );
@@ -116,7 +118,7 @@ export function TrendCard({ period, series }: { period: Period; series: Bucket[]
   const data = series.map((b) => ({ date: b.label.slice(5), count: b.count }));
   const hasData = data.some((d) => d.count > 0);
   return (
-    <div className="mb-6 rounded-2xl border border-charcoal/10 bg-white p-5 shadow-sm">
+    <div className="rounded-2xl border border-charcoal/10 bg-white p-5 shadow-[0_1px_2px_rgba(15,91,85,0.06),0_2px_8px_-2px_rgba(15,91,85,0.08)]">
       <div className="flex items-center justify-between">
         <h2 className="font-display text-sm font-bold uppercase tracking-wider text-charcoal/75">
           Scan trend over time
@@ -169,7 +171,7 @@ export function DonutCard({
   const total = series.reduce((s, b) => s + b.count, 0);
   const data = series.length ? series : [{ label: "No data", count: 1 }];
   return (
-    <div className="rounded-2xl border border-charcoal/10 bg-white p-5 shadow-sm">
+    <div className="rounded-2xl border border-charcoal/10 bg-white p-5 shadow-[0_1px_2px_rgba(15,91,85,0.06),0_2px_8px_-2px_rgba(15,91,85,0.08)]">
       <h2 className="font-display text-sm font-bold uppercase tracking-wider text-charcoal/75">{title}</h2>
       <div className="mt-3 grid grid-cols-[140px_1fr] items-center gap-4">
         <div className="relative h-[140px] w-[140px]">
@@ -211,7 +213,7 @@ export function DonutCard({
 export function BarCard({ title, series }: { title: string; series: Bucket[] }) {
   const max = Math.max(1, ...series.map((b) => b.count));
   return (
-    <div className="rounded-2xl border border-charcoal/10 bg-white p-5 shadow-sm">
+    <div className="rounded-2xl border border-charcoal/10 bg-white p-5 shadow-[0_1px_2px_rgba(15,91,85,0.06),0_2px_8px_-2px_rgba(15,91,85,0.08)]">
       <h2 className="font-display text-sm font-bold uppercase tracking-wider text-charcoal/75">{title}</h2>
       {series.length ? (
         <ul className="mt-3 space-y-2.5">
