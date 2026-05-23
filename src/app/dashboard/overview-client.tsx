@@ -13,6 +13,8 @@ import Sidebar, { type SidebarMe } from "@/components/dashboard/sidebar";
 import {
   BarCard, DonutCard, KpiCard, PeriodPills, TrendCard, fmtTime,
 } from "@/components/dashboard/widgets";
+// Donut row added after the trend chart (B5/Item 11) — uses the same
+// DonutCard widget the breakdowns row uses.
 import { PERIODS, type AccountAnalyticsBundle, type AccountRecentScan, type AccountUserQr } from "@/lib/analytics";
 
 // Build the QrThumb data string the same way QrPreview does: dynamic QRs
@@ -68,6 +70,7 @@ function Main({ bundle, me }: { bundle: AccountAnalyticsBundle; me: SidebarMe })
         <>
           <KpiRow bundle={bundle} />
           <TrendCard period={bundle.period} series={bundle.timeSeries} />
+          <InsightsRow bundle={bundle} />
           <BreakdownsGrid bundle={bundle} />
           <TablesGrid bundle={bundle} />
         </>
@@ -198,10 +201,22 @@ function KpiRow({ bundle }: { bundle: AccountAnalyticsBundle }) {
   );
 }
 
-function BreakdownsGrid({ bundle }: { bundle: AccountAnalyticsBundle }) {
+function InsightsRow({ bundle }: { bundle: AccountAnalyticsBundle }) {
+  // B5/Item 11 — two donuts side-by-side after the trend chart:
+  // Device split + Time-of-day pattern (recommended for Saudi F&B fit).
+  // Stacks to a single column under md.
   return (
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+    <div className="grid gap-4 md:grid-cols-2">
       <DonutCard title="Device split" series={bundle.byDevice} centerLabel="Total" />
+      <DonutCard title="Time of day" series={bundle.byTimeOfDay} centerLabel="Scans" />
+    </div>
+  );
+}
+
+function BreakdownsGrid({ bundle }: { bundle: AccountAnalyticsBundle }) {
+  // Device split moved to InsightsRow (B5/Item 11) to avoid duplication.
+  return (
+    <div className="grid gap-4 md:grid-cols-2">
       <BarCard title="Top cities" series={bundle.byCity} />
       <BarCard title="Top countries" series={bundle.byCountry} />
       <BarCard title="Browsers" series={bundle.byBrowser} />

@@ -340,6 +340,10 @@ export interface AccountAnalyticsBundle {
   byDevice: Bucket[];
   byBrowser: Bucket[];
   byOs: Bucket[];
+  // B5/Item 11 — Saudi F&B fit: time-of-day donut to surface menu /
+  // checkout peaks. Always 4 buckets, fixed order:
+  // Morning (06–12) / Midday (12–17) / Evening (17–22) / Late night (22–06).
+  byTimeOfDay: Bucket[];
 
   // Tables
   recentScans: AccountRecentScan[];
@@ -357,9 +361,30 @@ const EMPTY_ACCOUNT = (period: Period): AccountAnalyticsBundle => ({
   activeQrCount: 0, totalQrCount: 0,
   totalDeltaPct: null, uniqueDeltaPct: null, mobileDeltaPct: null,
   timeSeries: [], byCountry: [], byCity: [], byDevice: [], byBrowser: [], byOs: [],
+  byTimeOfDay: [],
   recentScans: [], userQrs: [],
   failedScansCount: 0, firstPendingQrId: null, firstPendingQrShortId: null,
 });
+
+// B5/Item 11 — bucket a scan's Riyadh-local hour into one of four
+// windows. Returns the bucket label (consistent ordering driven by the
+// fixed enum below).
+const TOD_BUCKETS = ["Morning", "Midday", "Evening", "Late night"] as const;
+type TodBucket = (typeof TOD_BUCKETS)[number];
+
+function timeOfDayBucket(iso: string): TodBucket {
+  // 24-hour Riyadh wall-clock hour, integer 0–23.
+  const hourStr = new Date(iso).toLocaleString("en-GB", {
+    timeZone: "Asia/Riyadh",
+    hour: "2-digit",
+    hour12: false,
+  });
+  const h = parseInt(hourStr, 10);
+  if (h >= 6 && h < 12) return "Morning";
+  if (h >= 12 && h < 17) return "Midday";
+  if (h >= 17 && h < 22) return "Evening";
+  return "Late night";
+}
 
 export async function getAccountAnalytics(
   supabase: SupabaseClient<Database>,
@@ -482,6 +507,20 @@ export async function getAccountAnalytics(
   const byOs = groupTop(rows, "os", 6);
   const topCountry = byCountry[0]?.label || null;
 
+  // B5/Item 11 — time-of-day pattern (Riyadh wall clock, 4 fixed
+  // buckets). Always returns all 4 in the canonical order so the donut
+  // legend is stable across periods.
+  const todCounts = new Map<TodBucket, number>();
+  for (const b of TOD_BUCKETS) todCounts.set(b, 0);
+  for (const r of rows) {
+    const b = timeOfDayBucket(r.scanned_at);
+    todCounts.set(b, (todCounts.get(b) ?? 0) + 1);
+  }
+  const byTimeOfDay: Bucket[] = TOD_BUCKETS.map((label) => ({
+    label,
+    count: todCounts.get(label) ?? 0,
+  }));
+
   // Time series — Riyadh-day bucketed.
   const buckets = new Map<string, number>();
   const days = periodDays(period);
@@ -569,7 +608,7 @@ export async function getAccountAnalytics(
     total, uniqueScanners, mobileShare, topCountry,
     activeQrCount, totalQrCount,
     totalDeltaPct, uniqueDeltaPct, mobileDeltaPct,
-    timeSeries, byCountry, byCity, byDevice, byBrowser, byOs,
+    timeSeries, byCountry, byCity, byDevice, byBrowser, byOs, byTimeOfDay,
     recentScans, userQrs,
     failedScansCount, firstPendingQrId, firstPendingQrShortId,
   };
