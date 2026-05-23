@@ -427,52 +427,91 @@ export async function getAccountAnalytics(
 
   const { startISO, endISO, prevStartISO, prevEndISO } = periodBounds(period);
 
-  // Accurate counts.
-  const totalQ = supabase
-    .from("scans")
-    .select("id", { count: "exact", head: true })
-    .in("qr_code_id", ids);
-  const scopedTotalQ = period === "all"
-    ? totalQ
-    : totalQ.gte("scanned_at", startISO).lte("scanned_at", endISO);
-  const { count: totalCount } = await scopedTotalQ;
-  const total = totalCount ?? 0;
-
-  let previousTotal = 0;
-  if (prevStartISO && prevEndISO) {
-    const { count } = await supabase
+  // B5/Round2 C1 — parallelize every per-ids query via Promise.all.
+  // Was: 7 sequential `await`s (~300ms each = ~2s nav transitions).
+  // Now: max of the individual queries (~300-500ms).
+  const totalQ = (() => {
+    const q = supabase
       .from("scans")
       .select("id", { count: "exact", head: true })
-      .in("qr_code_id", ids)
-      .gte("scanned_at", prevStartISO)
-      .lt("scanned_at", prevEndISO);
-    previousTotal = count ?? 0;
-  }
+      .in("qr_code_id", ids);
+    return period === "all" ? q : q.gte("scanned_at", startISO).lte("scanned_at", endISO);
+  })();
 
-  // Rows for breakdowns / unique / mobile / time series.
-  const rowsQ = supabase
-    .from("scans")
-    .select("scanned_at, country, city, device_type, browser, os, ip_hash")
-    .in("qr_code_id", ids)
-    .order("scanned_at", { ascending: false })
-    .limit(ROW_FETCH_CAP);
-  const scopedRowsQ = period === "all"
-    ? rowsQ
-    : rowsQ.gte("scanned_at", startISO).lte("scanned_at", endISO);
-  const { data: rowsRaw } = await scopedRowsQ;
-  const rows = (rowsRaw ?? []) as ScanRow[];
+  const prevTotalQ = prevStartISO && prevEndISO
+    ? supabase
+        .from("scans")
+        .select("id", { count: "exact", head: true })
+        .in("qr_code_id", ids)
+        .gte("scanned_at", prevStartISO)
+        .lt("scanned_at", prevEndISO)
+    : Promise.resolve({ count: 0 });
 
-  let prevRows: ScanRow[] = [];
-  if (prevStartISO && prevEndISO) {
-    const { data: prev } = await supabase
+  const rowsQ = (() => {
+    const q = supabase
       .from("scans")
       .select("scanned_at, country, city, device_type, browser, os, ip_hash")
       .in("qr_code_id", ids)
-      .gte("scanned_at", prevStartISO)
-      .lt("scanned_at", prevEndISO)
+      .order("scanned_at", { ascending: false })
       .limit(ROW_FETCH_CAP);
-    prevRows = (prev ?? []) as ScanRow[];
-  }
+    return period === "all" ? q : q.gte("scanned_at", startISO).lte("scanned_at", endISO);
+  })();
+
+  const prevRowsQ = prevStartISO && prevEndISO
+    ? supabase
+        .from("scans")
+        .select("scanned_at, country, city, device_type, browser, os, ip_hash")
+        .in("qr_code_id", ids)
+        .gte("scanned_at", prevStartISO)
+        .lt("scanned_at", prevEndISO)
+        .limit(ROW_FETCH_CAP)
+    : Promise.resolve({ data: [] as ScanRow[] });
+
+  const recentQ = (() => {
+    const q = supabase
+      .from("scans")
+      .select("id, scanned_at, country, city, device_type, browser, os, ip_hash, qr_codes(id, name, short_id)")
+      .in("qr_code_id", ids)
+      .order("scanned_at", { ascending: false })
+      .limit(10);
+    return period === "all" ? q : q.gte("scanned_at", startISO).lte("scanned_at", endISO);
+  })();
+
+  const failQ = pendingIds.length > 0
+    ? (() => {
+        const q = supabase
+          .from("scans")
+          .select("id", { count: "exact", head: true })
+          .in("qr_code_id", pendingIds);
+        return period === "all" ? q : q.gte("scanned_at", startISO).lte("scanned_at", endISO);
+      })()
+    : Promise.resolve({ count: 0 });
+
+  const countsRpc = supabase.rpc("scan_counts", { p_ids: ids });
+
+  // One round-trip wall, six queries in flight at once.
+  const [
+    { count: totalCount },
+    { count: prevTotalCount },
+    { data: rowsRaw },
+    { data: prevRowsRaw },
+    { data: recentRowsRaw },
+    { count: failCount },
+    { data: countsRows },
+  ] = await Promise.all([
+    totalQ,
+    prevTotalQ,
+    rowsQ,
+    prevRowsQ,
+    recentQ,
+    failQ,
+    countsRpc,
+  ]);
+
+  const total = totalCount ?? 0;
+  const previousTotal = prevTotalCount ?? 0;
+  const rows = (rowsRaw ?? []) as ScanRow[];
+  const prevRows = (prevRowsRaw ?? []) as ScanRow[];
 
   const uniq = (xs: ScanRow[]) => new Set(xs.map((r) => r.ip_hash || "")).size;
   const mobileShareOf = (xs: ScanRow[]) => {
@@ -542,17 +581,7 @@ export async function getAccountAnalytics(
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([label, count]) => ({ label, count }));
 
-  // Recent scans + QR info (embedded select).
-  const recentQ = supabase
-    .from("scans")
-    .select("id, scanned_at, country, city, device_type, browser, os, ip_hash, qr_codes(id, name, short_id)")
-    .in("qr_code_id", ids)
-    .order("scanned_at", { ascending: false })
-    .limit(10);
-  const recentScoped = period === "all"
-    ? recentQ
-    : recentQ.gte("scanned_at", startISO).lte("scanned_at", endISO);
-  const { data: recentRowsRaw } = await recentScoped;
+  // Recent scans + QR info — fetched in the parallel Promise.all above.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recentScans: AccountRecentScan[] = (recentRowsRaw ?? []).map((r: any) => {
     const q = Array.isArray(r.qr_codes) ? r.qr_codes[0] : r.qr_codes;
@@ -568,9 +597,8 @@ export async function getAccountAnalytics(
     };
   });
 
-  // Best performing — already have qrs, just need scan counts.
+  // Best performing — scan_counts RPC already ran in the parallel batch.
   const countsMap: Record<string, number> = {};
-  const { data: countsRows } = await supabase.rpc("scan_counts", { p_ids: ids });
   for (const c of countsRows ?? []) countsMap[c.qr_code_id] = Number(c.count);
   const userQrs: AccountUserQr[] = qrs
     .map((q) => ({
@@ -590,18 +618,12 @@ export async function getAccountAnalytics(
     }))
     .sort((a, b) => b.scan_count - a.scan_count);
 
-  // Failed scans (period-scoped, across pending/suspended QRs).
+  // Failed scans — failQ already ran in the parallel batch.
   let failedScansCount = 0;
   let firstPendingQrId: string | null = null;
   let firstPendingQrShortId: string | null = null;
   if (pendingIds.length > 0) {
-    const failQ = supabase
-      .from("scans")
-      .select("id", { count: "exact", head: true })
-      .in("qr_code_id", pendingIds);
-    const scopedFailQ = period === "all" ? failQ : failQ.gte("scanned_at", startISO).lte("scanned_at", endISO);
-    const { count } = await scopedFailQ;
-    failedScansCount = count ?? 0;
+    failedScansCount = failCount ?? 0;
     const firstPending = qrs.find((q) => q.id === pendingIds[0]);
     firstPendingQrId = firstPending?.id ?? null;
     firstPendingQrShortId = firstPending?.short_id ?? null;
