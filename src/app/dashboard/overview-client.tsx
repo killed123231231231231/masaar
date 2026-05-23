@@ -303,36 +303,50 @@ function BestPerformingTable({
 }
 
 function RightRail({ bundle }: { bundle: AccountAnalyticsBundle }) {
+  // B5/Item 9 — show 6 QR cards in the visible area; if there are more,
+  // the list scrolls (smooth + a gradient fade at the bottom signals
+  // there's more below). Each card is ~52px tall (h-9 chip + p-2.5 +
+  // 8px space-y) so 6 rows ≈ 336px; +28px buffer lets a 7th card peek
+  // for discoverability when N > 6.
+  const hasOverflow = bundle.userQrs.length > 6;
   return (
     <aside className="shrink-0 border-t border-charcoal/10 bg-white px-5 py-6 xl:w-[300px] xl:border-l xl:border-t-0">
       <h2 className="font-display text-sm font-bold uppercase tracking-wider text-charcoal/75">Your QRs</h2>
       <p className="mt-1 text-[11px] text-charcoal/45">All your codes, sorted by scans.</p>
-      <ul className="mt-4 space-y-2">
-        {bundle.userQrs.length ? bundle.userQrs.slice(0, 10).map((q) => (
-          <li key={q.id}>
-            <Link
-              href={`/dashboard/qr/${q.id}/analytics`}
-              className="flex items-center gap-3 rounded-lg border border-charcoal/10 p-2.5 transition-colors hover:bg-sand-light/50"
-            >
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-sand-light text-charcoal/55">
-                <QrCode className="h-4 w-4" />
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-xs font-semibold">{q.name}</span>
-                <span className="block text-[10px] text-charcoal/45">
-                  {q.short_id ? `/r/${q.short_id}` : "static"}
-                  {q.status !== "active" && (
-                    <> · <span className="text-terracotta-dark">{q.status.replace(/_/g, " ")}</span></>
-                  )}
+      <div className="relative mt-4">
+        <ul
+          className="space-y-2 overflow-y-auto pr-1 [scroll-behavior:smooth] [scrollbar-width:thin]"
+          style={{ maxHeight: hasOverflow ? "364px" : undefined }}
+        >
+          {bundle.userQrs.length ? bundle.userQrs.map((q) => (
+            <li key={q.id}>
+              <Link
+                href={`/dashboard/qr/${q.id}/analytics`}
+                className="flex items-center gap-3 rounded-lg border border-charcoal/10 p-2.5 transition-colors hover:bg-sand-light/50"
+              >
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-sand-light text-charcoal/55">
+                  <QrCode className="h-4 w-4" />
                 </span>
-              </span>
-              <span className="shrink-0 text-xs font-bold text-deep-teal">{q.scan_count}</span>
-            </Link>
-          </li>
-        )) : (
-          <li className="text-xs text-charcoal/45">No QR codes yet.</li>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-xs font-semibold">{q.name}</span>
+                  <span className="block text-[10px] text-charcoal/45">
+                    {q.short_id ? `/r/${q.short_id}` : "static"}
+                    {q.status !== "active" && (
+                      <> · <span className="text-terracotta-dark">{q.status.replace(/_/g, " ")}</span></>
+                    )}
+                  </span>
+                </span>
+                <span className="shrink-0 text-xs font-bold text-deep-teal">{q.scan_count}</span>
+              </Link>
+            </li>
+          )) : (
+            <li className="text-xs text-charcoal/45">No QR codes yet.</li>
+          )}
+        </ul>
+        {hasOverflow && (
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-6 bg-gradient-to-t from-white to-transparent" aria-hidden />
         )}
-      </ul>
+      </div>
       <Link
         href="/dashboard/qr-codes"
         className="mt-4 block rounded-lg border border-charcoal/15 px-3 py-2 text-center text-xs font-semibold text-charcoal/75 hover:bg-sand-light"
