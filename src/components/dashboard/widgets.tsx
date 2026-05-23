@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import {
-  Area, AreaChart, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis,
+  Area, AreaChart, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
 import { ArrowDown, ArrowUp, QrCode, type LucideIcon } from "lucide-react";
 import { PERIODS, type Bucket, type Period } from "@/lib/analytics";
@@ -130,7 +130,7 @@ export function TrendCard({ period, series }: { period: Period; series: Bucket[]
       <div className="mt-4 h-72 w-full">
         {hasData ? (
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={data} margin={{ top: 5, right: 8, left: 0, bottom: 0 }}>
+            <AreaChart data={data} margin={{ top: 5, right: 8, left: -8, bottom: 0 }}>
               <defs>
                 <linearGradient id="trendG" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#0F5B55" stopOpacity={0.4} />
@@ -138,10 +138,18 @@ export function TrendCard({ period, series }: { period: Period; series: Bucket[]
                 </linearGradient>
               </defs>
               <XAxis dataKey="date" tick={{ fontSize: 11, fill: "#1B1B1D88" }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
-              <Tooltip
-                contentStyle={{ borderRadius: 10, border: "1px solid rgba(27,27,29,0.1)", boxShadow: "0 4px 16px rgba(0,0,0,0.06)" }}
-                cursor={{ stroke: "#0F5B55", strokeDasharray: "3 3" }}
+              {/* B5/Item 8 — Y-axis with integer ticks so scan counts are
+                  legible. allowDecimals=false keeps "0/1/2/3..." instead
+                  of "0.5". Width=32 reserves the gutter; left margin
+                  pulled in to compensate. */}
+              <YAxis
+                tick={{ fontSize: 11, fill: "#1B1B1D88" }}
+                axisLine={false}
+                tickLine={false}
+                allowDecimals={false}
+                width={32}
               />
+              <Tooltip cursor={{ stroke: "#0F5B55", strokeDasharray: "3 3" }} content={<TrendTooltip />} />
               <Area type="monotone" dataKey="count" stroke="#0F5B55" strokeWidth={2.5} fill="url(#trendG)" dot={{ r: 2, fill: "#0F5B55" }} activeDot={{ r: 4 }} />
             </AreaChart>
           </ResponsiveContainer>
@@ -149,6 +157,33 @@ export function TrendCard({ period, series }: { period: Period; series: Bucket[]
           <EmptyChart />
         )}
       </div>
+    </div>
+  );
+}
+
+// B5/Item 8 — branded trend-chart tooltip. Recharts hands us
+// (label, payload[]) for AreaChart hover; we render the day label and
+// "Total scans: N" with the deep-teal accent.
+function TrendTooltip({
+  active,
+  label,
+  payload,
+}: {
+  active?: boolean;
+  label?: string | number;
+  payload?: { value?: number | string }[];
+}) {
+  if (!active || !payload?.length) return null;
+  const count = Number(payload[0]?.value ?? 0);
+  return (
+    <div className="rounded-lg border border-charcoal/10 bg-white px-3 py-2 shadow-[0_4px_16px_rgba(0,0,0,0.08)]">
+      <p className="text-[10px] uppercase tracking-wider text-charcoal/45">{label}</p>
+      <p className="mt-0.5 text-xs">
+        <span className="text-charcoal/65">Total scans:</span>{" "}
+        <span className="font-display text-sm font-bold text-deep-teal">
+          {count.toLocaleString()}
+        </span>
+      </p>
     </div>
   );
 }
