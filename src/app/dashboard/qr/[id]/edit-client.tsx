@@ -67,7 +67,7 @@ export default function EditQrClient({ initial }: { initial: QrCode }) {
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="block w-full rounded-lg border border-gray-200 h-11 px-3 text-sm transition-colors duration-150 focus:border-terracotta focus:outline-none focus:ring-2 focus:ring-terracotta/30"
+            className="block w-full rounded-lg border border-charcoal/15 h-11 px-3 text-sm transition-colors duration-150 focus:border-deep-teal focus:outline-none focus:ring-2 focus:ring-deep-teal/20"
           />
         </Section>
 
@@ -82,7 +82,7 @@ export default function EditQrClient({ initial }: { initial: QrCode }) {
             value={destination}
             onChange={(e) => setDestination(e.target.value)}
             disabled={initial.kind === "static"}
-            className="block w-full rounded-lg border border-gray-200 h-11 px-3 text-sm transition-colors duration-150 focus:border-terracotta focus:outline-none focus:ring-2 focus:ring-terracotta/30 disabled:bg-gray-50"
+            className="block w-full rounded-lg border border-charcoal/15 h-11 px-3 text-sm transition-colors duration-150 focus:border-deep-teal focus:outline-none focus:ring-2 focus:ring-deep-teal/20 disabled:bg-sand-light/60"
           />
           {initial.kind === "static" && (
             <p className="mt-2 text-xs text-amber-600">
@@ -201,12 +201,12 @@ function ColorField({
           type="color"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="h-9 w-12 cursor-pointer rounded border border-gray-200"
+          className="h-9 w-12 cursor-pointer rounded border border-charcoal/15"
         />
         <input
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="h-9 w-full rounded-lg border border-gray-200 px-2 text-xs"
+          className="h-9 w-full rounded-lg border border-charcoal/15 px-2 text-xs"
         />
       </span>
     </label>
@@ -230,7 +230,7 @@ function SelectField({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="mt-1 h-9 w-full rounded-lg border border-gray-200 bg-white px-2 text-sm capitalize"
+        className="mt-1 h-9 w-full rounded-lg border border-charcoal/15 bg-white px-2 text-sm capitalize"
       >
         {options.map((o) => (
           <option key={o} value={o}>
