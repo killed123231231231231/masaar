@@ -372,21 +372,29 @@ function TrustStrip() {
   );
 }
 
+// B6/Section 3 — chip-row pattern borrowed from getqr's 3-step explainer:
+// each card carries a small "what this looks like" chip strip above the
+// numbered marker. Chips preview the concrete primitives (content types
+// / customization knobs / export formats) so the visitor understands what
+// gets selected at each step before clicking into the wizard.
 const STEPS = [
   {
     icon: QrCode,
     title: "Create your code",
     body: "Generate a dynamic QR in seconds — add your logo, brand colors, and a destination URL.",
+    chips: ["Website", "Menu", "WhatsApp", "vCard", "WiFi"],
   },
   {
     icon: Printer,
     title: "Print & deploy",
     body: "Put it on packaging, signage, or menus. The printed code never changes.",
+    chips: ["Colors", "Logo", "Frame", "Styles"],
   },
   {
     icon: RefreshCw,
     title: "Track & adapt",
     body: "Watch scans live and re-point the destination anytime — no reprint, no downtime.",
+    chips: ["PNG", "SVG", "JPG", "Print-ready"],
   },
 ];
 
@@ -410,7 +418,7 @@ function HowItWorks() {
       </div>
 
       <ol className="mt-14 grid gap-6 md:grid-cols-3">
-        {STEPS.map(({ icon: Icon, title, body }, i) => (
+        {STEPS.map(({ icon: Icon, title, body, chips }, i) => (
           <li
             key={title}
             className="relative rounded-2xl border border-charcoal/10 bg-white p-7"
@@ -418,10 +426,23 @@ function HowItWorks() {
             <span className="absolute right-6 top-6 font-display text-4xl font-bold text-sand">
               {i + 1}
             </span>
-            <span className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-deep-teal/10 text-deep-teal">
+            {/* Chip strip — preview the concrete choices made at this step.
+                Wraps on narrow cards; the visual signal is "this is what's
+                under the hood at step N". */}
+            <ul className="flex flex-wrap gap-1.5">
+              {chips.map((c) => (
+                <li
+                  key={c}
+                  className="rounded-full border border-charcoal/10 bg-sand-light/60 px-2.5 py-0.5 text-[11px] font-medium text-charcoal/70"
+                >
+                  {c}
+                </li>
+              ))}
+            </ul>
+            <span className="mt-5 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-deep-teal/10 text-deep-teal">
               <Icon className="h-6 w-6" strokeWidth={1.75} />
             </span>
-            <h3 className="mt-5 font-display text-lg font-bold">{title}</h3>
+            <h3 className="mt-4 font-display text-lg font-bold">{title}</h3>
             <p className="mt-2 text-sm leading-relaxed text-charcoal/65">
               {body}
             </p>
