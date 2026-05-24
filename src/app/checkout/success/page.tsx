@@ -57,8 +57,13 @@ export default async function CheckoutSuccessPage({
           Back to home
         </Link>
 
+        {/* B5/Audit M5 — copy rewritten. The previous text implied
+            a file download ("the QR you downloaded"), but the anon-
+            checkout flow never actually downloads a file to the
+            user's machine — the QR is attached in the welcome
+            email. New copy points at the email-attached QR. */}
         <p className="mt-3 text-center text-xs text-charcoal/45">
-          Tip: the QR you downloaded works now — try scanning it.
+          Tip: scan the QR in your inbox to see your destination live.
         </p>
       </div>
     </main>
