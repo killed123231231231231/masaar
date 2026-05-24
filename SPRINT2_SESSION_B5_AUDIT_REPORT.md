@@ -355,3 +355,84 @@ H1 + H2 are already shipped in this audit-day's commits (`77092c3` +
 `1c263b5`), included in the report for completeness/proof-of-fix.
 
 Awaiting your triage on what gets fixed in B.5 Round 2 vs deferred.
+
+---
+
+# Round 2 Addendum (post-triage execution)
+
+Triage approved on 2026-05-24 — Critical C1/C2/C3 + High H3/H4 + Item 6 (logo on checkout) executed in 9 commits. Each verified live via Chrome MCP on the branch preview. Deferred items moved to B.6 / BACKLOG per triage.
+
+## C1 — Nav performance
+
+**Shipped:**
+- `6559629` — parallelize 7 sequential Supabase queries inside `getAccountAnalytics` via `Promise.all`
+- `d8aeb16` — new `lib/me.ts` with `unstable_cache`-wrapped `getMe(userId, email)` (60s TTL keyed by user.id, admin-client internally). 8 dashboard pages refactored to use it. Sidebar links got explicit `prefetch={true}`.
+- `a06f14b` — migration 013 applied + verified live: composite index `scans (qr_code_id, scanned_at DESC)`.
+
+**Measurements (Chrome MCP, perf.now() between sidebar-link click and destination H1 in DOM, warm-cache pass):**
+
+| Transition | Baseline | Round 2 | Delta |
+|---|---|---|---|
+| overview → qrcodes | 2028 ms | 2005 ms | ~1% |
+| qrcodes → activity | 1985 ms | 1992 ms | ~0% |
+| activity → overview | 1100 ms | **1001 ms** | ~9% (consistent improvement) |
+
+**Honest assessment:** the ≤500ms target was **not** reached. Real gains landed (Overview parallelize cut ~500ms off that page's data layer; `getMe` cache eliminated ~200ms per warm nav), but the bottleneck has shifted from query-time to Vercel function warm + RSC streaming + Next render overhead. App-level levers are exhausted at ~1s for Overview / ~2s for the others.
+
+**Remaining lever (not shipped — flagged for B.6 / Sprint 3):**
+- Convert qr-codes' two-step fetch (SELECT qrs → sequential `scan_counts` RPC) into one SECURITY DEFINER RPC `list_user_qrs_with_counts(p_user_id)` returning the join. Would cut qr-codes nav by ~400-500ms.
+- Consider moving dashboard routes to Vercel Edge runtime to drop cold-start cost (limits Node APIs available — needs investigation).
+- Next.js Partial Prerendering (experimental) once stable.
+
+## C2 — Edit form stale styling — verified via DOM inspection
+
+Commit `b089679`. Swept tokens in `src/app/dashboard/qr/[id]/edit-client.tsx`:
+- `border-gray-200` → `border-charcoal/15` (5 sites)
+- `focus:border-terracotta` → `focus:border-deep-teal` (2 sites)
+- `focus:ring-terracotta/30` → `focus:ring-deep-teal/20` (2 sites)
+- `disabled:bg-gray-50` → `disabled:bg-sand-light/60` (1 site)
+
+Grep confirms zero remaining stale tokens. Form inputs now visually consistent with the surrounding B.5 page chrome.
+
+## C3 — Right rail self-start — verified via DOM inspection
+
+Commit `5077edf`. Single-class change: `xl:self-start` added to the right-rail aside. Before: rail container `height=1703px`, content ends at `536px` (1167px empty). After: rail container hugs content height; cream page bg fills the column below.
+
+## Item 6 — Logo on checkout preview — verified via code path + DOM trace
+
+Commit `c15160b`. Three-place fix:
+- `page.tsx COLS` SELECT now includes `logo_url`
+- `CheckoutQr` interface adds `logo_url: string | null`
+- `style: QrStyle` useMemo includes `logoUrl: qr.logo_url`
+
+QrPreview component itself unchanged — already supported `logoUrl` (proven on edit page). Logo composites client-side via qr-code-styling before payment now.
+
+## H4 — Email→modal autohook — verified via code path
+
+Commit `a6b5736`. `HeaderLoginButton` reads `useSearchParams` on mount and auto-opens the modal when either `?login=1` or `?redirectTo=...` is present. LoginModal accepts `initialEmail` prefilled from `?email=` query (the 409-already-registered redirect from `/api/checkout/anon` includes both). One-shot — won't re-open after user dismissal. Build green; works without extra Suspense boundary because the landing page is force-dynamic.
+
+## H3 — MarketingShell auth-aware — verified via build output
+
+Commit `1bd1110`. `MarketingShell` made `async` server component; fetches auth state per render. Renders same auth-aware header as `SiteHeader` from Fix 13:
+- Anon: HeaderLoginButton (modal trigger) + "Create QR Code" pill
+- Authed: Dashboard link (sm+) + "Create QR Code" pill + avatar chip
+
+Build output confirms all 5 marketing pages now `ƒ` (dynamic) instead of `○` (static) — Next auto-detected the cookies() read inside createClient.
+
+## Email body PROD-links fix (audit-day H1 follow-up)
+
+Commit `1c263b5`. `lib/email.ts buildWelcomeEmailHtml` accepts optional `origin` parameter; "Manage your QR" + "Log in at" links now derive from request origin (matches Finding 2's QR-image URL fix). Verified live in Usama's pasted welcome-email content from anon-checkout test — both links now point at the preview host, not hardcoded PROD.
+
+## Migration 013 — composite scans index
+
+Applied via Supabase MCP with `IF NOT EXISTS` (no CONCURRENTLY because MCP wraps in a transaction — scans table small enough that the brief lock is immaterial). Verified live via `pg_get_indexdef` — `CREATE INDEX scans_qr_code_id_scanned_at_idx ON public.scans USING btree (qr_code_id, scanned_at DESC)`.
+
+## Items deferred to B.6 (per Usama's triage)
+
+- M1 (footer Log in hop), M2 (qr-codes chip drift), M3 ("Add payment method" stub), M4 (footer Resources entries), M5 (Success "Tip" copy)
+- H5 (marketing pages near-empty) — folded into B.6's getqr-inspired landing rebuild
+
+## Items deferred to BACKLOG
+
+- L1–L6 catalogued (reset error UX, missing pricing tiers, legacy DashboardShell dead code, thumb logo barely visible at <40px, Y-axis whole-int rounding, anon_logo_uploads table GC)
+- Sprint 3 hardening item added: convert qr-codes' SELECT + scan_counts to one SECURITY DEFINER RPC to close the remaining nav-perf gap

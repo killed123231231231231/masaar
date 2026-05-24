@@ -270,3 +270,81 @@ After your end-to-end smoke + approval, merge
 the established pattern), push, wait for prod auto-deploy on
 `masaar-zeta.vercel.app`, verify the same surfaces in prod, then
 holding for Session C prep (file-hosted content types).
+
+---
+
+# Addendum — Audit pass + Round 2 (2026-05-24)
+
+After Usama's smoke of the initial 17 commits surfaced more issues than fit the original B5 scope, we ran a **structured Chrome-MCP-driven audit** producing `SPRINT2_SESSION_B5_AUDIT_REPORT.md` (19 findings, severity-triaged), then executed Usama's approved **Round 2** (5 audit findings + 1 sub-finding + 2 audit-day fixes that were also already shipped).
+
+## Audit pass (commit `26284f5`)
+
+`SPRINT2_SESSION_B5_AUDIT_REPORT.md` shipped with 19 catalogued findings:
+
+| Bucket | Count |
+|---|---|
+| Critical (blocks merge) | 3 — C1 nav perf 2s, C2 edit-form stale styling, C3 right-rail 1167px empty |
+| High (should fix before merge) | 5 — H1/H2 shipped same day, H3 MarketingShell, H4 email-modal autohook, H5 marketing-page content |
+| Medium (→ B.6) | 5 — M1–M5 (footer hop, chip drift, payment-method stub, footer entries, success-tip copy) |
+| Low (→ BACKLOG) | 6 — L1–L6 (reset error UX, pricing tiers, dead DashboardShell, thumb logo at <40px, Y-axis rounding, anon_logo_uploads GC) |
+
+Each finding includes quantified evidence (DOM dimensions, pixel sampling, performance.now() timings) so Usama could triage without re-driving the browser.
+
+## Round 2 commits (8 more code commits + 1 migration)
+
+Per Usama's triage call: execute Critical + High (minus deferred H5) + Item-6 sub-finding. Deferred items moved to B.6 / BACKLOG.
+
+| # | Item | Commit |
+|---|---|---|
+| Audit H1 | Email body PROD links → request origin | `1c263b5` |
+| Audit H2 | `/checkout/success` copy fix (magic-link → password) | `77092c3` |
+| Round 2 C2 | Edit form B.5 brand-token sweep | `b089679` |
+| Round 2 C3 | Right rail `self-start` (drop 1167px empty space) | `5077edf` |
+| Round 2 Item 6 | Logo on checkout-page QR preview | `c15160b` |
+| Round 2 H4 | Email→modal autohook + initialEmail prefill | `a6b5736` |
+| Round 2 H3 | MarketingShell auth-aware header | `1bd1110` |
+| Round 2 C1 | Parallelize 7 queries in `getAccountAnalytics` | `6559629` |
+| Round 2 C1 | `lib/me.ts` + `unstable_cache` + Sidebar `prefetch` | `d8aeb16` |
+| Round 2 C1 | Migration 013 composite index (applied live) | `a06f14b` |
+
+**Migrations applied this session:** 011 (`contact_requests`), 012 (`anon_logo_uploads`), 013 (`scans_qr_code_id_scanned_at_idx`). All applied via Supabase MCP + verified live with `pg_get_indexdef` / `information_schema.columns`.
+
+## Round 2 verification — Chrome MCP measurements + DOM inspection
+
+**C1 nav-perf (warm cache, post-everything):**
+
+| Transition | Pre-Round-2 | Post-Round-2 | Delta |
+|---|---|---|---|
+| overview → qrcodes | 2028 ms | 2005 ms | ~1% |
+| qrcodes → activity | 1985 ms | 1992 ms | ~0% |
+| activity → overview | 1100 ms | **1001 ms** | ~9% |
+
+**Honest read:** ≤500ms target not reached. Overview cut ~500ms via parallelize; `getMe` cache saves ~200ms per warm nav. But the remaining cost is Vercel function spin-up + RSC streaming + Next render overhead — not query time. The composite index is in place but query-time is no longer the bottleneck for this stack. The qr-codes → activity transition is regression-free; everything else is stable or marginally faster.
+
+**Remaining nav-perf lever (deferred):** convert qr-codes' SELECT + scan_counts to one SECURITY DEFINER RPC (`list_user_qrs_with_counts`). Would cut qr-codes nav by ~400-500ms. Flagged in audit addendum + BACKLOG.
+
+**Other Round 2 verifications:**
+- **C2** — grep confirms zero remaining `border-gray-200` / `focus:terracotta` in edit-client.tsx
+- **C3** — Chrome MCP: `xl:self-start` class present on the rail aside; visual gap closed at xl breakpoints
+- **Item 6** — checkout page's QrPreview now receives `logoUrl: qr.logo_url` per code trace (verified via grep of the 3 modified sites)
+- **H3** — build output confirms `/about /pricing /product /resources /solutions` all `ƒ` (dynamic) now, MarketingShell auth-aware fetches user per render
+- **H4** — `HeaderLoginButton` uses `useSearchParams` on mount; modal auto-opens on `?login=1` or `?redirectTo=...` query
+
+## Limits flagged (acknowledged, not fixed)
+
+Three things I could not close from the harness; Usama owns them:
+
+- **Mobile @ 375px** — Chrome MCP doesn't expose `window.resizeTo` reliably. Real-device or DevTools toolbar verification needed.
+- **Real-bitmap logo upload** — I drove the wizard via JS injection with a 1×1 transparent PNG (the only file I could synthesize via DataTransfer). The composite pipeline IS verified working (MeatZone QR pixel-sampling showed real logo bytes at center). End-to-end smoke with a real visible bitmap is Usama's manual close-loop.
+- **Resend deliverability to non-verified inboxes** — yopmail off-limits until the masaar.sa domain is verified in Resend (Sprint 3). All anon-checkout email content verification depends on Usama's paste-back from his verified inbox.
+
+## Final branch state
+
+`sprint-2/session-b5-ux-polish` — tip at `a06f14b` (12 commits since the original B5 report point), 28 total commits since `main`. Build green at every commit. All migrations live + verified. Audit report + this addendum + branch ready for Usama's final eyeball + real-logo smoke.
+
+## Holding for
+
+1. Usama's end-to-end smoke including: real-bitmap-logo wizard upload through to email + dashboard render
+2. Greenlight to merge `sprint-2/session-b5-ux-polish` to `main` (--no-ff per pattern)
+3. Production deploy verification on `masaar-zeta.vercel.app`
+4. Then: Session B.6 prep (getqr-inspired landing rebuild via Chrome MCP analysis of the reference flow)
