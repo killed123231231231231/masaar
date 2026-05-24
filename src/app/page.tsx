@@ -401,24 +401,27 @@ function TrustStrip() {
 // numbered marker. Chips preview the concrete primitives (content types
 // / customization knobs / export formats) so the visitor understands what
 // gets selected at each step before clicking into the wizard.
+// B6 audit copy refinement — verbs match the user's mental model:
+// "create once / print anywhere / change anytime" reads as the
+// promise more than "create / print / track" did.
 const STEPS = [
   {
     icon: QrCode,
-    title: "Create your code",
-    body: "Generate a dynamic QR in seconds — add your logo, brand colors, and a destination URL.",
-    chips: ["Website", "Menu", "WhatsApp", "vCard", "WiFi"],
+    title: "Create once",
+    body: "Generate QR codes for menu, WhatsApp, WiFi, vCard, website, or campaign pages.",
+    chips: ["Menu", "WhatsApp", "WiFi", "vCard", "Website"],
   },
   {
     icon: Printer,
-    title: "Print & deploy",
-    body: "Put it on packaging, signage, or menus. The printed code never changes.",
-    chips: ["Colors", "Logo", "Frame", "Styles"],
+    title: "Print anywhere",
+    body: "Use them on tables, packaging, counters, receipts, posters, and ads.",
+    chips: ["Tables", "Packaging", "Posters", "Ads"],
   },
   {
     icon: RefreshCw,
-    title: "Track & adapt",
-    body: "Watch scans live and re-point the destination anytime — no reprint, no downtime.",
-    chips: ["PNG", "SVG", "JPG", "Print-ready"],
+    title: "Change anytime",
+    body: "Update the destination and track scans without reprinting.",
+    chips: ["Edit URL", "Live scans", "No reprint"],
   },
 ];
 
@@ -445,7 +448,7 @@ function HowItWorks() {
         {STEPS.map(({ icon: Icon, title, body, chips }, i) => (
           <li
             key={title}
-            className="relative rounded-2xl border border-charcoal/10 bg-white p-7"
+            className="relative rounded-2xl border border-charcoal/10 bg-white p-6"
           >
             <span className="absolute right-6 top-6 font-display text-4xl font-bold text-sand">
               {i + 1}
