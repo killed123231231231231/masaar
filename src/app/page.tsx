@@ -80,14 +80,12 @@ export default async function LandingPage() {
           questions about cancellation / refunds / "I don't recognize
           this charge" — a symptom of their $1 trial trap). */}
       <Faq />
-      {/* B6 audit reinstatement — ChatGPT audit (correctly) flagged
-          that the page needed a closing CTA. Original FinalCta was
-          dropped in the first pivot for being redundant ("Ready to
-          give every scan a path?"). Now back with conversion-warmer
-          copy ("Ready to create a QR code you can update anytime?")
-          + a single primary CTA, no secondary. Single-page funnel
-          ends here -> Footer. */}
-      <FinalCta />
+      {/* B6 final call — FinalCta REMOVED (again, definitively).
+          ChatGPT audit recommended reinstating it; Usama saw it live
+          and re-confirmed the original pivot decision: kill it. FAQ
+          flows directly into the Footer. Conversion CTAs already
+          live in the hero, pricing teaser, BuiltForGCC dark section,
+          and the sticky header — a trailing strip was redundant. */}
 
       <SiteFooter />
     </main>
@@ -1027,34 +1025,6 @@ function Faq() {
             </li>
           ))}
         </ul>
-      </div>
-    </section>
-  );
-}
-
-// B6 audit reinstatement — closing CTA strip between FAQ and Footer.
-// Single primary CTA (no secondary) so the conversion intent is
-// unambiguous. Tighter copy than the dropped original: leads with
-// the value the visitor just learned about ("a QR code you can
-// update anytime") and gives them the action immediately.
-function FinalCta() {
-  return (
-    <section className="mx-auto max-w-6xl px-6 pb-14 lg:pb-24">
-      <div className="rounded-3xl border border-charcoal/10 bg-sand-light px-8 py-12 text-center lg:px-16 lg:py-14">
-        <h2 className="mx-auto max-w-2xl text-balance font-display text-3xl font-bold tracking-tight sm:text-4xl">
-          Ready to create a QR code you can update anytime?
-        </h2>
-        <p className="mx-auto mt-3 max-w-xl text-balance text-base leading-relaxed text-charcoal/65">
-          Create your first Masaar QR in minutes.
-        </p>
-        <div className="mt-7 flex justify-center">
-          <Link
-            href="/create"
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-deep-teal px-7 py-3 text-base font-semibold text-white shadow-sm transition-colors hover:bg-deep-teal-dark"
-          >
-            Create QR Code <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
       </div>
     </section>
   );
