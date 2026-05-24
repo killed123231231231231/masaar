@@ -71,7 +71,12 @@ export default async function LandingPage() {
           questions about cancellation / refunds / "I don't recognize
           this charge" — a symptom of their $1 trial trap). */}
       <Faq />
-      <FinalCta />
+      {/* B6 pivot — FinalCta removed. Single-page funnel ends FAQ
+          → Footer directly (matches getqr's structure). The hero +
+          pricing-teaser CTAs already carry the "Create QR Code"
+          conversion intent; a trailing "Ready to give every scan a
+          path?" was redundant noise at the assembled-landing
+          eyeball. */}
 
       <SiteFooter />
     </main>
@@ -410,7 +415,7 @@ function HowItWorks() {
   return (
     <section
       id="how-it-works"
-      className="mx-auto max-w-6xl scroll-mt-24 px-6 py-20 lg:py-28"
+      className="mx-auto max-w-6xl scroll-mt-20 px-6 py-12 lg:py-16"
     >
       <div className="mx-auto max-w-2xl text-center">
         <p className="text-xs font-semibold uppercase tracking-wider text-deep-teal">
@@ -425,7 +430,7 @@ function HowItWorks() {
         </p>
       </div>
 
-      <ol className="mt-14 grid gap-6 md:grid-cols-3">
+      <ol className="mt-10 grid gap-6 md:grid-cols-3">
         {STEPS.map(({ icon: Icon, title, body, chips }, i) => (
           <li
             key={title}
@@ -472,48 +477,47 @@ function HowItWorks() {
 // Two features carry honest "Coming soon" badges (Bilingual + AI
 // Menu). Per STRATEGY.md and the brand-discipline guardrails, no
 // roadmap item is shipped as "live" before its session lands.
+// B6 pivot — tightened to 1-2 short lines per card. Getqr's feature
+// card density is punchy and scannable; the previous 4-6 line bodies
+// read as manuals. The detail can resurface in /product later if we
+// ever build it (for now: redirected to this section).
 const LANDING_FEATURES = [
   {
     icon: RefreshCw,
     title: "Dynamic destinations",
-    body:
-      "Edit where a printed QR points — anytime, no reprint, no downtime. The code on your packaging stays good for the life of the campaign.",
+    body: "Re-point a printed QR anytime. No reprint, no downtime.",
     soon: false,
   },
   {
     icon: Layers,
     title: "GCC content types",
-    body:
-      "Website, Menu, WhatsApp, vCard, WiFi, App Link, and more — tuned for how Saudi customers actually engage. WhatsApp deep-links and Menu primitives ship by default.",
+    body: "Website, Menu, WhatsApp, vCard, WiFi — built for how Gulf customers actually engage.",
     soon: false,
   },
   {
     icon: BarChart3,
     title: "Real-time analytics",
-    body:
-      "Riyadh-time scan trends, country + city + device breakdowns, hashed-IP unique counts. Every scan is a data point in your dashboard within seconds.",
+    body: "Riyadh-time trends, geo + device breakdowns, hashed-IP privacy.",
     soon: false,
   },
   {
     icon: Languages,
     title: "Bilingual Arabic / English",
-    body:
-      "Native RTL, IBM Plex Arabic typography, and bilingual hosted pages built for GCC scanners on the first tap — not translated as an afterthought.",
+    body: "Native RTL, IBM Plex Arabic — not translated as an afterthought.",
     soon: true,
   },
   {
     icon: UtensilsCrossed,
     title: "AI Menu Builder",
-    body:
-      "Upload a photo of your paper menu — Claude Vision extracts categories, items, prices, allergens, and bilingual fields in seconds. Built for Saudi cafes from day one.",
+    body: "Upload a paper menu photo. AI extracts items, prices, bilingual fields — in seconds.",
     soon: true,
   },
 ];
 
 function FeaturesGrid() {
   return (
-    <section className="bg-sand-light/60">
-      <div className="mx-auto max-w-6xl px-6 py-20 lg:py-28">
+    <section id="features" className="scroll-mt-20 bg-sand-light/60">
+      <div className="mx-auto max-w-6xl px-6 py-12 lg:py-16">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-xs font-semibold uppercase tracking-wider text-deep-teal">
             What's in the box
@@ -527,7 +531,7 @@ function FeaturesGrid() {
           </p>
         </div>
 
-        <ul className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
+        <ul className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
           {LANDING_FEATURES.map(({ icon: Icon, title, body, soon }) => (
             <li
               key={title}
@@ -568,7 +572,7 @@ function FeaturesGrid() {
 // Until then this section carries the brand/origin/mission narrative.
 function BuiltInRiyadh() {
   return (
-    <section className="mx-auto max-w-6xl px-6 py-20 lg:py-28">
+    <section id="gcc" className="mx-auto max-w-6xl scroll-mt-20 px-6 py-12 lg:py-16">
       <div className="grid items-center gap-10 rounded-3xl border border-charcoal/10 bg-sand-light/40 p-10 lg:grid-cols-[1.3fr_1fr] lg:p-14">
         <div>
           <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-deep-teal">
@@ -786,8 +790,8 @@ const PRICING_PREVIEW = [
 
 function PricingTeaser() {
   return (
-    <section className="bg-white">
-      <div className="mx-auto max-w-6xl px-6 py-20 lg:py-28">
+    <section id="pricing" className="scroll-mt-20 bg-white">
+      <div className="mx-auto max-w-6xl px-6 py-12 lg:py-16">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-xs font-semibold uppercase tracking-wider text-deep-teal">
             Pricing
@@ -801,7 +805,7 @@ function PricingTeaser() {
           </p>
         </div>
 
-        <ul className="mt-14 grid gap-5 lg:grid-cols-3">
+        <ul className="mt-10 grid gap-5 lg:grid-cols-3">
           {PRICING_PREVIEW.map((tier) => {
             const isPopular = tier.badge === "Most popular";
             return (
@@ -879,7 +883,7 @@ const GCC_FEATURES = [
 
 function BuiltForGCC() {
   return (
-    <section className="mx-auto max-w-6xl px-6 py-20 lg:py-28">
+    <section className="mx-auto max-w-6xl px-6 py-12 lg:py-16">
       <div className="overflow-hidden rounded-3xl bg-deep-teal text-white">
         <div className="grid gap-10 p-10 md:grid-cols-2 lg:p-14">
           <div>
@@ -973,8 +977,8 @@ const FAQS = [
 
 function Faq() {
   return (
-    <section id="faq" className="scroll-mt-24 bg-sand-light/60">
-      <div className="mx-auto max-w-3xl px-6 py-20 lg:py-28">
+    <section id="faq" className="scroll-mt-20 bg-sand-light/60">
+      <div className="mx-auto max-w-3xl px-6 py-12 lg:py-16">
         <div className="text-center">
           <p className="text-xs font-semibold uppercase tracking-wider text-deep-teal">
             FAQ
@@ -999,36 +1003,6 @@ function Faq() {
               </p>
             </details>
           ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function FinalCta() {
-  return (
-    <section className="mx-auto max-w-6xl px-6 pb-20 lg:pb-28">
-      <div className="rounded-3xl border border-charcoal/10 bg-sand-light px-8 py-14 text-center lg:px-16 lg:py-16">
-        <h2 className="mx-auto max-w-2xl text-balance font-display text-3xl font-bold tracking-tight sm:text-4xl">
-          Ready to give every scan a path?
-        </h2>
-        <p className="mx-auto mt-4 max-w-xl text-balance text-base leading-relaxed text-charcoal/65">
-          Create your first dynamic QR code in about a minute. No credit card,
-          no reprints, ever.
-        </p>
-        <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <Link
-            href="/create"
-            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-deep-teal px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-terracotta active:bg-terracotta-dark sm:w-auto"
-          >
-            Create yours now <ArrowRight className="h-4 w-4" />
-          </Link>
-          <Link
-            href="/pricing"
-            className="inline-flex w-full items-center justify-center rounded-lg border border-charcoal/15 bg-white px-6 py-3 text-base font-semibold text-charcoal transition-colors hover:text-deep-teal sm:w-auto"
-          >
-            See pricing
-          </Link>
         </div>
       </div>
     </section>
