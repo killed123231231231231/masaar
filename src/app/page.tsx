@@ -61,6 +61,7 @@ export default async function LandingPage() {
 
       <HowItWorks />
       <FeaturesGrid />
+      <BuiltInRiyadh />
       <BuiltForGCC />
       {/* FAQ section removed from landing per B5/Item 4. The Faq component
           stays defined below so it can be reused on /pricing later. */}
@@ -545,6 +546,173 @@ function FeaturesGrid() {
         </ul>
       </div>
     </section>
+  );
+}
+
+// B6/Section 5 — "Built in Riyadh" positioning block (NEW).
+//
+// Replaces the testimonial slot per the approved B.6 mapping. We do
+// NOT ship fake "Example"-labeled customer quotes — GCC competitors
+// like getqr have 1,415 real Reviews.io entries and trying to match
+// scale theater would feel weaker than honest scarcity. Instead we
+// turn the absence of customer wins into a positioning statement:
+// Masaar is new, built for the GCC market, and the roadmap is honest.
+//
+// Real testimonials = Sprint 3 task after 5-10 actual GCC wins land.
+// Until then this section carries the brand/origin/mission narrative.
+function BuiltInRiyadh() {
+  return (
+    <section className="mx-auto max-w-6xl px-6 py-20 lg:py-28">
+      <div className="grid items-center gap-10 rounded-3xl border border-charcoal/10 bg-sand-light/40 p-10 lg:grid-cols-[1.3fr_1fr] lg:p-14">
+        <div>
+          <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-deep-teal">
+            <MapPin className="h-3.5 w-3.5" strokeWidth={2.25} />
+            Built in Riyadh
+          </p>
+          <h2 className="mt-3 text-balance font-display text-3xl font-bold tracking-tight sm:text-4xl">
+            QR tools made for the GCC, not adapted from US software.
+          </h2>
+          <p className="mt-5 text-balance text-base leading-relaxed text-charcoal/70">
+            Most QR platforms are priced in dollars, designed for Western
+            customers, and bolt on Arabic as an afterthought. Masaar is the
+            alternative — Saudi-priced, GCC-aware by default, and built
+            around the content types that actually matter here:{" "}
+            <span className="font-medium text-charcoal">menu, WhatsApp,
+            vCard, WiFi, location</span>.
+          </p>
+          <p className="mt-3 text-balance text-base leading-relaxed text-charcoal/70">
+            We&apos;re launching in 2026 with the Saudi F&amp;B and retail
+            market in mind. Honest about what&apos;s live versus what&apos;s
+            on the way — no &ldquo;coming soon&rdquo; vapor that never ships.
+          </p>
+
+          {/* Roadmap teaser — three concrete next bets, honest about
+              when. Pulls from STRATEGY.md §2.1 + the sprint plan. */}
+          <ul className="mt-7 grid gap-3 sm:grid-cols-3">
+            <RoadmapPill label="Mada / STC Pay" when="Sprint 3" />
+            <RoadmapPill label="Arabic + RTL" when="Next session" />
+            <RoadmapPill label="Menu vertical" when="Launching next" />
+          </ul>
+        </div>
+
+        {/* Right: visual anchor — stylized Arabian peninsula with
+            Riyadh pinned. Decorative; not interactive. Brand palette
+            only, no third-party map tiles (and no IP geolocation calls
+            from this client — landing is anon and we don't hit
+            geo services from the public marketing surface). */}
+        <div className="relative mx-auto w-full max-w-sm">
+          <PeninsulaPin />
+          <div className="pointer-events-none absolute -bottom-3 left-1/2 inline-flex -translate-x-1/2 items-center gap-2 rounded-full border border-charcoal/10 bg-white px-4 py-2 shadow-sm">
+            <span className="grid h-6 w-6 place-items-center rounded-md bg-deep-teal text-white">
+              <LogoMark className="h-3.5 w-3.5 brightness-0 invert" />
+            </span>
+            <span className="text-xs font-semibold text-charcoal">
+              Masaar <span className="font-arabic text-deep-teal">مسار</span>
+            </span>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function RoadmapPill({ label, when }: { label: string; when: string }) {
+  return (
+    <li className="rounded-lg border border-charcoal/10 bg-white px-3 py-2.5">
+      <p className="text-sm font-semibold text-charcoal">{label}</p>
+      <p className="mt-0.5 text-[11px] font-medium uppercase tracking-wider text-charcoal/50">
+        {when}
+      </p>
+    </li>
+  );
+}
+
+// Decorative stylized Arabian peninsula. Hand-drawn SVG path
+// (approximate — meant to be a visual anchor, not geographically
+// strict). Riyadh marked with a deep-teal pin + soft pulse. Saudi
+// + GCC-neighbor outlines hinted at via the silhouette so a GCC
+// viewer recognizes the shape without it reading as a literal map.
+function PeninsulaPin() {
+  return (
+    <svg
+      viewBox="0 0 220 240"
+      className="h-auto w-full"
+      aria-label="Stylized Arabian peninsula with Riyadh marked"
+      role="img"
+    >
+      {/* Peninsula silhouette — simplified contour */}
+      <path
+        d="M40 30 Q70 18 100 22 Q140 28 165 50 Q185 75 188 110 Q190 145 175 175 Q160 200 130 215 Q100 226 75 218 Q52 210 42 188 Q30 168 32 138 Q34 100 38 70 Q40 50 40 30 Z"
+        fill="#0F5B55"
+        fillOpacity="0.08"
+        stroke="#0F5B55"
+        strokeOpacity="0.25"
+        strokeWidth="1.5"
+      />
+      {/* Subtle interior hint — desert texture via sparse dots */}
+      {[
+        [70, 60], [95, 50], [115, 75], [135, 95], [80, 100],
+        [105, 120], [145, 140], [90, 150], [120, 170], [70, 180],
+        [155, 80], [60, 130], [130, 50], [165, 130],
+      ].map(([x, y], i) => (
+        <circle
+          key={i}
+          cx={x}
+          cy={y}
+          r="1.4"
+          fill="#0F5B55"
+          fillOpacity="0.15"
+        />
+      ))}
+      {/* Riyadh pin — center-east of the peninsula */}
+      <g transform="translate(108, 105)">
+        <circle r="14" fill="#0F5B55" fillOpacity="0.12">
+          <animate
+            attributeName="r"
+            from="14"
+            to="20"
+            dur="2s"
+            repeatCount="indefinite"
+          />
+          <animate
+            attributeName="fill-opacity"
+            from="0.18"
+            to="0"
+            dur="2s"
+            repeatCount="indefinite"
+          />
+        </circle>
+        <circle r="6" fill="#0F5B55" />
+        <circle r="2" fill="#FFFFFF" />
+      </g>
+      <text
+        x="108"
+        y="135"
+        textAnchor="middle"
+        className="font-display"
+        style={{
+          fontSize: "12px",
+          fontWeight: 700,
+          fill: "#1B1B1D",
+        }}
+      >
+        Riyadh
+      </text>
+      <text
+        x="108"
+        y="148"
+        textAnchor="middle"
+        style={{
+          fontSize: "8px",
+          letterSpacing: "0.18em",
+          textTransform: "uppercase",
+          fill: "#1B1B1D",
+          opacity: 0.55,
+        }}
+      >
+        Saudi Arabia
+      </text>
+    </svg>
   );
 }
 
