@@ -46,7 +46,7 @@ export default async function EditQrPage({
         <Sidebar
           me={me}
           current="qrcodes"
-          analyticsHref={`/dashboard/qr/${qr.id}/analytics`}
+          analyticsHref={`/dashboard?qr=${qr.id}`}
         />
         <main className="min-w-0 flex-1 space-y-7 px-4 py-5 sm:px-5 sm:py-6 lg:px-8">
           {/* Mobile top bar mirrors the analytics/overview pattern. */}
@@ -82,7 +82,7 @@ export default async function EditQrPage({
               </p>
             </div>
             <Link
-              href={`/dashboard/qr/${qr.id}/analytics`}
+              href={`/dashboard?qr=${qr.id}`}
               className="inline-flex items-center gap-1.5 rounded-lg border border-charcoal/15 bg-white px-3 py-1.5 text-sm font-medium text-charcoal/75 hover:bg-sand-light hover:text-deep-teal"
             >
               <BarChart3 className="h-4 w-4" /> View analytics

@@ -393,7 +393,12 @@ function timeOfDayBucket(iso: string): TodBucket {
 export async function getAccountAnalytics(
   supabase: SupabaseClient<Database>,
   userId: string,
-  period: Period
+  period: Period,
+  /** B5/Round2 follow-up — when set, all scan queries scope to this
+   *  single QR id (becomes a per-QR filtered view of Overview).
+   *  userQrs still returns ALL of the user's QRs so the right-rail
+   *  works as a between-QR navigator regardless of the filter. */
+  filterQrId?: string | null
 ): Promise<AccountAnalyticsBundle> {
   // All of the user's QRs — including the style fields the right-rail
   // and qr-codes grid need to render real QR thumbnails (B5/Item 10).
@@ -420,8 +425,21 @@ export async function getAccountAnalytics(
   const qrs = (myQrs ?? []) as RawQr[];
   if (qrs.length === 0) return EMPTY_ACCOUNT(period);
 
-  const ids = qrs.map((q) => q.id);
-  const pendingIds = qrs.filter((q) => q.status === "pending_payment" || q.status === "suspended").map((q) => q.id);
+  // ids drives every scan-query WHERE clause. With filterQrId, scopes
+  // to the single QR (must belong to this user — already RLS-scoped
+  // by the qr_codes SELECT above; if filterQrId isn't in the user's
+  // list we treat it as "no filter" rather than 404 silently).
+  const filtered = filterQrId
+    ? qrs.find((q) => q.id === filterQrId)
+    : null;
+  const ids = filtered ? [filtered.id] : qrs.map((q) => q.id);
+  const pendingIds = (filtered ? [filtered] : qrs)
+    .filter((q) => q.status === "pending_payment" || q.status === "suspended")
+    .map((q) => q.id);
+  // activeQrCount / totalQrCount KPIs always reflect the ACCOUNT
+  // totals regardless of filter — the "Active QR codes" tile is
+  // account-wide context, not per-QR. Per-QR filtering applies only
+  // to scan-derived KPIs (Total scans, Unique, Mobile share, etc.).
   const activeQrCount = qrs.filter((q) => q.status === "active").length;
   const totalQrCount = qrs.length;
 
@@ -487,7 +505,11 @@ export async function getAccountAnalytics(
       })()
     : Promise.resolve({ count: 0 });
 
-  const countsRpc = supabase.rpc("scan_counts", { p_ids: ids });
+  // scan_counts feeds the right-rail "Your QRs" list — needs counts
+  // for ALL user's QRs regardless of any active filter, so it always
+  // gets the full id list (allIds), not the filtered `ids`.
+  const allIds = qrs.map((q) => q.id);
+  const countsRpc = supabase.rpc("scan_counts", { p_ids: allIds });
 
   // One round-trip wall, six queries in flight at once.
   const [

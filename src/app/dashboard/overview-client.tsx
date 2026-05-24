@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Activity, Filter, Globe2, Plus, QrCode, Smartphone,
-  Sparkles, Star, Users, Wallet, Zap,
+  Sparkles, Star, Users, Wallet, X, Zap,
 } from "lucide-react";
 import { toast } from "sonner";
 import LogoMark from "@/components/logo-mark";
@@ -17,44 +18,57 @@ import { PERIODS, type AccountAnalyticsBundle, type AccountRecentScan } from "@/
 export default function OverviewClient({
   bundle,
   me,
+  filterQrId,
+  filterQrName,
 }: {
   bundle: AccountAnalyticsBundle;
   me: SidebarMe;
+  /** B5/Round2 post-merge — when set, the page is in single-QR
+   *  filtered mode. Only KPI/breakdown/trend data changes; chrome
+   *  and rail are identical to the unfiltered Overview. */
+  filterQrId: string | null;
+  filterQrName: string | null;
 }) {
   return (
     <div className="min-h-screen bg-[#F6F4EE] text-charcoal">
       <div className="flex">
         <Sidebar me={me} current="overview" analyticsHref={null} />
-        {/* B5/Round2 Bug B — RightRail moved INSIDE Main (below the
-            KPI row) instead of being a flex-row sibling. Old layout
-            put the rail's top at the same y as the page H1 — the user
-            saw "Your QRs" floating up there parallel to the title,
-            which felt weird. New layout pins the rail to start after
-            the KPI row's bottom edge. */}
-        <Main bundle={bundle} me={me} />
+        <Main
+          bundle={bundle}
+          me={me}
+          filterQrId={filterQrId}
+          filterQrName={filterQrName}
+        />
       </div>
     </div>
   );
 }
 
-function Main({ bundle, me }: { bundle: AccountAnalyticsBundle; me: SidebarMe }) {
+function Main({
+  bundle,
+  me,
+  filterQrId,
+  filterQrName,
+}: {
+  bundle: AccountAnalyticsBundle;
+  me: SidebarMe;
+  filterQrId: string | null;
+  filterQrName: string | null;
+}) {
   return (
     <main className="min-w-0 flex-1 space-y-7 px-4 py-5 sm:px-5 sm:py-6 lg:px-8">
       <MobileTopBar />
-      <PageHeader me={me} period={bundle.period} />
+      <PageHeader
+        me={me}
+        period={bundle.period}
+        filterQrName={filterQrName}
+      />
       <FailedCallout bundle={bundle} />
       {bundle.totalQrCount === 0 ? (
         <FirstRunEmptyState />
       ) : (
         <>
-          {/* Full-width header zone: KPI cards span the entire content
-              width. Period filter / failed-callout / page header are
-              already above this. */}
           <KpiRow bundle={bundle} />
-
-          {/* 2-column zone below the KPIs: charts/breakdowns/tables on
-              the left, "Your QRs" rail on the right (xl+). On smaller
-              screens the rail stacks under the main content as before. */}
           <div className="xl:grid xl:grid-cols-[minmax(0,1fr)_320px] xl:gap-7 xl:items-start">
             <div className="space-y-7">
               <TrendCard period={bundle.period} series={bundle.timeSeries} />
@@ -62,7 +76,7 @@ function Main({ bundle, me }: { bundle: AccountAnalyticsBundle; me: SidebarMe })
               <BreakdownsGrid bundle={bundle} />
               <TablesGrid bundle={bundle} />
             </div>
-            <RightRail bundle={bundle} />
+            <RightRail bundle={bundle} filterQrId={filterQrId} />
           </div>
         </>
       )}
@@ -86,7 +100,15 @@ function MobileTopBar() {
   );
 }
 
-function PageHeader({ me, period }: { me: SidebarMe; period: AccountAnalyticsBundle["period"] }) {
+function PageHeader({
+  me,
+  period,
+  filterQrName,
+}: {
+  me: SidebarMe;
+  period: AccountAnalyticsBundle["period"];
+  filterQrName: string | null;
+}) {
   const firstName = (me.name ?? "").split(" ")[0] || "there";
   return (
     <div>
@@ -96,7 +118,11 @@ function PageHeader({ me, period }: { me: SidebarMe; period: AccountAnalyticsBun
             Welcome back, {firstName}
           </h1>
           <p className="mt-1 text-sm text-charcoal/55">
-            Your account-wide scan activity across every QR code.
+            {filterQrName ? (
+              <>Scan activity scoped to one QR. Click another in the rail to switch.</>
+            ) : (
+              <>Your account-wide scan activity across every QR code.</>
+            )}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -115,10 +141,38 @@ function PageHeader({ me, period }: { me: SidebarMe; period: AccountAnalyticsBun
           </Link>
         </div>
       </div>
-      <div className="mt-4">
+      <div className="mt-4 flex flex-wrap items-center gap-3">
         <PeriodPills current={period} />
+        {filterQrName && <FilterChip name={filterQrName} />}
       </div>
     </div>
+  );
+}
+
+// B5/Round2 post-merge — "Viewing: <QR name> · ×" chip rendered beside
+// the period pills when ?qr=<id> is active. The × clears the filter
+// via router.replace (no scroll-jump, no full nav).
+function FilterChip({ name }: { name: string }) {
+  const router = useRouter();
+  const params = useSearchParams();
+  function clear() {
+    const sp = new URLSearchParams(Array.from(params.entries()));
+    sp.delete("qr");
+    const qs = sp.toString();
+    router.replace(qs ? `?${qs}` : "/dashboard", { scroll: false });
+  }
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-deep-teal/10 px-3 py-1 text-xs font-semibold text-deep-teal">
+      Viewing: <span className="font-bold">{name}</span>
+      <button
+        type="button"
+        onClick={clear}
+        aria-label="Clear QR filter"
+        className="grid h-4 w-4 place-items-center rounded-full hover:bg-deep-teal/15"
+      >
+        <X className="h-3 w-3" />
+      </button>
+    </span>
   );
 }
 
@@ -256,7 +310,7 @@ function RecentActivityTable({ rows }: { rows: AccountRecentScan[] }) {
                     <td className="py-2 text-charcoal/70">
                       {s.qr_id ? (
                         <Link
-                          href={`/dashboard/qr/${s.qr_id}/analytics`}
+                          href={`/dashboard?qr=${s.qr_id}`}
                           className="truncate font-medium text-charcoal hover:text-deep-teal"
                         >
                           {s.qr_name}
@@ -307,7 +361,7 @@ function BestPerformingTable({
               </span>
               <div className="min-w-0 flex-1">
                 <Link
-                  href={`/dashboard/qr/${q.id}/analytics`}
+                  href={`/dashboard?qr=${q.id}`}
                   className="block truncate text-sm font-semibold text-charcoal hover:text-deep-teal"
                 >
                   {q.name}
@@ -332,13 +386,32 @@ function BestPerformingTable({
   );
 }
 
-function RightRail({ bundle }: { bundle: AccountAnalyticsBundle }) {
+function RightRail({
+  bundle,
+  filterQrId,
+}: {
+  bundle: AccountAnalyticsBundle;
+  filterQrId: string | null;
+}) {
   // B5/Item 9 — show 6 QR cards in the visible area; if there are more,
   // the list scrolls (smooth + a gradient fade at the bottom signals
   // there's more below). Each card is ~52px tall (h-9 chip + p-2.5 +
   // 8px space-y) so 6 rows ≈ 336px; +28px buffer lets a 7th card peek
   // for discoverability when N > 6.
   const hasOverflow = bundle.userQrs.length > 6;
+  const router = useRouter();
+  const params = useSearchParams();
+  // B5/Round2 post-merge — clicking a QR in the rail no longer navigates
+  // to the per-QR analytics route. Instead it sets `?qr=<id>` on the
+  // Overview URL via router.replace (no scroll-jump, no full nav, back
+  // button stays sane). Page header subtitle + KPI/Trend/Insights/etc
+  // data scope to that QR; the rail itself keeps showing all QRs with
+  // the active one highlighted so the user can switch in place.
+  function selectQr(id: string) {
+    const sp = new URLSearchParams(Array.from(params.entries()));
+    sp.set("qr", id);
+    router.replace(`?${sp.toString()}`, { scroll: false });
+  }
   return (
     /* B5/Round2 Bug B — now a grid cell (xl:grid-cols-[1fr_320px])
        starting after the KPI row. As a card with its own border on all
@@ -353,31 +426,40 @@ function RightRail({ bundle }: { bundle: AccountAnalyticsBundle }) {
           className="space-y-2 overflow-y-auto pr-1 [scroll-behavior:smooth] [scrollbar-width:thin]"
           style={{ maxHeight: hasOverflow ? "364px" : undefined }}
         >
-          {bundle.userQrs.length ? bundle.userQrs.map((q) => (
-            <li key={q.id}>
-              <Link
-                href={`/dashboard/qr/${q.id}/analytics`}
-                className="flex items-center gap-3 rounded-lg border border-charcoal/10 p-2.5 transition-colors hover:bg-sand-light/50"
-              >
-                <QrThumb
-                  qrId={q.id}
-                  bgColor={q.bg_color}
-                  size={36}
-                  className="border border-charcoal/10"
-                />
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-xs font-semibold">{q.name}</span>
-                  <span className="block text-[10px] text-charcoal/45">
-                    {q.short_id ? `/r/${q.short_id}` : "static"}
-                    {q.status !== "active" && (
-                      <> · <span className="text-terracotta-dark">{q.status.replace(/_/g, " ")}</span></>
-                    )}
+          {bundle.userQrs.length ? bundle.userQrs.map((q) => {
+            const isActive = q.id === filterQrId;
+            return (
+              <li key={q.id}>
+                <button
+                  type="button"
+                  onClick={() => selectQr(q.id)}
+                  aria-pressed={isActive}
+                  className={`flex w-full items-center gap-3 rounded-lg border p-2.5 text-left transition-colors ${
+                    isActive
+                      ? "border-deep-teal/40 bg-deep-teal/5"
+                      : "border-charcoal/10 hover:bg-sand-light/50"
+                  }`}
+                >
+                  <QrThumb
+                    qrId={q.id}
+                    bgColor={q.bg_color}
+                    size={36}
+                    className="border border-charcoal/10"
+                  />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-xs font-semibold">{q.name}</span>
+                    <span className="block text-[10px] text-charcoal/45">
+                      {q.short_id ? `/r/${q.short_id}` : "static"}
+                      {q.status !== "active" && (
+                        <> · <span className="text-terracotta-dark">{q.status.replace(/_/g, " ")}</span></>
+                      )}
+                    </span>
                   </span>
-                </span>
-                <span className="shrink-0 text-xs font-bold text-deep-teal">{q.scan_count}</span>
-              </Link>
-            </li>
-          )) : (
+                  <span className="shrink-0 text-xs font-bold text-deep-teal">{q.scan_count}</span>
+                </button>
+              </li>
+            );
+          }) : (
             <li className="text-xs text-charcoal/45">No QR codes yet.</li>
           )}
         </ul>

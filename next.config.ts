@@ -21,6 +21,18 @@ const nextConfig: NextConfig = {
     return [
       { source: "/login", destination: "/", permanent: false },
       { source: "/auth/login", destination: "/", permanent: false },
+      // B5/Round2 post-merge — per-QR analytics was unified into the
+      // Overview as a URL-backed filter (`/dashboard?qr=<id>`). Old
+      // bookmarks, sidebar "Analytics" deep links from earlier sessions,
+      // and any email/CSV link that pointed at the standalone route now
+      // resolve to the same view in its new location. Temporary (302)
+      // because the unification is still settling — we may restore a
+      // standalone deep view later if customer behavior demands it.
+      {
+        source: "/dashboard/qr/:id/analytics",
+        destination: "/dashboard?qr=:id",
+        permanent: false,
+      },
     ];
   },
 };

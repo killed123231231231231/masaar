@@ -160,7 +160,7 @@ function ActivityRow({ s }: { s: AccountRecentScan }) {
       <td className="px-5 py-3 text-charcoal/70">
         {s.qr_id ? (
           <Link
-            href={`/dashboard/qr/${s.qr_id}/analytics`}
+            href={`/dashboard?qr=${s.qr_id}`}
             className="font-medium text-charcoal hover:text-deep-teal"
             title={s.qr_name}
           >

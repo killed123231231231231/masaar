@@ -282,7 +282,7 @@ function ListRow({
 
       {/* Scans badge */}
       <Link
-        href={`/dashboard/qr/${q.id}/analytics`}
+        href={`/dashboard?qr=${q.id}`}
         className="inline-flex shrink-0 items-center gap-1 rounded-md bg-deep-teal/10 px-2 py-1 text-xs font-bold text-deep-teal hover:bg-deep-teal/15"
         title="Open analytics"
       >
@@ -353,7 +353,7 @@ function RowMenu({ id }: { id: string }) {
             <Pencil className="h-4 w-4" /> Edit
           </Link>
           <Link
-            href={`/dashboard/qr/${id}/analytics`}
+            href={`/dashboard?qr=${id}`}
             role="menuitem"
             onClick={() => setOpen(false)}
             className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium text-charcoal/80 hover:bg-sand-light hover:text-deep-teal"
