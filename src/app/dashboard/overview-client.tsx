@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -29,6 +30,22 @@ export default function OverviewClient({
   filterQrId: string | null;
   filterQrName: string | null;
 }) {
+  // Post-B5 contamination fix (2026-05-24): clear anon-flow localStorage
+  // keys on any dashboard mount. Dashboard always implies authed, and an
+  // authed user has no use for a leftover draft_token / checkout_pending
+  // — those are anon-funnel artifacts. Belt-and-suspenders alongside the
+  // /checkout/[shortId] success cleanup; this catches the magic-link
+  // path (/auth/claim → /dashboard?welcome=1) which never touches the
+  // checkout client.
+  useEffect(() => {
+    try {
+      localStorage.removeItem("masaar.wizard_state");
+      localStorage.removeItem("masaar.checkout_pending");
+    } catch {
+      /* private mode / quota — non-fatal */
+    }
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#F6F4EE] text-charcoal">
       <div className="flex">

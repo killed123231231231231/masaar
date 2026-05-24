@@ -16,6 +16,7 @@ import Step3Customize from "./_components/step-3-customize";
 import { buildPayload } from "./_lib/payload";
 import {
   WIZARD_KEY,
+  DRAFT_TOKEN_TTL_MS,
   DEFAULT_CUSTOMIZATION,
   defaultName,
   kindFor,
@@ -49,27 +50,55 @@ export default function WizardClient({
   const [gateOpen, setGateOpen] = useState(false);
   const [gateShortId, setGateShortId] = useState("");
   const draftToken = useRef<string>("");
+  const draftTokenCreatedAt = useRef<number>(0);
   const shortId = useRef<string>("");
   const restored = useRef(false);
 
   // Restore from localStorage once on mount (SSR-safe).
+  //
+  // Post-B5 contamination fix (2026-05-24): pre-fix the wizard kept the
+  // same draft_token in localStorage indefinitely. A user (or QA agent)
+  // who abandoned a session a week ago would, on returning today,
+  // re-use the same UUID for a new QR — and the server-side claim
+  // matched BOTH the new row AND the week-old orphan row, attaching
+  // both to the new account. Now we rotate on any mount older than
+  // DRAFT_TOKEN_TTL_MS (1 hour) AND wipe the form state, so a stale
+  // tab restored from bfcache or a returning visitor starts fresh.
   useEffect(() => {
+    let restoredAt = 0;
     try {
       const raw = localStorage.getItem(WIZARD_KEY);
       if (raw) {
         const s = JSON.parse(raw) as WizardState;
-        if (s.content_type) setType(s.content_type);
-        if (s.form_data) setForm(s.form_data);
-        if (s.name) setName(s.name);
-        if (s.customization) setCustom(s.customization);
-        if (s.max_step) setMaxStep(s.max_step);
-        if (s.draft_token) draftToken.current = s.draft_token;
-        if (s.short_id) shortId.current = s.short_id;
+        restoredAt = s.draft_token_created_at ?? 0;
+        const stale =
+          !s.draft_token ||
+          !restoredAt ||
+          Date.now() - restoredAt > DRAFT_TOKEN_TTL_MS;
+        if (stale) {
+          // Drop the whole wizard state — the form data is type-keyed
+          // to the (potentially stale) draft_token + short_id and
+          // restoring partials would just confuse the user. They get a
+          // clean Step 1 with a fresh token next.
+          localStorage.removeItem(WIZARD_KEY);
+        } else {
+          if (s.content_type) setType(s.content_type);
+          if (s.form_data) setForm(s.form_data);
+          if (s.name) setName(s.name);
+          if (s.customization) setCustom(s.customization);
+          if (s.max_step) setMaxStep(s.max_step);
+          if (s.draft_token) draftToken.current = s.draft_token;
+          if (s.short_id) shortId.current = s.short_id;
+          draftTokenCreatedAt.current = restoredAt;
+        }
       }
     } catch {
       /* ignore corrupt state */
     }
-    if (!draftToken.current) draftToken.current = crypto.randomUUID();
+    if (!draftToken.current) {
+      draftToken.current = crypto.randomUUID();
+      draftTokenCreatedAt.current = Date.now();
+    }
     // Stable client shortId so the Step-3 preview encodes the SAME
     // /r/<id> that gets persisted (the Session A invariant).
     if (!shortId.current) shortId.current = generateShortId();
@@ -92,6 +121,7 @@ export default function WizardClient({
       name,
       short_id: shortId.current,
       draft_token: draftToken.current,
+      draft_token_created_at: draftTokenCreatedAt.current,
     };
     try {
       localStorage.setItem(WIZARD_KEY, JSON.stringify(s));

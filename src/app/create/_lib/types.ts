@@ -102,9 +102,20 @@ export interface WizardState {
   name: string;
   short_id?: string;
   draft_token?: string;
+  /** Epoch ms when draft_token was generated. Used by the wizard mount
+   *  to rotate the token when it's older than DRAFT_TOKEN_TTL_MS — see
+   *  SPRINT2.md 2026-05-24 contamination fix entry for why. */
+  draft_token_created_at?: number;
 }
 
 export const WIZARD_KEY = "masaar.wizard_state";
+
+/** Stale-token rotation window. If a wizard mount finds a draft_token
+ *  in localStorage older than this, it regenerates the token and wipes
+ *  the wizard's form state — pairs with the server-side 24h cap in
+ *  migration 015 so a left-open tab from yesterday can't carry a token
+ *  that quietly attaches today's row to an orphan row in the DB. */
+export const DRAFT_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hour
 
 export function defaultName(t: WizardType): string {
   return `My ${typeMeta(t).label} QR`;

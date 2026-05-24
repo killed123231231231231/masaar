@@ -116,6 +116,18 @@ export default function CheckoutClient({
       });
       const data = await res.json().catch(() => null);
       if (res.ok && data?.success) {
+        // Post-B5 contamination fix (2026-05-24): clear the wizard's
+        // localStorage keys BEFORE navigating so the next anon flow on
+        // this browser starts with a fresh draft_token. Pre-fix the
+        // stale token persisted and re-attached week-old orphan rows
+        // to subsequent signups. Belt-and-suspenders alongside the
+        // wizard's own 1-hour TTL rotation on mount.
+        try {
+          localStorage.removeItem("masaar.wizard_state");
+          localStorage.removeItem("masaar.checkout_pending");
+        } catch {
+          /* private mode / quota — non-fatal */
+        }
         router.push(
           data.redirect_url ||
             `/checkout/success?email=${encodeURIComponent(anon.email)}`
