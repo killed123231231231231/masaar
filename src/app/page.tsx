@@ -579,8 +579,15 @@ function FeaturesGrid() {
 // Until then this section carries the brand/origin/mission narrative.
 function BuiltInRiyadh() {
   return (
-    <section id="gcc" className="mx-auto max-w-6xl scroll-mt-20 px-6 py-12 lg:py-16">
-      <div className="grid items-center gap-10 rounded-3xl border border-charcoal/10 bg-sand-light/40 p-10 lg:grid-cols-[1.3fr_1fr] lg:p-14">
+    // B6 pivot follow-up — inner-card sections (this one + BuiltForGCC)
+    // need smaller outer py than plain sections because the rounded
+    // card carries its own p-10 / lg:p-14 padding. Pre-fix the gap from
+    // last card content to the next section's header read as ~150px
+    // even though the section borders were touching (Usama screenshot
+    // 3 flag). py-6 lg:py-10 closes the visual gap to ~50px while
+    // keeping the card visually delineated by its own border + bg.
+    <section id="gcc" className="mx-auto max-w-6xl scroll-mt-20 px-6 py-6 lg:py-10">
+      <div className="grid items-center gap-10 rounded-3xl border border-charcoal/10 bg-sand-light/40 p-8 lg:grid-cols-[1.3fr_1fr] lg:p-12">
         <div>
           <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-deep-teal">
             <MapPin className="h-3.5 w-3.5" strokeWidth={2.25} />
@@ -890,7 +897,10 @@ const GCC_FEATURES = [
 
 function BuiltForGCC() {
   return (
-    <section className="mx-auto max-w-6xl px-6 py-12 lg:py-16">
+    // B6 pivot follow-up — inner-card section gets reduced outer py
+    // for the same reason as BuiltInRiyadh (compounding card-internal
+    // padding inflates visible gap to next section).
+    <section className="mx-auto max-w-6xl px-6 py-6 lg:py-10">
       <div className="overflow-hidden rounded-3xl bg-deep-teal text-white">
         <div className="grid gap-10 p-10 md:grid-cols-2 lg:p-14">
           <div>
