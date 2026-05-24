@@ -895,6 +895,27 @@ function BuiltForGCC() {
             </div>
           ))}
         </div>
+
+        {/* B6 audit fix — inline CTAs inside the dark section. Without
+            them the section was a credentialing block with no clear
+            next step. Primary CTA pushes to /create; secondary anchors
+            to the features grid (sufficient for now; an Arabic-
+            specific deep page is a Sprint 3+ candidate). */}
+        <div className="flex flex-col items-stretch gap-3 border-t border-white/15 p-6 sm:flex-row sm:items-center sm:justify-center sm:p-8">
+          <Link
+            href="/create"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-white px-6 py-3 text-sm font-semibold text-deep-teal transition-colors hover:bg-sand-light"
+          >
+            Create a GCC-ready QR
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+          <Link
+            href="#features"
+            className="inline-flex items-center justify-center rounded-lg border border-white/30 bg-transparent px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+          >
+            View Arabic features
+          </Link>
+        </div>
       </div>
     </section>
   );
