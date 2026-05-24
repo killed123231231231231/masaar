@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import {
-  Area, AreaChart, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis,
+  Area, AreaChart, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
 import { ArrowDown, ArrowUp, QrCode, type LucideIcon } from "lucide-react";
 import { PERIODS, type Bucket, type Period } from "@/lib/analytics";
@@ -70,18 +70,20 @@ export function KpiCard({
   delta?: number | null;
   series?: Bucket[];
 }) {
+  // B5/Item 5 — bumped padding + softer 2-layer shadow so adjacent cards
+  // feel clearly distinct on the cream page background instead of merging.
   return (
-    <div className="rounded-2xl border border-charcoal/10 bg-white p-4 shadow-sm">
+    <div className="rounded-2xl border border-charcoal/10 bg-white p-5 shadow-[0_1px_2px_rgba(15,91,85,0.06),0_2px_8px_-2px_rgba(15,91,85,0.08)]">
       <div className="flex items-start justify-between">
-        <span className={`grid h-8 w-8 place-items-center rounded-lg ${TINT_BG[tint]}`}>
+        <span className={`grid h-9 w-9 place-items-center rounded-lg ${TINT_BG[tint]}`}>
           <Icon className="h-4 w-4" strokeWidth={1.75} />
         </span>
         {series && series.length > 0 && <Sparkline series={series} />}
       </div>
-      <p className="mt-3 text-[11px] font-semibold uppercase tracking-wider text-charcoal/45">
+      <p className="mt-4 text-[11px] font-semibold uppercase tracking-wider text-charcoal/45">
         {label}
       </p>
-      <p className="mt-1 font-display text-2xl font-bold leading-tight">{value}</p>
+      <p className="mt-1.5 font-display text-2xl font-bold leading-tight">{value}</p>
       {delta != null && <Delta pct={delta} />}
     </div>
   );
@@ -116,7 +118,7 @@ export function TrendCard({ period, series }: { period: Period; series: Bucket[]
   const data = series.map((b) => ({ date: b.label.slice(5), count: b.count }));
   const hasData = data.some((d) => d.count > 0);
   return (
-    <div className="mb-6 rounded-2xl border border-charcoal/10 bg-white p-5 shadow-sm">
+    <div className="rounded-2xl border border-charcoal/10 bg-white p-5 shadow-[0_1px_2px_rgba(15,91,85,0.06),0_2px_8px_-2px_rgba(15,91,85,0.08)]">
       <div className="flex items-center justify-between">
         <h2 className="font-display text-sm font-bold uppercase tracking-wider text-charcoal/75">
           Scan trend over time
@@ -128,7 +130,7 @@ export function TrendCard({ period, series }: { period: Period; series: Bucket[]
       <div className="mt-4 h-72 w-full">
         {hasData ? (
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={data} margin={{ top: 5, right: 8, left: 0, bottom: 0 }}>
+            <AreaChart data={data} margin={{ top: 5, right: 8, left: -8, bottom: 0 }}>
               <defs>
                 <linearGradient id="trendG" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#0F5B55" stopOpacity={0.4} />
@@ -136,10 +138,18 @@ export function TrendCard({ period, series }: { period: Period; series: Bucket[]
                 </linearGradient>
               </defs>
               <XAxis dataKey="date" tick={{ fontSize: 11, fill: "#1B1B1D88" }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
-              <Tooltip
-                contentStyle={{ borderRadius: 10, border: "1px solid rgba(27,27,29,0.1)", boxShadow: "0 4px 16px rgba(0,0,0,0.06)" }}
-                cursor={{ stroke: "#0F5B55", strokeDasharray: "3 3" }}
+              {/* B5/Item 8 — Y-axis with integer ticks so scan counts are
+                  legible. allowDecimals=false keeps "0/1/2/3..." instead
+                  of "0.5". Width=32 reserves the gutter; left margin
+                  pulled in to compensate. */}
+              <YAxis
+                tick={{ fontSize: 11, fill: "#1B1B1D88" }}
+                axisLine={false}
+                tickLine={false}
+                allowDecimals={false}
+                width={32}
               />
+              <Tooltip cursor={{ stroke: "#0F5B55", strokeDasharray: "3 3" }} content={<TrendTooltip />} />
               <Area type="monotone" dataKey="count" stroke="#0F5B55" strokeWidth={2.5} fill="url(#trendG)" dot={{ r: 2, fill: "#0F5B55" }} activeDot={{ r: 4 }} />
             </AreaChart>
           </ResponsiveContainer>
@@ -147,6 +157,33 @@ export function TrendCard({ period, series }: { period: Period; series: Bucket[]
           <EmptyChart />
         )}
       </div>
+    </div>
+  );
+}
+
+// B5/Item 8 — branded trend-chart tooltip. Recharts hands us
+// (label, payload[]) for AreaChart hover; we render the day label and
+// "Total scans: N" with the deep-teal accent.
+function TrendTooltip({
+  active,
+  label,
+  payload,
+}: {
+  active?: boolean;
+  label?: string | number;
+  payload?: { value?: number | string }[];
+}) {
+  if (!active || !payload?.length) return null;
+  const count = Number(payload[0]?.value ?? 0);
+  return (
+    <div className="rounded-lg border border-charcoal/10 bg-white px-3 py-2 shadow-[0_4px_16px_rgba(0,0,0,0.08)]">
+      <p className="text-[10px] uppercase tracking-wider text-charcoal/45">{label}</p>
+      <p className="mt-0.5 text-xs">
+        <span className="text-charcoal/65">Total scans:</span>{" "}
+        <span className="font-display text-sm font-bold text-deep-teal">
+          {count.toLocaleString()}
+        </span>
+      </p>
     </div>
   );
 }
@@ -169,7 +206,7 @@ export function DonutCard({
   const total = series.reduce((s, b) => s + b.count, 0);
   const data = series.length ? series : [{ label: "No data", count: 1 }];
   return (
-    <div className="rounded-2xl border border-charcoal/10 bg-white p-5 shadow-sm">
+    <div className="rounded-2xl border border-charcoal/10 bg-white p-5 shadow-[0_1px_2px_rgba(15,91,85,0.06),0_2px_8px_-2px_rgba(15,91,85,0.08)]">
       <h2 className="font-display text-sm font-bold uppercase tracking-wider text-charcoal/75">{title}</h2>
       <div className="mt-3 grid grid-cols-[140px_1fr] items-center gap-4">
         <div className="relative h-[140px] w-[140px]">
@@ -211,7 +248,7 @@ export function DonutCard({
 export function BarCard({ title, series }: { title: string; series: Bucket[] }) {
   const max = Math.max(1, ...series.map((b) => b.count));
   return (
-    <div className="rounded-2xl border border-charcoal/10 bg-white p-5 shadow-sm">
+    <div className="rounded-2xl border border-charcoal/10 bg-white p-5 shadow-[0_1px_2px_rgba(15,91,85,0.06),0_2px_8px_-2px_rgba(15,91,85,0.08)]">
       <h2 className="font-display text-sm font-bold uppercase tracking-wider text-charcoal/75">{title}</h2>
       {series.length ? (
         <ul className="mt-3 space-y-2.5">

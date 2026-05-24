@@ -6,8 +6,13 @@ import CheckoutClient from "./checkout-client";
 export const dynamic = "force-dynamic";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+// B5/Round2 Item 6 — logo_url added so the checkout-page QR preview
+// renders the user's logo BEFORE they pay (critical trust moment;
+// previously they only saw their logo on the activated /render.png
+// after payment, which is too late). QrPreview accepts `logoUrl` and
+// composites it client-side via qr-code-styling.
 const COLS =
-  "id, short_id, name, status, kind, destination, fg_color, bg_color, gradient_color, dot_style, corner_style, creator_email";
+  "id, short_id, name, status, kind, destination, fg_color, bg_color, gradient_color, dot_style, corner_style, logo_url, creator_email";
 
 // Social proof: count of QRs created in the last 24h, account-wide.
 // Uses the admin client since RLS scopes regular queries to the owner.

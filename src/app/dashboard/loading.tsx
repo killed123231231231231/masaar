@@ -6,7 +6,7 @@ import Skeleton from "@/components/ui/skeleton";
 export default function DashboardLoading() {
   return (
     <div className="min-h-screen bg-[#F6F4EE]">
-      <div className="mx-auto flex max-w-[1440px]">
+      <div className="flex">
         {/* Sidebar placeholder (lg+) */}
         <aside className="sticky top-0 hidden h-screen w-[220px] shrink-0 bg-deep-teal lg:block" />
         <div className="flex min-w-0 flex-1 flex-col xl:flex-row">

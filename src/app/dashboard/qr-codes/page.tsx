@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getMe } from "@/lib/me";
 import QrCodesClient, { type QrCardData } from "./qr-codes-client";
 
 export const dynamic = "force-dynamic";
@@ -14,21 +15,14 @@ export default async function QrCodesPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [qrsRes, profileRes, qrCountRes] = await Promise.all([
+  // QR list + me in parallel. scan_counts depends on the ids, runs after.
+  const [qrsRes, me] = await Promise.all([
     supabase
       .from("qr_codes")
-      .select("id, name, kind, content_kind, destination, short_id, status, created_at")
+      .select("id, name, kind, content_kind, destination, short_id, status, created_at, fg_color, bg_color, gradient_color, dot_style, corner_style, logo_url")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false }),
-    supabase
-      .from("profiles")
-      .select("full_name, subscription_status")
-      .eq("id", user.id)
-      .maybeSingle(),
-    supabase
-      .from("qr_codes")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id),
+    getMe(user.id, user.email ?? ""),
   ]);
 
   if (qrsRes.error) throw qrsRes.error;
@@ -45,13 +39,6 @@ export default async function QrCodesPage() {
     if (countsError) throw countsError;
     for (const r of countsRows ?? []) counts[r.qr_code_id] = Number(r.count);
   }
-
-  const me = {
-    email: user.email ?? "",
-    name: profileRes.data?.full_name ?? user.email ?? "Account",
-    plan: profileRes.data?.subscription_status === "active" ? "Pro" : "Free",
-    qrCount: qrCountRes.count ?? 0,
-  };
 
   return <QrCodesClient qrs={qrs} counts={counts} me={me} />;
 }

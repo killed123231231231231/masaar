@@ -8,6 +8,7 @@ import { generateShortId } from "@/lib/shortid";
 import { createClient } from "@/lib/supabase/client";
 import { appUrl } from "@/lib/utils";
 import EmailGateModal from "@/components/email-gate-modal";
+import Sidebar, { type SidebarMe } from "@/components/dashboard/sidebar";
 import ProgressBar from "./_components/progress-bar";
 import Step1Type from "./_components/step-1-type";
 import Step2Content from "./_components/step-2-content";
@@ -26,7 +27,14 @@ import {
 
 type Step = 1 | 2 | 3;
 
-export default function WizardClient({ isAuthed }: { isAuthed: boolean }) {
+export default function WizardClient({
+  isAuthed,
+  me,
+}: {
+  isAuthed: boolean;
+  /** Sidebar profile data — present only when isAuthed; null for anon. */
+  me?: SidebarMe | null;
+}) {
   const router = useRouter();
   const params = useSearchParams();
 
@@ -231,11 +239,20 @@ export default function WizardClient({ isAuthed }: { isAuthed: boolean }) {
     return payload?.destination || " ";
   })();
 
-  return (
-    <div className="min-h-screen bg-sand-light/30">
+  // B5/Item 6 — authed users get the wizard wrapped in the deep-teal
+  // Sidebar shell so the sidebar stays locked on every authed surface.
+  // Anon users keep the bare wizard layout (no account context to show).
+  //
+  // B5 (Step-1/2 reference match) — wizard nav extracted into a
+  // sticky bottom bar (Cancel/Back on left, Next/Download on right)
+  // so it lives outside the step body and matches the getqr layout.
+  // Body container widened from max-w-4xl to max-w-7xl + pb-32 to
+  // clear the fixed bottom bar.
+  const wizardBody = (
+    <div className="flex min-h-screen flex-col">
       <ProgressBar current={step} maxStep={maxStep} onJump={(n) => goStep(n)} />
 
-      <div className="mx-auto max-w-4xl px-5 py-8">
+      <div className="mx-auto w-full max-w-7xl flex-1 px-5 pb-32 pt-2 sm:px-8 lg:px-10">
         {step === 1 && (
           <Step1Type
             selected={type}
@@ -266,23 +283,35 @@ export default function WizardClient({ isAuthed }: { isAuthed: boolean }) {
             previewData={preview}
             shortId={shortId.current}
             isAuthed={isAuthed}
+            draftToken={draftToken.current}
             c={custom}
             setC={setCustom}
           />
         )}
+      </div>
 
-        {/* Footer nav — sticky at the bottom on mobile (spec §8) */}
-        <div className="sticky bottom-0 z-20 -mx-5 mt-10 flex items-center justify-between border-t border-charcoal/10 bg-sand-light/95 px-5 py-4 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0 sm:backdrop-blur-none">
-          {step > 1 ? (
+      {/* Sticky bottom action bar — outside the body container so it
+          spans the wizard column. Cancel on Step 1, Back on later
+          steps; Next on Steps 1+2, Download on Step 3. Outlined-pill
+          left / solid-pill right per the reference. */}
+      <div className="sticky bottom-0 z-30 border-t border-charcoal/10 bg-white/95 backdrop-blur">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 sm:px-8 lg:px-10">
+          {step === 1 ? (
+            <button
+              type="button"
+              onClick={() => router.push("/")}
+              className="inline-flex items-center gap-2 rounded-full border-2 border-deep-teal/40 px-7 py-2.5 text-sm font-semibold text-deep-teal transition-colors hover:bg-deep-teal/5"
+            >
+              Cancel
+            </button>
+          ) : (
             <button
               type="button"
               onClick={() => goStep((step - 1) as Step)}
-              className="inline-flex items-center gap-2 rounded-lg border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal transition-colors hover:text-deep-teal"
+              className="inline-flex items-center gap-2 rounded-full border-2 border-deep-teal/40 px-7 py-2.5 text-sm font-semibold text-deep-teal transition-colors hover:bg-deep-teal/5"
             >
               <ArrowLeft className="h-4 w-4" /> Back
             </button>
-          ) : (
-            <span />
           )}
 
           {step < 3 ? (
@@ -290,7 +319,7 @@ export default function WizardClient({ isAuthed }: { isAuthed: boolean }) {
               type="button"
               onClick={next}
               disabled={step === 1 && !type}
-              className="inline-flex items-center gap-2 rounded-lg bg-deep-teal px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-terracotta disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-full bg-deep-teal px-8 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-deep-teal-dark disabled:opacity-50"
             >
               Next <ArrowRight className="h-4 w-4" />
             </button>
@@ -299,7 +328,7 @@ export default function WizardClient({ isAuthed }: { isAuthed: boolean }) {
               type="button"
               onClick={download}
               disabled={saving}
-              className="inline-flex items-center gap-2 rounded-lg bg-deep-teal px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-terracotta disabled:opacity-60"
+              className="inline-flex items-center gap-2 rounded-full bg-deep-teal px-8 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-deep-teal-dark disabled:opacity-60"
             >
               {saving ? "Creating…" : "Download QR"}
             </button>
@@ -317,4 +346,17 @@ export default function WizardClient({ isAuthed }: { isAuthed: boolean }) {
       />
     </div>
   );
+
+  if (me) {
+    return (
+      <div className="min-h-screen bg-white text-charcoal">
+        <div className="flex">
+          <Sidebar me={me} current="none" />
+          <div className="min-w-0 flex-1">{wizardBody}</div>
+        </div>
+      </div>
+    );
+  }
+
+  return <div className="min-h-screen bg-white text-charcoal">{wizardBody}</div>;
 }

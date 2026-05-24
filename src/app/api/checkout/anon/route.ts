@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { randomBytes } from "crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendWelcomeEmail } from "@/lib/email";
 
@@ -101,15 +102,24 @@ export async function POST(request: Request) {
       {
         error: "email_already_registered",
         message: "This email already has an account. Please log in instead.",
-        login_url: `/auth/login?email=${encodeURIComponent(email)}`,
+        login_url: `/?login=1&email=${encodeURIComponent(email)}`,
       },
       { status: 409 }
     );
   }
 
+  // B5/Fix 22 — generate a secure random password at account creation
+  // and include it in the welcome email. Lets users log in immediately
+  // with email+password (no password-reset round trip). Bug 16's reset
+  // flow stays as the fallback for lost-email cases.
+  // base64url over 12 bytes = 16-char alphanumeric; satisfies Supabase's
+  // default 6-char minimum and gives ~96 bits of entropy.
+  const generatedPassword = randomBytes(12).toString("base64url");
+
   // Payment is proof of email ownership → skip confirmation.
   const { data: created, error: cErr } = await admin.auth.admin.createUser({
     email,
+    password: generatedPassword,
     email_confirm: true,
     user_metadata: { signup_source: "frictionless_checkout" },
   });
@@ -120,7 +130,7 @@ export async function POST(request: Request) {
         {
           error: "email_already_registered",
           message: "This email already has an account. Please log in instead.",
-          login_url: `/auth/login?email=${encodeURIComponent(email)}`,
+          login_url: `/?login=1&email=${encodeURIComponent(email)}`,
         },
         { status: 409 }
       );
@@ -157,6 +167,18 @@ export async function POST(request: Request) {
     })
     .eq("id", userId);
 
+  // B5/Audit Finding 2 — derive the QR image URL from the actual
+  // request origin instead of the hardcoded PROD constant. The email
+  // is then self-consistent with the deploy the user just checked out
+  // on: prod-checkout -> prod render URL (has the logo composite
+  // shipped on main); preview-checkout -> preview render URL (has
+  // whatever's on the branch). The old hardcoded PROD broke logo
+  // rendering for any preview-deploy testing because preview-only
+  // fixes never landed at masaar-zeta.vercel.app.
+  const host = request.headers.get("host");
+  const proto = request.headers.get("x-forwarded-proto") || "https";
+  const origin = host ? `${proto}://${host}` : PROD;
+
   // Welcome email (stubbed if no RESEND key).
   const first = claimed?.[0];
   let emailResult = { sent: false, stubbed: true } as Awaited<
@@ -166,7 +188,15 @@ export async function POST(request: Request) {
     emailResult = await sendWelcomeEmail({
       to: email,
       shortId: first.short_id || first.id,
-      qrImageUrl: `${PROD}/api/qr/${first.id}/render.png?size=512`,
+      qrImageUrl: `${origin}/api/qr/${first.id}/render.png?size=512`,
+      // B5/Audit — also pass origin so the email body's "Manage your
+      // QR" + "Log in at" links match the deploy that sent this email
+      // (was hardcoded PROD, broke preview-test flow self-consistency).
+      origin,
+      // B5/Fix 22 — include the generated password so the user can log
+      // in immediately. Sent in plain text in the email body, clearly
+      // marked, with "change anytime in Settings" instructions.
+      generatedPassword,
     });
   }
 

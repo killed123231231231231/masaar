@@ -16,6 +16,11 @@ import {
   Globe,
 } from "lucide-react";
 import LogoMark from "@/components/logo-mark";
+import HeaderLoginButton from "@/components/header-login-button";
+import HeaderProfileMenu from "@/components/header-profile-menu";
+import { createClient } from "@/lib/supabase/server";
+
+export const dynamic = "force-dynamic";
 
 const NAV = [
   { label: "Product", href: "/product" },
@@ -34,10 +39,21 @@ const TRUST_LOGOS = [
   "Hilal",
 ];
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  // B5/Item 13 (partial) — SiteHeader is now auth-aware. Fetch the
+  // session server-side and pass auth state down as props. The Phase 2
+  // commit (Item 12) will swap the read-only avatar chip for a real
+  // profile dropdown (Settings / Sign out).
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const isAuthed = !!user;
+  const userEmail = user?.email ?? null;
+
   return (
     <main className="min-h-screen bg-white text-charcoal">
-      <SiteHeader />
+      <SiteHeader isAuthed={isAuthed} userEmail={userEmail} />
 
       <Hero />
       <TrustStrip />
@@ -45,7 +61,8 @@ export default function LandingPage() {
       <HowItWorks />
       <AnalyticsPreview />
       <BuiltForGCC />
-      <Faq />
+      {/* FAQ section removed from landing per B5/Item 4. The Faq component
+          stays defined below so it can be reused on /pricing later. */}
       <FinalCta />
 
       <SiteFooter />
@@ -55,7 +72,13 @@ export default function LandingPage() {
 
 /* ------------------------------------------------------------------ */
 
-function SiteHeader() {
+function SiteHeader({
+  isAuthed,
+  userEmail,
+}: {
+  isAuthed: boolean;
+  userEmail: string | null;
+}) {
   return (
     <header className="sticky top-0 z-40 border-b border-charcoal/10 bg-white/85 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
@@ -79,18 +102,36 @@ function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <Link
-            href="/login"
-            className="hidden px-3 py-2 text-sm font-medium text-charcoal transition-colors hover:text-deep-teal sm:inline-block"
-          >
-            Log in
-          </Link>
-          <Link
-            href="/create"
-            className="rounded-lg bg-deep-teal px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-deep-teal-dark"
-          >
-            Start free trial
-          </Link>
+          {isAuthed ? (
+            <>
+              <Link
+                href="/dashboard"
+                className="hidden px-3 py-2 text-sm font-medium text-charcoal/75 transition-colors hover:text-deep-teal sm:inline-block"
+              >
+                Dashboard
+              </Link>
+              <Link
+                href="/create"
+                className="rounded-lg bg-deep-teal px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-deep-teal-dark"
+              >
+                Create QR Code
+              </Link>
+              {/* B5/Item 13 completion — the read-only chip is now a real
+                  dropdown (Dashboard / Settings / Sign out) mirroring the
+                  sidebar's ProfileChip. */}
+              <HeaderProfileMenu email={userEmail} />
+            </>
+          ) : (
+            <>
+              <HeaderLoginButton />
+              <Link
+                href="/create"
+                className="rounded-lg bg-deep-teal px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-deep-teal-dark"
+              >
+                Create QR Code
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </header>
@@ -103,7 +144,11 @@ function Hero() {
   return (
     <section className="relative overflow-hidden bg-[#F6F4EE]">
       <HeroBackdrop />
-      <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 pt-12 pb-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] lg:gap-14 lg:pt-20 lg:pb-20">
+      {/* B5/Fix 24 — pull the hero content up so it doesn't float in
+          a sea of cream below the header. Was pt-12 / lg:pt-20; now
+          pt-6 / lg:pt-10 closes the gap. Bottom padding kept generous
+          so the TrustStrip below still has breathing room. */}
+      <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 pt-6 pb-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] lg:gap-14 lg:pt-10 lg:pb-20">
         <HeroCopy />
         <HeroPreview />
       </div>
@@ -153,14 +198,14 @@ function HeroCopy() {
           href="/create"
           className="inline-flex items-center justify-center gap-2 rounded-lg bg-deep-teal px-6 py-3 text-base font-semibold text-white shadow-sm transition-colors hover:bg-deep-teal-dark"
         >
-          Start free trial <ArrowRight className="h-4 w-4" />
+          Create QR Code <ArrowRight className="h-4 w-4" />
         </Link>
-        <a
-          href="mailto:hello@masaar.sa?subject=Masaar%20demo%20request"
+        <Link
+          href="/contact"
           className="inline-flex items-center justify-center rounded-lg border border-charcoal/15 bg-white px-6 py-3 text-base font-semibold text-charcoal transition-colors hover:bg-sand-light hover:text-deep-teal"
         >
           Book a demo
-        </a>
+        </Link>
       </div>
 
       <ul className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs font-medium text-charcoal/55">
@@ -665,6 +710,7 @@ const FOOTER_COLS = [
     links: [
       { label: "About", href: "/about" },
       { label: "Solutions", href: "/solutions" },
+      { label: "Contact", href: "/contact" },
     ],
   },
   {
