@@ -1016,21 +1016,21 @@ function Faq() {
   );
 }
 
-// B6/Section 10 — Footer cleanup, folds in B5 audit M1 + M4.
+// B6 pivot — footer rewritten for the single-page funnel structure.
+// Product column entries point at landing anchors directly (avoid the
+// /product -> /#features redirect round-trip from the next.config.ts
+// sub-page collapse). Company column drops Solutions / About (those
+// stubs are now redirects). Resources column carries FAQ anchor +
+// legal + Contact.
 //
-// M1: removed the "Log in -> /login" entry (the route was deleted in
-// B5/Bug 14; the redirect to "/" still works but it's a needless
-// 2-hop and "Log in" already lives in the SiteHeader anyway).
-//
-// M4: refreshed the Resources column to point at real anchors. The
-// /resources page itself is built out in Phase 4; until then the
-// column links to the FAQ anchor on this very landing as the
-// honest "answers to common questions" surface.
+// Originally folded in B5 audit M1 + M4 (footer Log in /login hop +
+// stale Resources entries); the pivot supersedes both since the whole
+// footer link map gets rewritten anyway.
 const FOOTER_COLS = [
   {
     title: "Product",
     links: [
-      { label: "Overview", href: "/product" },
+      { label: "Features", href: "#features" },
       { label: "Pricing", href: "/pricing" },
       { label: "Create a QR", href: "/create" },
     ],
@@ -1038,15 +1038,13 @@ const FOOTER_COLS = [
   {
     title: "Company",
     links: [
-      { label: "About", href: "/about" },
-      { label: "Solutions", href: "/solutions" },
+      { label: "Built for GCC", href: "#gcc" },
       { label: "Contact", href: "/contact" },
     ],
   },
   {
     title: "Resources",
     links: [
-      { label: "Guides & docs", href: "/resources" },
       { label: "FAQ", href: "#faq" },
       { label: "Privacy", href: "/privacy" },
       { label: "Terms", href: "/terms" },
