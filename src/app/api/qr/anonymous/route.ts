@@ -95,6 +95,12 @@ export async function POST(request: Request) {
     p_dot_style: body.dot_style ?? "square",
     p_corner_style: body.corner_style ?? "square",
     p_ip_hash: ipHash,
+    // B5/Round2 Bug R2.1+R2.2 — pass logo_url so qr_codes.logo_url is
+    // populated. Without this the anon flow created rows with NULL
+    // logo_url even when the wizard uploaded a logo to storage, so
+    // both the checkout-page preview and the dashboard thumbnail
+    // rendered without the logo (migration 014 adds the RPC param).
+    p_logo_url: typeof body.logo_url === "string" ? body.logo_url : null,
   });
 
   if (error) {
