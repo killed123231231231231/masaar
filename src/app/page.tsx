@@ -197,14 +197,14 @@ function HeroCopy() {
       </span>
 
       <h1 className="mt-5 text-balance font-display text-[2.4rem] font-bold leading-[1.05] tracking-tight sm:text-5xl lg:text-[3.6rem]">
-        Adaptive dynamic <br className="hidden sm:block" />
-        QR codes for{" "}
+        Dynamic QR menus, campaigns, and scan analytics for{" "}
         <span className="italic text-deep-teal">GCC businesses</span>
       </h1>
 
       <p className="mt-5 max-w-xl text-balance text-base leading-relaxed text-charcoal/65">
-        Create, manage, and optimize dynamic QR experiences with real-time
-        scan analytics — so every scan drives measurable impact.
+        Create QR codes once, update destinations anytime, and track every
+        scan across menus, WhatsApp, WiFi, vCards, and campaigns — built
+        for Arabic-first Gulf businesses.
       </p>
 
       <div className="mt-7 inline-flex items-center gap-3 rounded-xl border border-charcoal/10 bg-white/60 px-4 py-3">
@@ -212,7 +212,7 @@ function HeroCopy() {
           <LogoMark className="h-5 w-5 brightness-0 invert" />
         </span>
         <span className="text-sm font-medium text-charcoal/75">
-          Every scan has a path.
+          Update after printing. Track every scan.
         </span>
       </div>
 
@@ -221,13 +221,13 @@ function HeroCopy() {
           href="/create"
           className="inline-flex items-center justify-center gap-2 rounded-lg bg-deep-teal px-6 py-3 text-base font-semibold text-white shadow-sm transition-colors hover:bg-deep-teal-dark"
         >
-          Create QR Code <ArrowRight className="h-4 w-4" />
+          Create your QR code <ArrowRight className="h-4 w-4" />
         </Link>
         <Link
-          href="/contact"
+          href="#how-it-works"
           className="inline-flex items-center justify-center rounded-lg border border-charcoal/15 bg-white px-6 py-3 text-base font-semibold text-charcoal transition-colors hover:bg-sand-light hover:text-deep-teal"
         >
-          Book a demo
+          See how it works
         </Link>
       </div>
 
