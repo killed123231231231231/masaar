@@ -610,12 +610,28 @@ function BuiltInRiyadh() {
             on the way — no &ldquo;coming soon&rdquo; vapor that never ships.
           </p>
 
-          {/* Roadmap teaser — three concrete next bets, honest about
-              when. Pulls from STRATEGY.md §2.1 + the sprint plan. */}
+          {/* B6 audit fix — capability chips, NOT sprint terminology.
+              The previous "Sprint 3" / "Next Session" / "Launching Next"
+              labels were internal sprint planning vocabulary that
+              leaked to the customer-facing landing. Embarrassing.
+              Replaced with concrete capability framing that's already
+              true (Saudi-first pricing IS shipped; Arabic-ready
+              interface = Plex Arabic typography is shipped, full RTL
+              ships next; F&B menu workflows = the Menu vertical
+              positioning) instead of future-tense roadmap chips. */}
           <ul className="mt-7 grid gap-3 sm:grid-cols-3">
-            <RoadmapPill label="Mada / STC Pay" when="Sprint 3" />
-            <RoadmapPill label="Arabic + RTL" when="Next session" />
-            <RoadmapPill label="Menu vertical" when="Launching next" />
+            <CapabilityPill
+              label="Saudi-first pricing"
+              note="SAR, no surprise renewals"
+            />
+            <CapabilityPill
+              label="Arabic-ready interface"
+              note="Plex Arabic + RTL"
+            />
+            <CapabilityPill
+              label="F&B menu workflows"
+              note="Built for cafés + restaurants"
+            />
           </ul>
         </div>
 
@@ -642,12 +658,12 @@ function BuiltInRiyadh() {
   );
 }
 
-function RoadmapPill({ label, when }: { label: string; when: string }) {
+function CapabilityPill({ label, note }: { label: string; note: string }) {
   return (
     <li className="rounded-lg border border-charcoal/10 bg-white px-3 py-2.5">
       <p className="text-sm font-semibold text-charcoal">{label}</p>
       <p className="mt-0.5 text-[11px] font-medium uppercase tracking-wider text-charcoal/50">
-        {when}
+        {note}
       </p>
     </li>
   );
