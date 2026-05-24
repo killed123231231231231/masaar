@@ -588,31 +588,35 @@ function FeaturesGrid() {
 // Until then this section carries the brand/origin/mission narrative.
 function BuiltInRiyadh() {
   return (
-    <section id="gcc" className="mx-auto max-w-6xl px-6 py-14 lg:py-24">
-      {/* B6 post-audit redesign — two-column premium card. Previous
-          version had the map at max-w-md inside a padded card, which
-          rendered as a small floating image with ~50% of the right
-          column empty (Usama screenshot flag).
-
-          Now: parent card has overflow-hidden + grid lg:grid-cols-[48%_52%]
-          with NO internal padding on the right column. The map fills
-          the entire right panel via next/image fill + object-cover.
-          CSS grid's stretch alignment keeps both columns the same
-          height; the image's container therefore matches the left
-          content's natural height, no min-h gymnastics needed on
-          desktop. Mobile gets min-h-[320px] so the image has
-          something to fill against when columns stack. */}
+    // B6 post-audit-pass-2 — compressed card. The previous redesign
+    // ballooned to ~700px because grid-stretch made the right panel
+    // match the left content's natural height (which included generous
+    // p-14 padding + mt-5 / mt-7 inter-element gaps + sm:text-4xl
+    // headline). On a typical 800-900px viewport that pushed the
+    // capability chips below the fold and forced scrolling just to
+    // see the section. This pass tightens every vertical dimension
+    // while keeping the two-column layout + the large map intact.
+    //
+    // Outer section py-14 lg:py-24 -> py-10 lg:py-16 (cuts ~32px)
+    // Inner left padding lg:p-14 -> lg:p-10 (cuts ~32px)
+    // H2 sm:text-4xl -> sm:text-3xl (cuts ~12px line-height on lg)
+    // Inter-element margins tightened (mt-5 -> mt-4, mt-7 -> mt-5)
+    // Image: object-cover -> object-contain so the full map is
+    //   visible even when the panel is shorter; subtle p-4 lg:p-6
+    //   padding inside the panel gives the image breathing room
+    //   without the heavy crop that cover was doing.
+    <section id="gcc" className="mx-auto max-w-6xl px-6 py-10 lg:py-16">
       <div className="overflow-hidden rounded-3xl border border-charcoal/10 bg-sand-light/40 shadow-sm lg:grid lg:grid-cols-[48%_52%]">
-        {/* Left content column */}
-        <div className="p-8 sm:p-10 lg:p-14">
+        {/* Left content column — compressed */}
+        <div className="p-8 sm:p-10 lg:p-10">
           <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-deep-teal">
             <MapPin className="h-3.5 w-3.5" strokeWidth={2.25} />
             Built in Riyadh
           </p>
-          <h2 className="mt-3 text-balance font-display text-3xl font-bold tracking-tight sm:text-4xl">
+          <h2 className="mt-3 text-balance font-display text-2xl font-bold tracking-tight sm:text-3xl">
             QR tools made for the GCC, not adapted from US software.
           </h2>
-          <p className="mt-5 text-balance text-base leading-relaxed text-charcoal/70">
+          <p className="mt-4 text-balance text-sm leading-relaxed text-charcoal/70 sm:text-base">
             Most QR platforms are priced in dollars, designed for Western
             customers, and bolt on Arabic as an afterthought. Masaar is the
             alternative — Saudi-priced, GCC-aware by default, and built
@@ -620,22 +624,13 @@ function BuiltInRiyadh() {
             <span className="font-medium text-charcoal">menu, WhatsApp,
             vCard, WiFi, location</span>.
           </p>
-          <p className="mt-3 text-balance text-base leading-relaxed text-charcoal/70">
+          <p className="mt-3 text-balance text-sm leading-relaxed text-charcoal/70 sm:text-base">
             We&apos;re launching in 2026 with the Saudi F&amp;B and retail
             market in mind. Honest about what&apos;s live versus what&apos;s
             on the way — no &ldquo;coming soon&rdquo; vapor that never ships.
           </p>
 
-          {/* B6 audit fix — capability chips, NOT sprint terminology.
-              The previous "Sprint 3" / "Next Session" / "Launching Next"
-              labels were internal sprint planning vocabulary that
-              leaked to the customer-facing landing. Embarrassing.
-              Replaced with concrete capability framing that's already
-              true (Saudi-first pricing IS shipped; Arabic-ready
-              interface = Plex Arabic typography is shipped, full RTL
-              ships next; F&B menu workflows = the Menu vertical
-              positioning) instead of future-tense roadmap chips. */}
-          <ul className="mt-7 grid gap-3 sm:grid-cols-3">
+          <ul className="mt-5 grid gap-3 sm:grid-cols-3">
             <CapabilityPill
               label="Saudi-first pricing"
               note="SAR, no surprise renewals"
@@ -651,21 +646,27 @@ function BuiltInRiyadh() {
           </ul>
         </div>
 
-        {/* Right visual panel — map fills the entire column. No internal
-            padding on this side: the map touches the rounded card edge
-            (overflow-hidden on the parent clips it cleanly to the
-            curve). Light teal tint behind the image so any
-            object-cover crop on extreme aspect ratios feels intentional
-            instead of pillarboxed. */}
-        <div className="relative min-h-[320px] bg-deep-teal/5 sm:min-h-[420px] lg:min-h-[560px]">
-          <Image
-            src="/landing/built-in-riyadh-map.png"
-            alt="GCC map showing Masaar QR codes radiating from Riyadh to locations across Saudi Arabia and the wider Gulf"
-            fill
-            sizes="(max-width: 1024px) 100vw, 52vw"
-            className="object-cover object-center"
-            priority={false}
-          />
+        {/* Right visual panel — object-contain so the full map is
+            visible even when the panel ends up shorter than the
+            image's native aspect would prefer.
+
+            Padding on the outer + a `relative` inner wrapper that
+            holds the `fill` image is the only way to give the image
+            inset breathing room (next/image fill uses absolute
+            positioning which ignores parent padding). Outer is the
+            grid item that stretches; inner h-full picks up the
+            stretched height. */}
+        <div className="bg-deep-teal/5 p-4 lg:p-6">
+          <div className="relative h-full min-h-[260px] sm:min-h-[320px] lg:min-h-[400px]">
+            <Image
+              src="/landing/built-in-riyadh-map.png"
+              alt="GCC map showing Masaar QR codes radiating from Riyadh to locations across Saudi Arabia and the wider Gulf"
+              fill
+              sizes="(max-width: 1024px) 100vw, 52vw"
+              className="object-contain object-center"
+              priority={false}
+            />
+          </div>
         </div>
       </div>
     </section>
