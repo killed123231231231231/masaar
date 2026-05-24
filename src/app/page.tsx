@@ -491,10 +491,10 @@ function HowItWorks() {
 // Two features carry honest "Coming soon" badges (Bilingual + AI
 // Menu). Per STRATEGY.md and the brand-discipline guardrails, no
 // roadmap item is shipped as "live" before its session lands.
-// B6 pivot — tightened to 1-2 short lines per card. Getqr's feature
-// card density is punchy and scannable; the previous 4-6 line bodies
-// read as manuals. The detail can resurface in /product later if we
-// ever build it (for now: redirected to this section).
+// B6 audit copy refinement — feature titles now match the
+// vocabulary a Saudi cafe owner actually uses ("Menu, WhatsApp,
+// WiFi & vCard" beats "GCC content types"). Bodies stay 1-2 short
+// lines per the audit density target.
 const LANDING_FEATURES = [
   {
     icon: RefreshCw,
@@ -504,8 +504,8 @@ const LANDING_FEATURES = [
   },
   {
     icon: Layers,
-    title: "GCC content types",
-    body: "Website, Menu, WhatsApp, vCard, WiFi — built for how Gulf customers actually engage.",
+    title: "Menu, WhatsApp, WiFi & vCard",
+    body: "Five content types built for how Gulf customers actually engage.",
     soon: false,
   },
   {
@@ -516,14 +516,14 @@ const LANDING_FEATURES = [
   },
   {
     icon: Languages,
-    title: "Bilingual Arabic / English",
+    title: "Arabic + English support",
     body: "Native RTL, IBM Plex Arabic — not translated as an afterthought.",
     soon: true,
   },
   {
     icon: UtensilsCrossed,
     title: "AI Menu Builder",
-    body: "Upload a paper menu photo. AI extracts items, prices, bilingual fields — in seconds.",
+    body: "Upload a paper menu photo. AI extracts items, prices, bilingual fields.",
     soon: true,
   },
 ];
@@ -551,9 +551,12 @@ function FeaturesGrid() {
               key={title}
               className="relative rounded-2xl border border-charcoal/10 bg-white p-6 transition-colors hover:border-deep-teal/30"
             >
+              {/* B6 audit fix — was a big "SOON" pill that competed
+                  with the title. Now a small inline "Coming soon"
+                  tag, lower contrast, doesn't shout. */}
               {soon && (
-                <span className="absolute right-4 top-4 rounded-full bg-terracotta/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-terracotta-dark">
-                  Soon
+                <span className="absolute right-4 top-4 text-[10px] font-medium text-terracotta-dark/75">
+                  Coming soon
                 </span>
               )}
               <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-deep-teal/10 text-deep-teal">
