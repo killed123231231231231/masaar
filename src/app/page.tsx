@@ -62,6 +62,7 @@ export default async function LandingPage() {
       <HowItWorks />
       <FeaturesGrid />
       <BuiltInRiyadh />
+      <PricingTeaser />
       <BuiltForGCC />
       {/* FAQ section removed from landing per B5/Item 4. The Faq component
           stays defined below so it can be reused on /pricing later. */}
@@ -713,6 +714,155 @@ function PeninsulaPin() {
         Saudi Arabia
       </text>
     </svg>
+  );
+}
+
+// B6/Section 6 — Pricing Teaser (NEW).
+//
+// 3-card preview of the 5-tier table that lives on /pricing (built in
+// Phase 4). Borrows getqr's pricing card grid + "Most Popular"
+// highlight + "Save X%" badge patterns — but ships HONEST tiers:
+//
+// - No $1 trial trap (getqr's pattern; their FAQ is 6/13
+//   billing-defensive as a result — see design-targets/getqr-analysis.md)
+// - Tiers are differentiated by FEATURES, not just billing cadence
+// - SAR pricing upfront, no "prices may vary by country" geo-trick
+//
+// 5 full tiers per STRATEGY.md §5 (Free / Starter / Pro / Menu Pro /
+// Menu Pro + Ordering / Agency); this teaser surfaces the 3 most
+// representative — Free / Pro (Most Popular) / Menu Pro — and links
+// to /pricing for the full comparison matrix.
+const PRICING_PREVIEW = [
+  {
+    name: "Free",
+    price: "SAR 0",
+    cadence: "forever",
+    headline: "Try Masaar with no card.",
+    items: [
+      "5 dynamic QR codes",
+      "Basic scan analytics",
+      "PNG / SVG export",
+    ],
+    cta: "Start free",
+    href: "/create",
+    badge: null,
+  },
+  {
+    name: "Pro",
+    price: "SAR 99",
+    cadence: "per month",
+    headline: "Everything most businesses need.",
+    items: [
+      "Unlimited dynamic QRs",
+      "Full analytics + CSV export",
+      "Logo, colors, frames",
+      "15+ content types",
+    ],
+    cta: "Start free trial",
+    href: "/create",
+    badge: "Most popular",
+  },
+  {
+    name: "Menu Pro",
+    price: "SAR 199",
+    cadence: "per month",
+    headline: "Built for Saudi cafes + restaurants.",
+    items: [
+      "Everything in Pro",
+      "Menu vertical + AI import",
+      "Photo CDN + allergen tags",
+      "Bilingual menu rendering",
+    ],
+    cta: "Explore Menu Pro",
+    href: "/solutions",
+    badge: null,
+  },
+];
+
+function PricingTeaser() {
+  return (
+    <section className="bg-white">
+      <div className="mx-auto max-w-6xl px-6 py-20 lg:py-28">
+        <div className="mx-auto max-w-2xl text-center">
+          <p className="text-xs font-semibold uppercase tracking-wider text-deep-teal">
+            Pricing
+          </p>
+          <h2 className="mt-3 text-balance font-display text-3xl font-bold tracking-tight sm:text-4xl">
+            Plans that grow with you
+          </h2>
+          <p className="mt-4 text-balance text-base leading-relaxed text-charcoal/65">
+            SAR-priced, no surprise renewals. Start free, upgrade when scans
+            outgrow the limit.
+          </p>
+        </div>
+
+        <ul className="mt-14 grid gap-5 lg:grid-cols-3">
+          {PRICING_PREVIEW.map((tier) => {
+            const isPopular = tier.badge === "Most popular";
+            return (
+              <li
+                key={tier.name}
+                className={`relative rounded-2xl border bg-white p-7 ${
+                  isPopular
+                    ? "border-deep-teal/40 shadow-[0_8px_32px_-12px_rgba(15,91,85,0.18)] lg:-mt-3 lg:mb-3"
+                    : "border-charcoal/10"
+                }`}
+              >
+                {tier.badge && (
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-deep-teal px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm">
+                    {tier.badge}
+                  </span>
+                )}
+                <h3 className="font-display text-lg font-bold">{tier.name}</h3>
+                <p className="mt-1 text-xs text-charcoal/55">{tier.headline}</p>
+                <p className="mt-5">
+                  <span className="font-display text-3xl font-bold text-charcoal">
+                    {tier.price}
+                  </span>
+                  <span className="ml-1.5 text-xs text-charcoal/55">
+                    {tier.cadence}
+                  </span>
+                </p>
+                <ul className="mt-5 space-y-2.5 border-t border-charcoal/10 pt-5">
+                  {tier.items.map((item) => (
+                    <li
+                      key={item}
+                      className="flex items-start gap-2 text-sm text-charcoal/75"
+                    >
+                      <Check
+                        className="mt-0.5 h-4 w-4 shrink-0 text-deep-teal"
+                        strokeWidth={2.5}
+                      />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Link
+                  href={tier.href}
+                  className={`mt-6 inline-flex w-full items-center justify-center rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors ${
+                    isPopular
+                      ? "bg-deep-teal text-white hover:bg-deep-teal-dark"
+                      : "border border-charcoal/15 text-charcoal hover:bg-sand-light hover:text-deep-teal"
+                  }`}
+                >
+                  {tier.cta}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+
+        <div className="mt-10 text-center">
+          <Link
+            href="/pricing"
+            className="inline-flex items-center gap-1 text-sm font-semibold text-deep-teal hover:underline"
+          >
+            See all plans + the feature matrix
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        </div>
+      </div>
+    </section>
   );
 }
 
