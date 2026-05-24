@@ -250,7 +250,7 @@ export default function QrCustomizer({ initialShortId, onSave, saving, allowLogo
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="block w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm transition-colors duration-150 focus:border-terracotta focus:outline-none focus:ring-2 focus:ring-terracotta/30"
+            className="block w-full rounded-lg border border-charcoal/15 px-3 py-2.5 text-sm transition-colors duration-150 focus:border-deep-teal focus:outline-none focus:ring-2 focus:ring-deep-teal/20"
             placeholder="Give this QR a name"
           />
         </Section>
@@ -284,14 +284,14 @@ export default function QrCustomizer({ initialShortId, onSave, saving, allowLogo
                 className={`rounded-lg px-3 py-1.5 text-sm font-medium ${
                   content_kind === t.key
                     ? "bg-deep-teal text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    : "bg-sand-light text-charcoal/75 hover:bg-sand"
                 }`}
               >
                 {t.label}
               </button>
             ))}
           </div>
-          <p className="mt-2 text-xs text-gray-500">
+          <p className="mt-2 text-xs text-charcoal/55">
             {DYNAMIC_CAPABLE.includes(content_kind)
               ? "Routes through your Masaar link — can be dynamic (editable, tracked) or static."
               : `${CONTENT_TABS.find((t) => t.key === content_kind)?.label} is encoded directly into the QR — it's a static code (no redirect or tracking).`}
@@ -325,11 +325,11 @@ export default function QrCustomizer({ initialShortId, onSave, saving, allowLogo
                 <Input label="Network (SSID)" value={wifi.ssid} onChange={(v) => setWifi({ ...wifi, ssid: v })} />
                 <Input label="Password" value={wifi.password} onChange={(v) => setWifi({ ...wifi, password: v })} />
                 <label className="block col-span-2">
-                  <span className="block text-sm font-medium text-gray-700">Encryption</span>
+                  <span className="block text-sm font-medium text-charcoal/75">Encryption</span>
                   <select
                     value={wifi.encryption}
                     onChange={(e) => setWifi({ ...wifi, encryption: e.target.value as typeof wifi.encryption })}
-                    className="mt-1 block w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm transition-colors duration-150 focus:border-terracotta focus:outline-none focus:ring-2 focus:ring-terracotta/30"
+                    className="mt-1 block w-full rounded-lg border border-charcoal/15 px-3 py-2.5 text-sm transition-colors duration-150 focus:border-deep-teal focus:outline-none focus:ring-2 focus:ring-deep-teal/20"
                   >
                     <option value="WPA">WPA / WPA2</option>
                     <option value="WEP">WEP</option>
@@ -375,7 +375,7 @@ export default function QrCustomizer({ initialShortId, onSave, saving, allowLogo
                   value={whatsapp.message}
                   onChange={(v) => setWhatsapp({ ...whatsapp, message: v })}
                 />
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-charcoal/55">
                   Opens a chat to {whatsapp.countryCode}
                   {whatsapp.number || "…"} with your message pre-typed.
                 </p>
@@ -401,7 +401,7 @@ export default function QrCustomizer({ initialShortId, onSave, saving, allowLogo
                   onChange={(v) => setAppLink({ ...appLink, fallback: v })}
                   placeholder="Defaults to the App URL"
                 />
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-charcoal/55">
                   Points to the app link. Per-platform store routing comes
                   later — for now everyone goes to the App URL.
                 </p>
@@ -431,7 +431,7 @@ export default function QrCustomizer({ initialShortId, onSave, saving, allowLogo
 
           {allowLogo && (
             <div className="mt-4">
-              <span className="block text-sm font-medium text-gray-700">
+              <span className="block text-sm font-medium text-charcoal/75">
                 Logo (optional)
               </span>
               <div className="mt-1 flex items-center gap-3">
@@ -440,10 +440,10 @@ export default function QrCustomizer({ initialShortId, onSave, saving, allowLogo
                   <img
                     src={logoUrl}
                     alt="logo"
-                    className="h-10 w-10 rounded border border-gray-200 object-contain"
+                    className="h-10 w-10 rounded border border-charcoal/15 object-contain"
                   />
                 )}
-                <label className="cursor-pointer rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                <label className="cursor-pointer rounded-lg border border-charcoal/15 px-3 py-1.5 text-sm font-medium text-charcoal/75 hover:bg-sand-light/60">
                   {logoBusy ? "Uploading…" : logoUrl ? "Replace" : "Upload logo"}
                   <input
                     type="file"
@@ -461,7 +461,7 @@ export default function QrCustomizer({ initialShortId, onSave, saving, allowLogo
                   <button
                     type="button"
                     onClick={() => setLogoUrl(null)}
-                    className="text-xs text-gray-400 hover:text-gray-700"
+                    className="text-xs text-charcoal/45 hover:text-charcoal/75"
                   >
                     Remove
                   </button>
@@ -470,7 +470,7 @@ export default function QrCustomizer({ initialShortId, onSave, saving, allowLogo
               {logoErr && (
                 <p className="mt-1 text-xs text-red-600">{logoErr}</p>
               )}
-              <p className="mt-1 text-xs text-gray-400">
+              <p className="mt-1 text-xs text-charcoal/45">
                 PNG, JPG or SVG · under 500 KB · embedded in the QR center
               </p>
             </div>
@@ -488,10 +488,10 @@ export default function QrCustomizer({ initialShortId, onSave, saving, allowLogo
 
       {/* RIGHT — preview */}
       <aside className="lg:sticky lg:top-8 self-start">
-        <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+        <div className="rounded-2xl border border-charcoal/10 bg-white p-6 shadow-sm">
           <QrPreview style={previewStyle} />
           {kind === "dynamic" && (
-            <p className="mt-4 text-center text-xs text-gray-500">
+            <p className="mt-4 text-center text-xs text-charcoal/55">
               Embeds <code className="text-deep-teal">/r/{shortId}</code> · destination editable anytime
             </p>
           )}
@@ -513,7 +513,7 @@ function useDebouncedValue<T>(value: T, delay: number): T {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">{title}</h3>
+      <h3 className="text-sm font-semibold uppercase tracking-wide text-charcoal/55">{title}</h3>
       <div className="mt-3">{children}</div>
     </div>
   );
@@ -524,12 +524,12 @@ function Input({
 }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string }) {
   return (
     <label className="block">
-      <span className="block text-sm font-medium text-gray-700">{label}</span>
+      <span className="block text-sm font-medium text-charcoal/75">{label}</span>
       <input
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="mt-1 block w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm transition-colors duration-150 focus:border-terracotta focus:outline-none focus:ring-2 focus:ring-terracotta/30"
+        className="mt-1 block w-full rounded-lg border border-charcoal/15 px-3 py-2.5 text-sm transition-colors duration-150 focus:border-deep-teal focus:outline-none focus:ring-2 focus:ring-deep-teal/20"
       />
     </label>
   );
@@ -540,12 +540,12 @@ function Textarea({
 }: { label: string; value: string; onChange: (v: string) => void }) {
   return (
     <label className="block">
-      <span className="block text-sm font-medium text-gray-700">{label}</span>
+      <span className="block text-sm font-medium text-charcoal/75">{label}</span>
       <textarea
         value={value}
         onChange={(e) => onChange(e.target.value)}
         rows={3}
-        className="mt-1 block w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm transition-colors duration-150 focus:border-terracotta focus:outline-none focus:ring-2 focus:ring-terracotta/30"
+        className="mt-1 block w-full rounded-lg border border-charcoal/15 px-3 py-2.5 text-sm transition-colors duration-150 focus:border-deep-teal focus:outline-none focus:ring-2 focus:ring-deep-teal/20"
       />
     </label>
   );
@@ -556,10 +556,10 @@ function ColorField({
 }: { label: string; value: string; onChange: (v: string) => void; clearable?: boolean; onClear?: () => void }) {
   return (
     <label className="block">
-      <span className="flex items-center justify-between text-sm font-medium text-gray-700">
+      <span className="flex items-center justify-between text-sm font-medium text-charcoal/75">
         <span>{label}</span>
         {clearable && (
-          <button type="button" onClick={onClear} className="text-xs text-gray-400 hover:text-gray-700">
+          <button type="button" onClick={onClear} className="text-xs text-charcoal/45 hover:text-charcoal/75">
             Clear
           </button>
         )}
@@ -569,13 +569,13 @@ function ColorField({
           type="color"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="h-11 w-12 rounded border border-gray-200"
+          className="h-11 w-12 rounded border border-charcoal/15"
         />
         <input
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="block w-full rounded-lg border border-gray-200 px-2 py-1.5 text-sm font-mono"
+          className="block w-full rounded-lg border border-charcoal/15 px-2 py-1.5 text-sm font-mono"
         />
       </div>
     </label>
@@ -587,11 +587,11 @@ function Select({
 }: { label: string; value: string; onChange: (v: string) => void; options: string[] }) {
   return (
     <label className="block">
-      <span className="block text-sm font-medium text-gray-700">{label}</span>
+      <span className="block text-sm font-medium text-charcoal/75">{label}</span>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="mt-1 block w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm capitalize transition-colors duration-150 focus:border-terracotta focus:outline-none focus:ring-2 focus:ring-terracotta/30"
+        className="mt-1 block w-full rounded-lg border border-charcoal/15 px-3 py-2.5 text-sm capitalize transition-colors duration-150 focus:border-deep-teal focus:outline-none focus:ring-2 focus:ring-deep-teal/20"
       >
         {options.map((o) => (
           <option key={o} value={o}>{o.replace(/-/g, " ")}</option>
@@ -611,11 +611,11 @@ function KindCard({
       className={`text-left rounded-xl border p-4 transition disabled:opacity-40 disabled:cursor-not-allowed ${
         active
           ? "border-deep-teal bg-deep-teal/10 ring-2 ring-deep-teal/20"
-          : "border-gray-200 bg-white hover:bg-gray-50"
+          : "border-charcoal/15 bg-white hover:bg-sand-light/60"
       }`}
     >
-      <h4 className="font-semibold text-gray-900">{title}</h4>
-      <p className="mt-1 text-xs text-gray-500">{body}</p>
+      <h4 className="font-semibold text-charcoal">{title}</h4>
+      <p className="mt-1 text-xs text-charcoal/55">{body}</p>
     </button>
   );
 }

@@ -90,7 +90,7 @@ export default function EditQrClient({ initial }: { initial: QrCode }) {
               in the printed code.
             </p>
           )}
-          <p className="mt-2 text-xs text-gray-400 capitalize">
+          <p className="mt-2 text-xs text-charcoal/45 capitalize">
             Type: {initial.kind} · {initial.content_kind} (locked)
           </p>
         </Section>
@@ -102,7 +102,7 @@ export default function EditQrClient({ initial }: { initial: QrCode }) {
           </div>
 
           <div className="mt-4">
-            <label className="flex items-center gap-2 text-sm text-gray-700">
+            <label className="flex items-center gap-2 text-sm text-charcoal/75">
               <input
                 type="checkbox"
                 checked={gradient !== null}
@@ -149,7 +149,7 @@ export default function EditQrClient({ initial }: { initial: QrCode }) {
       </div>
 
       <aside className="lg:sticky lg:top-8 self-start">
-        <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+        <div className="rounded-2xl border border-charcoal/10 bg-white p-6 shadow-sm">
           <QrPreview
             style={{
               data: previewData,
@@ -176,7 +176,7 @@ function Section({
 }) {
   return (
     <div>
-      <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
+      <h3 className="text-sm font-semibold uppercase tracking-wide text-charcoal/55">
         {title}
       </h3>
       <div className="mt-3">{children}</div>
@@ -195,7 +195,7 @@ function ColorField({
 }) {
   return (
     <label className="block">
-      <span className="block text-xs font-medium text-gray-500">{label}</span>
+      <span className="block text-xs font-medium text-charcoal/55">{label}</span>
       <span className="mt-1 flex items-center gap-2">
         <input
           type="color"
@@ -226,7 +226,7 @@ function SelectField({
 }) {
   return (
     <label className="block">
-      <span className="block text-xs font-medium text-gray-500">{label}</span>
+      <span className="block text-xs font-medium text-charcoal/55">{label}</span>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
