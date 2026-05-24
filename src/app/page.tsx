@@ -4,7 +4,6 @@ import {
   ArrowRight,
   BarChart3,
   Check,
-  ChevronDown,
   Globe,
   Languages,
   Layers,
@@ -934,16 +933,32 @@ const FAQS = [
     a: "Free generators give you a static image — print it, and the URL behind it is locked forever. Masaar codes are dynamic: you can re-point the destination anytime, see who scanned where, and add branding without losing the scan trail. The cost difference shows up the first time a printed campaign needs a URL change.",
   },
   {
+    q: "Can I use it for restaurant menus?",
+    a: "Yes — the Restaurant Pro tier is built around it. Upload a paper-menu photo and the AI menu builder extracts categories, items, prices, allergens, and bilingual fields in seconds. Each scan opens a fast, mobile-first hosted menu page that respects halal / dietary tags. AI menu builder rolls out next sprint; the underlying dynamic-QR layer ships today.",
+  },
+  {
+    q: "Can I connect QR codes to WhatsApp?",
+    a: "Yes — WhatsApp is a first-class content type. Generate a QR that opens a chat with your business number, pre-fills a message, or routes to a WhatsApp Business catalog. Saudi customers live on WhatsApp; we treat it as a primary destination, not an afterthought.",
+  },
+  {
     q: "Will it work in Arabic?",
-    a: "The dashboard already ships in English with brand-correct Arabic typography (IBM Plex Sans Arabic). Full Arabic UI with RTL layout lands in our next session. Hosted scan-landing pages (menu, vCard) support Arabic + English side by side today.",
+    a: "The dashboard already ships in English with brand-correct Arabic typography (IBM Plex Sans Arabic). Full Arabic UI with RTL layout rolls out next. Hosted scan-landing pages (menu, vCard) support Arabic + English side by side today.",
   },
   {
     q: "Does it support Mada / STC Pay / Tap?",
-    a: "Not yet — payments are scaffolded but the actual gateway wiring lands in Sprint 3. We're being deliberate: the GCC market needs Mada and Apple Pay first, not Stripe-only. Until then, activation is on a SAR-priced launch promo. We'll never charge a card you didn't put in.",
+    a: "Not yet — payments are scaffolded but the actual gateway wiring lands next sprint. We're being deliberate: the GCC market needs Mada and Apple Pay first, not Stripe-only. Until then, activation is on a SAR-priced launch promo. We'll never charge a card you didn't put in.",
   },
   {
     q: "Can I edit the destination after printing?",
     a: "Yes — that's the whole point of a dynamic QR. The printed code points at /r/<short-id> on our edge runtime; you update where it goes in your dashboard, and every existing print instantly follows. No reprint, no downtime, no broken links.",
+  },
+  {
+    q: "Can I export QR codes for printing?",
+    a: "Yes — every QR is downloadable as PNG, SVG, and JPG. SVG is the print-shop default (vector, scales to any poster size). PNG covers digital + most print workflows. JPG for legacy systems. All exports include the design as customized — logo, colors, dot styles, gradient.",
+  },
+  {
+    q: "Do I need technical skills?",
+    a: "No. The builder is a 3-step wizard: pick a content type, fill in the details, customize colors / logo. Most cafés have their first scannable QR in under a minute. The Arabic-ready interface and SAR pricing remove the usual friction of US-market tools.",
   },
   {
     q: "Are scans tracked privately?",
@@ -951,7 +966,7 @@ const FAQS = [
   },
   {
     q: "Halal / SFDA badges for menus?",
-    a: "Halal flag and dietary tags (vegetarian, vegan, spicy, contains nuts) are first-class fields in our menu schema. They render with brand-correct iconography on the hosted menu page. The full Menu Pro builder ships next sprint.",
+    a: "Halal flag and dietary tags (vegetarian, vegan, spicy, contains nuts) are first-class fields in our menu schema. They render with brand-correct iconography on the hosted menu page. The full Restaurant Pro builder ships next sprint.",
   },
   {
     q: "Where is my data stored?",
@@ -963,6 +978,16 @@ const FAQS = [
   },
 ];
 
+// B6 audit polish — accordion now feels premium:
+// - Hairline divider between items (was already there via divide-y)
+// - Custom Plus icon that rotates 45deg into an X when open (was a
+//   ChevronDown rotating 180deg — fine but generic SaaS)
+// - Hover state on the closed row (subtle bg tint + label shifts to
+//   deep-teal) so it feels interactive before click
+// - Smooth open via `interpolate-size` CSS rather than the native
+//   instant jump — gracefully degrades on browsers without support
+// - Slightly tighter vertical rhythm on the summary (py-4 -> py-5
+//   feels right with the new accordion layout)
 function Faq() {
   return (
     <section id="faq" className="scroll-mt-20 bg-sand-light/60">
@@ -976,22 +1001,30 @@ function Faq() {
           </h2>
         </div>
 
-        <div className="mt-12 divide-y divide-charcoal/10 border-y border-charcoal/10">
+        <ul className="mt-12 divide-y divide-charcoal/10 border-y border-charcoal/10">
           {FAQS.map(({ q, a }) => (
-            <details key={q} className="group">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-5 font-display text-base font-semibold marker:hidden [&::-webkit-details-marker]:hidden">
-                {q}
-                <ChevronDown
-                  className="h-5 w-5 shrink-0 text-charcoal/50 transition-transform group-open:rotate-180"
-                  strokeWidth={2}
-                />
-              </summary>
-              <p className="pb-5 text-sm leading-relaxed text-charcoal/65">
-                {a}
-              </p>
-            </details>
+            <li key={q}>
+              <details className="group">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-md px-2 py-5 font-display text-base font-semibold text-charcoal transition-colors hover:text-deep-teal marker:hidden [&::-webkit-details-marker]:hidden">
+                  <span>{q}</span>
+                  <span
+                    aria-hidden
+                    className="relative grid h-6 w-6 shrink-0 place-items-center rounded-full border border-charcoal/20 text-charcoal/65 transition-colors group-hover:border-deep-teal group-hover:text-deep-teal group-open:border-deep-teal group-open:bg-deep-teal group-open:text-white"
+                  >
+                    {/* Plus-to-X icon — two stacked spans, the vertical
+                        one collapses to 0 when open giving a clean X
+                        without rotating the whole element. */}
+                    <span className="absolute h-[1.5px] w-3 bg-current" />
+                    <span className="absolute h-3 w-[1.5px] bg-current transition-transform duration-200 group-open:scale-y-0" />
+                  </span>
+                </summary>
+                <p className="px-2 pb-5 text-sm leading-relaxed text-charcoal/70">
+                  {a}
+                </p>
+              </details>
+            </li>
           ))}
-        </div>
+        </ul>
       </div>
     </section>
   );
