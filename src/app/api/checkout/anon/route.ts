@@ -48,24 +48,29 @@ export async function POST(request: Request) {
     );
   }
 
-  // Draft rows for this token.
+  // Draft rows for this token. Matches the migration 015 hardening on
+  // claim_draft_qrs — only unclaimed, pending, recent rows count. Without
+  // these filters a stale localStorage token from a prior abandoned
+  // session matches old orphan rows and silently attaches them to the
+  // new user (see SPRINT2.md 2026-05-24 contamination fix entry).
+  const draftCutoff = new Date(Date.now() - 24 * 3600_000).toISOString();
   const { data: draftRows, error: draftErr } = await admin
     .from("qr_codes")
     .select("id, short_id, user_id")
-    .eq("draft_token", draftToken);
+    .eq("draft_token", draftToken)
+    .is("user_id", null)
+    .eq("status", "pending_payment")
+    .gte("created_at", draftCutoff);
   if (draftErr)
     return NextResponse.json({ error: draftErr.message }, { status: 400 });
   if (!draftRows || draftRows.length === 0)
     return NextResponse.json({ error: "invalid_draft" }, { status: 400 });
 
-  // Idempotency: token already claimed (double-submit / retry) — don't
-  // create a second user; just send them on.
-  if (draftRows.every((r) => r.user_id)) {
-    return NextResponse.json({
-      success: true,
-      redirect_url: `/checkout/success?email=${encodeURIComponent(email)}`,
-    });
-  }
+  // (Pre-015 carried an idempotency check here — `draftRows.every(r => r.user_id)`.
+  // Post-015 it can never fire because the SELECT now filters `user_id IS NULL`
+  // and the claim UPDATE nulls draft_token, so retry SELECTs return zero rows
+  // and fall through to the invalid_draft 400 above. The Pay button's `busy`
+  // state already prevents the double-click race in practice.)
 
   // Approximate per-IP rate limit (5 successful anon checkouts / hour),
   // reusing creator_ip_hash — no new table (anti-fraud hardening in
@@ -142,8 +147,11 @@ export async function POST(request: Request) {
   }
   const userId = created.user.id;
 
-  // Claim the draft QR(s) onto the new account + activate (payment is
-  // being "processed"; stub flag → immediate).
+  // Claim the draft QR(s) onto the new account + activate. Mirrors the
+  // migration 015 hardening on claim_draft_qrs — pending_payment +
+  // recent + unclaimed only. The same filters live on the discovery
+  // SELECT above; redundant here intentionally as a belt-and-suspenders
+  // race guard between SELECT and UPDATE.
   const { data: claimed, error: upErr } = await admin
     .from("qr_codes")
     .update({
@@ -154,6 +162,8 @@ export async function POST(request: Request) {
     })
     .eq("draft_token", draftToken)
     .is("user_id", null)
+    .eq("status", "pending_payment")
+    .gte("created_at", draftCutoff)
     .select("id, short_id");
   if (upErr)
     return NextResponse.json({ error: upErr.message }, { status: 400 });
