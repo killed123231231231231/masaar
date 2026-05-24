@@ -619,21 +619,23 @@ function BuiltInRiyadh() {
           </ul>
         </div>
 
-        {/* Right: visual anchor — stylized Arabian peninsula with
-            Riyadh pinned. Decorative; not interactive. Brand palette
-            only, no third-party map tiles (and no IP geolocation calls
-            from this client — landing is anon and we don't hit
-            geo services from the public marketing surface). */}
-        <div className="relative mx-auto w-full max-w-sm">
-          <PeninsulaPin />
-          <div className="pointer-events-none absolute -bottom-3 left-1/2 inline-flex -translate-x-1/2 items-center gap-2 rounded-full border border-charcoal/10 bg-white px-4 py-2 shadow-sm">
-            <span className="grid h-6 w-6 place-items-center rounded-md bg-deep-teal text-white">
-              <LogoMark className="h-3.5 w-3.5 brightness-0 invert" />
-            </span>
-            <span className="text-xs font-semibold text-charcoal">
-              Masaar <span className="font-arabic text-deep-teal">مسار</span>
-            </span>
-          </div>
+        {/* Right: branded GCC map illustration. Replaces the earlier
+            hand-drawn PeninsulaPin SVG (B6 first pivot). The PNG ships
+            the Masaar lockup card baked-in at the bottom-left, so no
+            overlay chip needed here. next/image handles WebP / AVIF
+            conversion + responsive resizing on Vercel; the source is
+            ~1.5 MB PNG that should serve at ~150-300 KB after
+            optimization. priority=false because below the fold. */}
+        <div className="relative mx-auto w-full max-w-md drop-shadow-md">
+          <Image
+            src="/landing/built-in-riyadh-map.png"
+            alt="GCC map showing Masaar QR codes radiating from Riyadh to locations across Saudi Arabia and the wider Gulf"
+            width={1448}
+            height={1086}
+            sizes="(max-width: 768px) 80vw, 36vw"
+            className="h-auto w-full"
+            priority={false}
+          />
         </div>
       </div>
     </section>
@@ -648,95 +650,6 @@ function RoadmapPill({ label, when }: { label: string; when: string }) {
         {when}
       </p>
     </li>
-  );
-}
-
-// Decorative stylized Arabian peninsula. Hand-drawn SVG path
-// (approximate — meant to be a visual anchor, not geographically
-// strict). Riyadh marked with a deep-teal pin + soft pulse. Saudi
-// + GCC-neighbor outlines hinted at via the silhouette so a GCC
-// viewer recognizes the shape without it reading as a literal map.
-function PeninsulaPin() {
-  return (
-    <svg
-      viewBox="0 0 220 240"
-      className="h-auto w-full"
-      aria-label="Stylized Arabian peninsula with Riyadh marked"
-      role="img"
-    >
-      {/* Peninsula silhouette — simplified contour */}
-      <path
-        d="M40 30 Q70 18 100 22 Q140 28 165 50 Q185 75 188 110 Q190 145 175 175 Q160 200 130 215 Q100 226 75 218 Q52 210 42 188 Q30 168 32 138 Q34 100 38 70 Q40 50 40 30 Z"
-        fill="#0F5B55"
-        fillOpacity="0.08"
-        stroke="#0F5B55"
-        strokeOpacity="0.25"
-        strokeWidth="1.5"
-      />
-      {/* Subtle interior hint — desert texture via sparse dots */}
-      {[
-        [70, 60], [95, 50], [115, 75], [135, 95], [80, 100],
-        [105, 120], [145, 140], [90, 150], [120, 170], [70, 180],
-        [155, 80], [60, 130], [130, 50], [165, 130],
-      ].map(([x, y], i) => (
-        <circle
-          key={i}
-          cx={x}
-          cy={y}
-          r="1.4"
-          fill="#0F5B55"
-          fillOpacity="0.15"
-        />
-      ))}
-      {/* Riyadh pin — center-east of the peninsula */}
-      <g transform="translate(108, 105)">
-        <circle r="14" fill="#0F5B55" fillOpacity="0.12">
-          <animate
-            attributeName="r"
-            from="14"
-            to="20"
-            dur="2s"
-            repeatCount="indefinite"
-          />
-          <animate
-            attributeName="fill-opacity"
-            from="0.18"
-            to="0"
-            dur="2s"
-            repeatCount="indefinite"
-          />
-        </circle>
-        <circle r="6" fill="#0F5B55" />
-        <circle r="2" fill="#FFFFFF" />
-      </g>
-      <text
-        x="108"
-        y="135"
-        textAnchor="middle"
-        className="font-display"
-        style={{
-          fontSize: "12px",
-          fontWeight: 700,
-          fill: "#1B1B1D",
-        }}
-      >
-        Riyadh
-      </text>
-      <text
-        x="108"
-        y="148"
-        textAnchor="middle"
-        style={{
-          fontSize: "8px",
-          letterSpacing: "0.18em",
-          textTransform: "uppercase",
-          fill: "#1B1B1D",
-          opacity: 0.55,
-        }}
-      >
-        Saudi Arabia
-      </text>
-    </svg>
   );
 }
 
