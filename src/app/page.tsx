@@ -38,13 +38,16 @@ const NAV = [
   { label: "FAQ", href: "#faq" },
 ];
 
-const TRUST_LOGOS = [
-  "Nexora",
-  "Alvora",
-  "Midaar",
-  "Qahwati",
-  "Syhera",
-  "Hilal",
+// B6 audit fix — the 6 "Example"-labeled wordmarks read as
+// forgotten placeholders, not honest scarcity. Pivoted to a
+// capability strip: small, confident, every claim shipped today.
+// Same vertical slot as the old trust strip.
+const TRUST_CAPABILITIES = [
+  "Arabic-first menus",
+  "SAR pricing",
+  "Dynamic destinations",
+  "Live scan analytics",
+  "Menu / WhatsApp / WiFi / vCard",
 ];
 
 export default async function LandingPage() {
@@ -365,25 +368,26 @@ function MiniQr({ className }: { className?: string }) {
 
 /* ───────────────────────── TRUST STRIP ───────────────────────── */
 
+// B6 audit fix — capability strip replaces the fake-wordmark trust
+// strip. Centered, dot-separated, deep-teal heading, charcoal items.
+// Same vertical slot as the old strip so the section rhythm is
+// preserved.
 function TrustStrip() {
   return (
     <div className="border-y border-charcoal/10 bg-white">
       <div className="mx-auto max-w-6xl px-6 py-8">
-        <p className="text-center text-[11px] font-semibold uppercase tracking-[0.18em] text-charcoal/45">
-          Trusted by forward-thinking businesses
+        <p className="text-center text-[11px] font-semibold uppercase tracking-[0.18em] text-deep-teal">
+          Built for GCC operators
         </p>
-        <ul className="mt-6 grid grid-cols-2 items-center gap-x-6 gap-y-6 sm:grid-cols-3 lg:grid-cols-6">
-          {TRUST_LOGOS.map((name) => (
-            <li
-              key={name}
-              className="flex flex-col items-center gap-1 text-charcoal/40 transition-colors hover:text-charcoal/65"
-            >
-              <span className="font-display text-base font-bold uppercase tracking-[0.18em]">
-                {name}
-              </span>
-              <span className="text-[9px] font-medium uppercase tracking-widest text-charcoal/30">
-                Example
-              </span>
+        <ul className="mt-5 flex flex-wrap items-center justify-center gap-x-2 gap-y-3 text-sm">
+          {TRUST_CAPABILITIES.map((cap, i) => (
+            <li key={cap} className="flex items-center gap-2">
+              {i > 0 && (
+                <span aria-hidden className="text-charcoal/30">
+                  ·
+                </span>
+              )}
+              <span className="font-medium text-charcoal/75">{cap}</span>
             </li>
           ))}
         </ul>
