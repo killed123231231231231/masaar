@@ -426,7 +426,7 @@ function HowItWorks() {
   return (
     <section
       id="how-it-works"
-      className="mx-auto max-w-6xl scroll-mt-20 px-6 py-12 lg:py-16"
+      className="mx-auto max-w-6xl px-6 py-14 lg:py-24"
     >
       <div className="mx-auto max-w-2xl text-center">
         <p className="text-xs font-semibold uppercase tracking-wider text-deep-teal">
@@ -528,7 +528,7 @@ const LANDING_FEATURES = [
 function FeaturesGrid() {
   return (
     <section id="features" className="scroll-mt-20 bg-sand-light/60">
-      <div className="mx-auto max-w-6xl px-6 py-12 lg:py-16">
+      <div className="mx-auto max-w-6xl px-6 py-14 lg:py-24">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-xs font-semibold uppercase tracking-wider text-deep-teal">
             What's in the box
@@ -590,7 +590,7 @@ function BuiltInRiyadh() {
     // even though the section borders were touching (Usama screenshot
     // 3 flag). py-6 lg:py-10 closes the visual gap to ~50px while
     // keeping the card visually delineated by its own border + bg.
-    <section id="gcc" className="mx-auto max-w-6xl scroll-mt-20 px-6 py-6 lg:py-10">
+    <section id="gcc" className="mx-auto max-w-6xl px-6 py-14 lg:py-24">
       <div className="grid items-center gap-10 rounded-3xl border border-charcoal/10 bg-sand-light/40 p-8 lg:grid-cols-[1.3fr_1fr] lg:p-12">
         <div>
           <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-deep-teal">
@@ -738,7 +738,7 @@ const PRICING_PREVIEW = [
 function PricingTeaser() {
   return (
     <section id="pricing" className="scroll-mt-20 bg-white">
-      <div className="mx-auto max-w-6xl px-6 py-12 lg:py-16">
+      <div className="mx-auto max-w-6xl px-6 py-14 lg:py-24">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-xs font-semibold uppercase tracking-wider text-deep-teal">
             Pricing
@@ -833,7 +833,7 @@ function BuiltForGCC() {
     // B6 pivot follow-up — inner-card section gets reduced outer py
     // for the same reason as BuiltInRiyadh (compounding card-internal
     // padding inflates visible gap to next section).
-    <section className="mx-auto max-w-6xl px-6 py-6 lg:py-10">
+    <section className="mx-auto max-w-6xl px-6 py-14 lg:py-24">
       <div className="overflow-hidden rounded-3xl bg-deep-teal text-white">
         <div className="grid gap-10 p-10 md:grid-cols-2 lg:p-14">
           <div>
@@ -928,7 +928,7 @@ const FAQS = [
 function Faq() {
   return (
     <section id="faq" className="scroll-mt-20 bg-sand-light/60">
-      <div className="mx-auto max-w-3xl px-6 py-12 lg:py-16">
+      <div className="mx-auto max-w-3xl px-6 py-14 lg:py-24">
         <div className="text-center">
           <p className="text-xs font-semibold uppercase tracking-wider text-deep-teal">
             FAQ
