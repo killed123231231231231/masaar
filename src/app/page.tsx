@@ -614,20 +614,24 @@ function BuiltInRiyadh() {
             Built in Riyadh
           </p>
           <h2 className="mt-3 text-balance font-display text-2xl font-bold tracking-tight sm:text-3xl">
-            QR tools made for the GCC, not adapted from US software.
+            QR tools built for GCC businesses.
           </h2>
           <p className="mt-4 text-balance text-sm leading-relaxed text-charcoal/70 sm:text-base">
-            Most QR platforms are priced in dollars, designed for Western
-            customers, and bolt on Arabic as an afterthought. Masaar is the
-            alternative — Saudi-priced, GCC-aware by default, and built
-            around the content types that actually matter here:{" "}
-            <span className="font-medium text-charcoal">menu, WhatsApp,
-            vCard, WiFi, location</span>.
+            Masaar helps restaurants, cafés, retailers, and service
+            businesses create smart QR experiences for the way customers
+            actually interact in this region —{" "}
+            <span className="font-medium text-charcoal">menus, WhatsApp,
+            vCards, WiFi, locations</span>, and more.
           </p>
           <p className="mt-3 text-balance text-sm leading-relaxed text-charcoal/70 sm:text-base">
-            We&apos;re launching in 2026 with the Saudi F&amp;B and retail
-            market in mind. Honest about what&apos;s live versus what&apos;s
-            on the way — no &ldquo;coming soon&rdquo; vapor that never ships.
+            Built with Saudi pricing, Arabic-ready interfaces, and GCC
+            business needs in mind, Masaar gives you a cleaner way to
+            launch, manage, and track every QR code from one simple
+            dashboard.
+          </p>
+          <p className="mt-3 text-balance text-sm leading-relaxed text-charcoal/70 sm:text-base">
+            Launching in 2026 with a focused, practical product for Saudi
+            F&amp;B and retail businesses.
           </p>
 
           <ul className="mt-5 grid gap-3 sm:grid-cols-3">
