@@ -31,10 +31,12 @@ export default function AnalyticsClient({
           reportsHref={exportHref}
           upgradeHref={`/checkout/${bundle.qr.short_id ?? bundle.qr.id}`}
         />
-        <div className="flex min-w-0 flex-1 flex-col xl:flex-row">
-          <Main bundle={bundle} exportHref={exportHref} />
-          <RightRail bundle={bundle} />
-        </div>
+        {/* B5/Round2 Bug A — per-QR analytics no longer mounts the
+            account-wide "Your QRs" right rail. That rail belongs on
+            /dashboard Overview; duplicating it here made the per-QR
+            page look like a slightly-different Overview, confusing the
+            user about scope. Main now spans the full content width. */}
+        <Main bundle={bundle} exportHref={exportHref} />
       </div>
     </div>
   );
@@ -144,11 +146,14 @@ function BreakdownsGrid({ bundle }: { bundle: AnalyticsBundle }) {
   );
 }
 
+// B5/Round2 Bug A — TablesGrid renders ONLY the per-QR recent
+// activity now. BestPerformingTable was an account-wide affordance
+// (top-N across the user's QRs), which doesn't belong on a per-QR
+// drill-down. It still lives on /dashboard Overview where it belongs.
 function TablesGrid({ bundle }: { bundle: AnalyticsBundle }) {
   return (
-    <div className="grid gap-4 xl:grid-cols-2">
+    <div className="grid gap-4">
       <RecentActivityTable bundle={bundle} />
-      <BestPerformingTable userQrs={bundle.userQrs} />
     </div>
   );
 }

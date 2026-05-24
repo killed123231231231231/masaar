@@ -25,19 +25,19 @@ export default function OverviewClient({
     <div className="min-h-screen bg-[#F6F4EE] text-charcoal">
       <div className="flex">
         <Sidebar me={me} current="overview" analyticsHref={null} />
-        <div className="flex min-w-0 flex-1 flex-col xl:flex-row">
-          <Main bundle={bundle} me={me} />
-          <RightRail bundle={bundle} />
-        </div>
+        {/* B5/Round2 Bug B — RightRail moved INSIDE Main (below the
+            KPI row) instead of being a flex-row sibling. Old layout
+            put the rail's top at the same y as the page H1 — the user
+            saw "Your QRs" floating up there parallel to the title,
+            which felt weird. New layout pins the rail to start after
+            the KPI row's bottom edge. */}
+        <Main bundle={bundle} me={me} />
       </div>
     </div>
   );
 }
 
 function Main({ bundle, me }: { bundle: AccountAnalyticsBundle; me: SidebarMe }) {
-  // B5/Item 5 — `space-y-7` (28px) between top sections so the Overview
-  // matches the per-QR analytics page's breathing room. The MobileTopBar
-  // keeps its own `mb-4` (we don't want it part of the rhythm chain).
   return (
     <main className="min-w-0 flex-1 space-y-7 px-4 py-5 sm:px-5 sm:py-6 lg:px-8">
       <MobileTopBar />
@@ -47,11 +47,23 @@ function Main({ bundle, me }: { bundle: AccountAnalyticsBundle; me: SidebarMe })
         <FirstRunEmptyState />
       ) : (
         <>
+          {/* Full-width header zone: KPI cards span the entire content
+              width. Period filter / failed-callout / page header are
+              already above this. */}
           <KpiRow bundle={bundle} />
-          <TrendCard period={bundle.period} series={bundle.timeSeries} />
-          <InsightsRow bundle={bundle} />
-          <BreakdownsGrid bundle={bundle} />
-          <TablesGrid bundle={bundle} />
+
+          {/* 2-column zone below the KPIs: charts/breakdowns/tables on
+              the left, "Your QRs" rail on the right (xl+). On smaller
+              screens the rail stacks under the main content as before. */}
+          <div className="xl:grid xl:grid-cols-[minmax(0,1fr)_320px] xl:gap-7 xl:items-start">
+            <div className="space-y-7">
+              <TrendCard period={bundle.period} series={bundle.timeSeries} />
+              <InsightsRow bundle={bundle} />
+              <BreakdownsGrid bundle={bundle} />
+              <TablesGrid bundle={bundle} />
+            </div>
+            <RightRail bundle={bundle} />
+          </div>
         </>
       )}
     </main>
@@ -328,12 +340,12 @@ function RightRail({ bundle }: { bundle: AccountAnalyticsBundle }) {
   // for discoverability when N > 6.
   const hasOverflow = bundle.userQrs.length > 6;
   return (
-    /* B5/Round2 C3 — `xl:self-start` prevents the rail from flex-stretching
-       to match Main's height. Was leaving ~1167px of empty cream space
-       inside the rail container below the actual content. Now the rail
-       takes its natural height; the cream page bg fills the column
-       below it. */
-    <aside className="shrink-0 border-t border-charcoal/10 bg-white px-5 py-6 xl:w-[300px] xl:self-start xl:border-l xl:border-t-0">
+    /* B5/Round2 Bug B — now a grid cell (xl:grid-cols-[1fr_320px])
+       starting after the KPI row. As a card with its own border on all
+       sides + the brand soft shadow, consistent with TrendCard /
+       KpiCard / etc. The old left-border-only treatment was for the
+       previous flex-sibling layout; it now reads as a proper panel. */
+    <aside className="rounded-2xl border border-charcoal/10 bg-white px-5 py-6 shadow-[0_1px_2px_rgba(15,91,85,0.06),0_2px_8px_-2px_rgba(15,91,85,0.08)] xl:self-start">
       <h2 className="font-display text-sm font-bold uppercase tracking-wider text-charcoal/75">Your QRs</h2>
       <p className="mt-1 text-[11px] text-charcoal/45">All your codes, sorted by scans.</p>
       <div className="relative mt-4">
