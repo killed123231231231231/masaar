@@ -33,6 +33,35 @@ const nextConfig: NextConfig = {
         destination: "/dashboard?qr=:id",
         permanent: false,
       },
+      // B6 pivot — sub-pages collapsed into the single-page landing.
+      // /product, /solutions, /resources, /about previously planned as
+      // full pages (Phase 4 of B6) but Usama's full-landing eyeball
+      // decided to mirror getqr's single-page structure instead. The
+      // routes now land on the relevant landing anchor. Temporary (302)
+      // so we can restore standalone deep-dive pages in a later sprint
+      // if customer behaviour warrants. Old bookmarks, footer entries
+      // from /create welcome emails, and any external "Solutions" /
+      // "About" deep-links keep working.
+      {
+        source: "/product",
+        destination: "/#features",
+        permanent: false,
+      },
+      {
+        source: "/solutions",
+        destination: "/#features",
+        permanent: false,
+      },
+      {
+        source: "/resources",
+        destination: "/#faq",
+        permanent: false,
+      },
+      {
+        source: "/about",
+        destination: "/#gcc",
+        permanent: false,
+      },
     ];
   },
 };

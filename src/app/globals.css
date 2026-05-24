@@ -18,6 +18,27 @@ html, body {
   .text-balance { text-wrap: balance; }
 }
 
+/* B6 audit fix — anchor-scroll offset for the sticky header. Without
+   this, clicking a #features / #pricing / #gcc / #faq nav item lands
+   the user with the section title behind the sticky header bar.
+   Belt-and-suspenders: scroll-padding on the document AND
+   scroll-margin on every section[id] target. Mobile gets a smaller
+   offset because the header is shorter at <640px. */
+html {
+  scroll-padding-top: 96px;
+}
+section[id] {
+  scroll-margin-top: 96px;
+}
+@media (max-width: 640px) {
+  html {
+    scroll-padding-top: 76px;
+  }
+  section[id] {
+    scroll-margin-top: 76px;
+  }
+}
+
 @layer base {
   * {
     transition-property: background-color, border-color, color, fill, stroke,

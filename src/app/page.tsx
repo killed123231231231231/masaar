@@ -2,18 +2,18 @@ import Link from "next/link";
 import Image from "next/image";
 import {
   ArrowRight,
+  BarChart3,
   Check,
-  Sparkles,
-  QrCode,
-  Printer,
-  RefreshCw,
-  Activity,
-  MapPin,
-  Pencil,
-  ChevronDown,
-  Languages,
-  ShieldCheck,
   Globe,
+  Languages,
+  Layers,
+  MapPin,
+  Printer,
+  QrCode,
+  RefreshCw,
+  ShieldCheck,
+  Sparkles,
+  UtensilsCrossed,
 } from "lucide-react";
 import LogoMark from "@/components/logo-mark";
 import HeaderLoginButton from "@/components/header-login-button";
@@ -22,21 +22,31 @@ import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
+// B6 pivot — header nav reduced to 4 anchor-scroll items mapping to
+// real sections on this landing. Dropped Product / Solutions /
+// Resources / About — single-page funnel doesn't need a sub-page
+// sprawl, and getqr's analysis shows even they get away with zero
+// header nav. We keep four so a returning visitor can jump to
+// pricing / FAQ without scrolling, but every link lands within the
+// same page. Sub-page routes (/product etc.) are server-side
+// redirected to the relevant anchor in next.config.ts (commit C).
 const NAV = [
-  { label: "Product", href: "/product" },
-  { label: "Solutions", href: "/solutions" },
-  { label: "Resources", href: "/resources" },
-  { label: "Pricing", href: "/pricing" },
-  { label: "About", href: "/about" },
+  { label: "Features", href: "#features" },
+  { label: "Pricing", href: "#pricing" },
+  { label: "GCC", href: "#gcc" },
+  { label: "FAQ", href: "#faq" },
 ];
 
-const TRUST_LOGOS = [
-  "Nexora",
-  "Alvora",
-  "Midaar",
-  "Qahwati",
-  "Syhera",
-  "Hilal",
+// B6 audit fix — the 6 "Example"-labeled wordmarks read as
+// forgotten placeholders, not honest scarcity. Pivoted to a
+// capability strip: small, confident, every claim shipped today.
+// Same vertical slot as the old trust strip.
+const TRUST_CAPABILITIES = [
+  "Arabic-first menus",
+  "SAR pricing",
+  "Dynamic destinations",
+  "Live scan analytics",
+  "Menu / WhatsApp / WiFi / vCard",
 ];
 
 export default async function LandingPage() {
@@ -59,11 +69,23 @@ export default async function LandingPage() {
       <TrustStrip />
 
       <HowItWorks />
-      <AnalyticsPreview />
+      <FeaturesGrid />
+      <BuiltInRiyadh />
+      <PricingTeaser />
       <BuiltForGCC />
-      {/* FAQ section removed from landing per B5/Item 4. The Faq component
-          stays defined below so it can be reused on /pricing later. */}
-      <FinalCta />
+      {/* B6/Section 8 — FAQ reinstated. B5/Item 4 unmounted it pending
+          a clean rewrite; this is that rewrite. Questions are GCC-
+          relevant (Mada, Arabic, data residency, halal) and explicitly
+          NOT mirroring getqr's billing-defensive set (which is 6/13
+          questions about cancellation / refunds / "I don't recognize
+          this charge" — a symptom of their $1 trial trap). */}
+      <Faq />
+      {/* B6 final call — FinalCta REMOVED (again, definitively).
+          ChatGPT audit recommended reinstating it; Usama saw it live
+          and re-confirmed the original pivot decision: kill it. FAQ
+          flows directly into the Footer. Conversion CTAs already
+          live in the hero, pricing teaser, BuiltForGCC dark section,
+          and the sticky header — a trailing strip was redundant. */}
 
       <SiteFooter />
     </main>
@@ -80,8 +102,8 @@ function SiteHeader({
   userEmail: string | null;
 }) {
   return (
-    <header className="sticky top-0 z-40 border-b border-charcoal/10 bg-white/85 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+    <header className="sticky top-0 z-40 border-b border-charcoal/10 bg-white/80 backdrop-blur-md">
+      <div className="mx-auto flex h-[76px] max-w-6xl items-center justify-between px-6 sm:h-20">
         <Link href="/" className="flex items-center gap-2">
           <LogoMark className="h-8 w-8" />
           <span className="text-lg font-bold tracking-tight">
@@ -174,14 +196,14 @@ function HeroCopy() {
       </span>
 
       <h1 className="mt-5 text-balance font-display text-[2.4rem] font-bold leading-[1.05] tracking-tight sm:text-5xl lg:text-[3.6rem]">
-        Adaptive dynamic <br className="hidden sm:block" />
-        QR codes for{" "}
+        Dynamic QR menus, campaigns, and scan analytics for{" "}
         <span className="italic text-deep-teal">GCC businesses</span>
       </h1>
 
       <p className="mt-5 max-w-xl text-balance text-base leading-relaxed text-charcoal/65">
-        Create, manage, and optimize dynamic QR experiences with real-time
-        scan analytics — so every scan drives measurable impact.
+        Create QR codes once, update destinations anytime, and track every
+        scan across menus, WhatsApp, WiFi, vCards, and campaigns — built
+        for Arabic-first Gulf businesses.
       </p>
 
       <div className="mt-7 inline-flex items-center gap-3 rounded-xl border border-charcoal/10 bg-white/60 px-4 py-3">
@@ -189,7 +211,7 @@ function HeroCopy() {
           <LogoMark className="h-5 w-5 brightness-0 invert" />
         </span>
         <span className="text-sm font-medium text-charcoal/75">
-          Every scan has a path.
+          Update after printing. Track every scan.
         </span>
       </div>
 
@@ -198,13 +220,13 @@ function HeroCopy() {
           href="/create"
           className="inline-flex items-center justify-center gap-2 rounded-lg bg-deep-teal px-6 py-3 text-base font-semibold text-white shadow-sm transition-colors hover:bg-deep-teal-dark"
         >
-          Create QR Code <ArrowRight className="h-4 w-4" />
+          Create your QR code <ArrowRight className="h-4 w-4" />
         </Link>
         <Link
-          href="/contact"
+          href="#how-it-works"
           className="inline-flex items-center justify-center rounded-lg border border-charcoal/15 bg-white px-6 py-3 text-base font-semibold text-charcoal transition-colors hover:bg-sand-light hover:text-deep-teal"
         >
-          Book a demo
+          See how it works
         </Link>
       </div>
 
@@ -345,25 +367,26 @@ function MiniQr({ className }: { className?: string }) {
 
 /* ───────────────────────── TRUST STRIP ───────────────────────── */
 
+// B6 audit fix — capability strip replaces the fake-wordmark trust
+// strip. Centered, dot-separated, deep-teal heading, charcoal items.
+// Same vertical slot as the old strip so the section rhythm is
+// preserved.
 function TrustStrip() {
   return (
     <div className="border-y border-charcoal/10 bg-white">
       <div className="mx-auto max-w-6xl px-6 py-8">
-        <p className="text-center text-[11px] font-semibold uppercase tracking-[0.18em] text-charcoal/45">
-          Trusted by forward-thinking businesses
+        <p className="text-center text-[11px] font-semibold uppercase tracking-[0.18em] text-deep-teal">
+          Built for GCC operators
         </p>
-        <ul className="mt-6 grid grid-cols-2 items-center gap-x-6 gap-y-6 sm:grid-cols-3 lg:grid-cols-6">
-          {TRUST_LOGOS.map((name) => (
-            <li
-              key={name}
-              className="flex flex-col items-center gap-1 text-charcoal/40 transition-colors hover:text-charcoal/65"
-            >
-              <span className="font-display text-base font-bold uppercase tracking-[0.18em]">
-                {name}
-              </span>
-              <span className="text-[9px] font-medium uppercase tracking-widest text-charcoal/30">
-                Example
-              </span>
+        <ul className="mt-5 flex flex-wrap items-center justify-center gap-x-2 gap-y-3 text-sm">
+          {TRUST_CAPABILITIES.map((cap, i) => (
+            <li key={cap} className="flex items-center gap-2">
+              {i > 0 && (
+                <span aria-hidden className="text-charcoal/30">
+                  ·
+                </span>
+              )}
+              <span className="font-medium text-charcoal/75">{cap}</span>
             </li>
           ))}
         </ul>
@@ -372,21 +395,32 @@ function TrustStrip() {
   );
 }
 
+// B6/Section 3 — chip-row pattern borrowed from getqr's 3-step explainer:
+// each card carries a small "what this looks like" chip strip above the
+// numbered marker. Chips preview the concrete primitives (content types
+// / customization knobs / export formats) so the visitor understands what
+// gets selected at each step before clicking into the wizard.
+// B6 audit copy refinement — verbs match the user's mental model:
+// "create once / print anywhere / change anytime" reads as the
+// promise more than "create / print / track" did.
 const STEPS = [
   {
     icon: QrCode,
-    title: "Create your code",
-    body: "Generate a dynamic QR in seconds — add your logo, brand colors, and a destination URL.",
+    title: "Create once",
+    body: "Generate QR codes for menu, WhatsApp, WiFi, vCard, website, or campaign pages.",
+    chips: ["Menu", "WhatsApp", "WiFi", "vCard", "Website"],
   },
   {
     icon: Printer,
-    title: "Print & deploy",
-    body: "Put it on packaging, signage, or menus. The printed code never changes.",
+    title: "Print anywhere",
+    body: "Use them on tables, packaging, counters, receipts, posters, and ads.",
+    chips: ["Tables", "Packaging", "Posters", "Ads"],
   },
   {
     icon: RefreshCw,
-    title: "Track & adapt",
-    body: "Watch scans live and re-point the destination anytime — no reprint, no downtime.",
+    title: "Change anytime",
+    body: "Update the destination and track scans without reprinting.",
+    chips: ["Edit URL", "Live scans", "No reprint"],
   },
 ];
 
@@ -394,7 +428,7 @@ function HowItWorks() {
   return (
     <section
       id="how-it-works"
-      className="mx-auto max-w-6xl scroll-mt-24 px-6 py-20 lg:py-28"
+      className="mx-auto max-w-6xl px-6 py-14 lg:py-24"
     >
       <div className="mx-auto max-w-2xl text-center">
         <p className="text-xs font-semibold uppercase tracking-wider text-deep-teal">
@@ -409,19 +443,32 @@ function HowItWorks() {
         </p>
       </div>
 
-      <ol className="mt-14 grid gap-6 md:grid-cols-3">
-        {STEPS.map(({ icon: Icon, title, body }, i) => (
+      <ol className="mt-10 grid gap-6 md:grid-cols-3">
+        {STEPS.map(({ icon: Icon, title, body, chips }, i) => (
           <li
             key={title}
-            className="relative rounded-2xl border border-charcoal/10 bg-white p-7"
+            className="relative rounded-2xl border border-charcoal/10 bg-white p-6"
           >
             <span className="absolute right-6 top-6 font-display text-4xl font-bold text-sand">
               {i + 1}
             </span>
-            <span className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-deep-teal/10 text-deep-teal">
+            {/* Chip strip — preview the concrete choices made at this step.
+                Wraps on narrow cards; the visual signal is "this is what's
+                under the hood at step N". */}
+            <ul className="flex flex-wrap gap-1.5">
+              {chips.map((c) => (
+                <li
+                  key={c}
+                  className="rounded-full border border-charcoal/10 bg-sand-light/60 px-2.5 py-0.5 text-[11px] font-medium text-charcoal/70"
+                >
+                  {c}
+                </li>
+              ))}
+            </ul>
+            <span className="mt-5 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-deep-teal/10 text-deep-teal">
               <Icon className="h-6 w-6" strokeWidth={1.75} />
             </span>
-            <h3 className="mt-5 font-display text-lg font-bold">{title}</h3>
+            <h3 className="mt-4 font-display text-lg font-bold">{title}</h3>
             <p className="mt-2 text-sm leading-relaxed text-charcoal/65">
               {body}
             </p>
@@ -432,107 +479,193 @@ function HowItWorks() {
   );
 }
 
-const ANALYTICS_POINTS = [
+// B6/Section 4 — 5-Feature Grid (NEW).
+//
+// Replaces the old AnalyticsPreview section. Borrows getqr.com's
+// `lg:grid-cols-5` icon+h3+body card pattern as the dominant
+// "what you get" visual primitive on the landing, but every feature
+// here is Masaar-specific (GCC content types, bilingual Arabic, AI
+// Menu) — none are copied from getqr's generic 5.
+//
+// Two features carry honest "Coming soon" badges (Bilingual + AI
+// Menu). Per STRATEGY.md and the brand-discipline guardrails, no
+// roadmap item is shipped as "live" before its session lands.
+// B6 audit copy refinement — feature titles now match the
+// vocabulary a Saudi cafe owner actually uses ("Menu, WhatsApp,
+// WiFi & vCard" beats "GCC content types"). Bodies stay 1-2 short
+// lines per the audit density target.
+const LANDING_FEATURES = [
   {
-    icon: Activity,
-    title: "Live scan feed",
-    body: "Every scan lands in your dashboard within seconds — no polling, no delay.",
+    icon: RefreshCw,
+    title: "Dynamic destinations",
+    body: "Re-point a printed QR anytime. No reprint, no downtime.",
+    soon: false,
   },
   {
-    icon: MapPin,
-    title: "Geo & device breakdown",
-    body: "Country, city, browser, and OS for every scan, aggregated automatically.",
+    icon: Layers,
+    title: "Menu, WhatsApp, WiFi & vCard",
+    body: "Five content types built for how Gulf customers actually engage.",
+    soon: false,
   },
   {
-    icon: Pencil,
-    title: "Editable destinations",
-    body: "A/B a landing page or fix a broken link in production — instantly.",
+    icon: BarChart3,
+    title: "Real-time analytics",
+    body: "Riyadh-time trends, geo + device breakdowns, hashed-IP privacy.",
+    soon: false,
+  },
+  {
+    icon: Languages,
+    title: "Arabic + English support",
+    body: "Native RTL, IBM Plex Arabic — not translated as an afterthought.",
+    soon: true,
+  },
+  {
+    icon: UtensilsCrossed,
+    title: "AI Menu Builder",
+    body: "Upload a paper menu photo. AI extracts items, prices, bilingual fields.",
+    soon: true,
   },
 ];
 
-/* Static analytics visual — hand-written SVG bars + trend line. */
-function AnalyticsPreview() {
-  const bars = [38, 52, 44, 70, 60, 86, 74];
+function FeaturesGrid() {
   return (
-    <section className="bg-sand-light/60">
-      <div className="mx-auto grid max-w-6xl items-center gap-12 px-6 py-20 lg:grid-cols-2 lg:py-28">
-        <div>
+    <section id="features" className="scroll-mt-20 bg-sand-light/60">
+      <div className="mx-auto max-w-6xl px-6 py-14 lg:py-24">
+        <div className="mx-auto max-w-2xl text-center">
           <p className="text-xs font-semibold uppercase tracking-wider text-deep-teal">
-            Real-time analytics
+            What's in the box
           </p>
           <h2 className="mt-3 text-balance font-display text-3xl font-bold tracking-tight sm:text-4xl">
-            See every scan as it happens
+            More than a QR generator
           </h2>
           <p className="mt-4 text-balance text-base leading-relaxed text-charcoal/65">
-            Stop guessing what your printed campaigns do. Masaar turns each
-            scan into a data point you can act on the same minute.
+            Five capabilities most generators don't ship — built around how
+            GCC businesses actually use QR codes day to day.
+          </p>
+        </div>
+
+        <ul className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
+          {LANDING_FEATURES.map(({ icon: Icon, title, body, soon }) => (
+            <li
+              key={title}
+              className="relative rounded-2xl border border-charcoal/10 bg-white p-6 transition-colors hover:border-deep-teal/30"
+            >
+              {/* B6 audit fix — was a big "SOON" pill that competed
+                  with the title. Now a small inline "Coming soon"
+                  tag, lower contrast, doesn't shout. */}
+              {soon && (
+                <span className="absolute right-4 top-4 text-[10px] font-medium text-terracotta-dark/75">
+                  Coming soon
+                </span>
+              )}
+              <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-deep-teal/10 text-deep-teal">
+                <Icon className="h-5 w-5" strokeWidth={1.75} />
+              </span>
+              <h3 className="mt-5 font-display text-base font-bold leading-tight">
+                {title}
+              </h3>
+              <p className="mt-2 text-sm leading-relaxed text-charcoal/65">
+                {body}
+              </p>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  );
+}
+
+// B6/Section 5 — "Built in Riyadh" positioning block (NEW).
+//
+// Replaces the testimonial slot per the approved B.6 mapping. We do
+// NOT ship fake "Example"-labeled customer quotes — GCC competitors
+// like getqr have 1,415 real Reviews.io entries and trying to match
+// scale theater would feel weaker than honest scarcity. Instead we
+// turn the absence of customer wins into a positioning statement:
+// Masaar is new, built for the GCC market, and the roadmap is honest.
+//
+// Real testimonials = Sprint 3 task after 5-10 actual GCC wins land.
+// Until then this section carries the brand/origin/mission narrative.
+function BuiltInRiyadh() {
+  return (
+    // B6 post-audit-pass-2 — compressed card. The previous redesign
+    // ballooned to ~700px because grid-stretch made the right panel
+    // match the left content's natural height (which included generous
+    // p-14 padding + mt-5 / mt-7 inter-element gaps + sm:text-4xl
+    // headline). On a typical 800-900px viewport that pushed the
+    // capability chips below the fold and forced scrolling just to
+    // see the section. This pass tightens every vertical dimension
+    // while keeping the two-column layout + the large map intact.
+    //
+    // Outer section py-14 lg:py-24 -> py-10 lg:py-16 (cuts ~32px)
+    // Inner left padding lg:p-14 -> lg:p-10 (cuts ~32px)
+    // H2 sm:text-4xl -> sm:text-3xl (cuts ~12px line-height on lg)
+    // Inter-element margins tightened (mt-5 -> mt-4, mt-7 -> mt-5)
+    // Image: object-cover -> object-contain so the full map is
+    //   visible even when the panel is shorter; subtle p-4 lg:p-6
+    //   padding inside the panel gives the image breathing room
+    //   without the heavy crop that cover was doing.
+    <section id="gcc" className="mx-auto max-w-6xl px-6 py-10 lg:py-16">
+      <div className="overflow-hidden rounded-3xl border border-charcoal/10 bg-sand-light/40 shadow-sm lg:grid lg:grid-cols-[48%_52%]">
+        {/* Left content column — compressed */}
+        <div className="p-8 sm:p-10 lg:p-10">
+          <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-deep-teal">
+            <MapPin className="h-3.5 w-3.5" strokeWidth={2.25} />
+            Built in Riyadh
+          </p>
+          <h2 className="mt-3 text-balance font-display text-2xl font-bold tracking-tight sm:text-3xl">
+            QR tools made for the GCC, not adapted from US software.
+          </h2>
+          <p className="mt-4 text-balance text-sm leading-relaxed text-charcoal/70 sm:text-base">
+            Most QR platforms are priced in dollars, designed for Western
+            customers, and bolt on Arabic as an afterthought. Masaar is the
+            alternative — Saudi-priced, GCC-aware by default, and built
+            around the content types that actually matter here:{" "}
+            <span className="font-medium text-charcoal">menu, WhatsApp,
+            vCard, WiFi, location</span>.
+          </p>
+          <p className="mt-3 text-balance text-sm leading-relaxed text-charcoal/70 sm:text-base">
+            We&apos;re launching in 2026 with the Saudi F&amp;B and retail
+            market in mind. Honest about what&apos;s live versus what&apos;s
+            on the way — no &ldquo;coming soon&rdquo; vapor that never ships.
           </p>
 
-          <ul className="mt-8 space-y-5">
-            {ANALYTICS_POINTS.map(({ icon: Icon, title, body }) => (
-              <li key={title} className="flex gap-4">
-                <span className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-deep-teal/10 text-deep-teal">
-                  <Icon className="h-5 w-5" strokeWidth={1.75} />
-                </span>
-                <div>
-                  <h3 className="font-semibold">{title}</h3>
-                  <p className="mt-1 text-sm leading-relaxed text-charcoal/65">
-                    {body}
-                  </p>
-                </div>
-              </li>
-            ))}
+          <ul className="mt-5 grid gap-3 sm:grid-cols-3">
+            <CapabilityPill
+              label="Saudi-first pricing"
+              note="SAR, no surprise renewals"
+            />
+            <CapabilityPill
+              label="Arabic-ready interface"
+              note="Plex Arabic + RTL"
+            />
+            <CapabilityPill
+              label="F&B menu workflows"
+              note="Built for cafés + restaurants"
+            />
           </ul>
         </div>
 
-        <div className="rounded-2xl border border-charcoal/10 bg-white p-6 shadow-xl shadow-charcoal/5">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium uppercase tracking-wide text-charcoal/45">
-                Scans this week
-              </p>
-              <p className="mt-1 font-display text-3xl font-bold">4,218</p>
-            </div>
-            <span className="rounded-md bg-deep-teal/10 px-2.5 py-1 text-xs font-semibold text-deep-teal">
-              ▲ 23%
-            </span>
-          </div>
+        {/* Right visual panel — object-contain so the full map is
+            visible even when the panel ends up shorter than the
+            image's native aspect would prefer.
 
-          <svg
-            viewBox="0 0 320 160"
-            className="mt-6 h-44 w-full"
-            preserveAspectRatio="none"
-          >
-            {bars.map((h, i) => {
-              const x = 14 + i * 44;
-              const barH = (h / 100) * 130;
-              return (
-                <rect
-                  key={i}
-                  x={x}
-                  y={140 - barH}
-                  width="26"
-                  height={barH}
-                  rx="4"
-                  fill="#0F5B55"
-                  fillOpacity={i === bars.length - 1 ? "1" : "0.28"}
-                />
-              );
-            })}
-            <path
-              d="M27,96 L71,76 L115,86 L159,52 L203,62 L247,28 L291,40"
-              fill="none"
-              stroke="#E07A5F"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+            Padding on the outer + a `relative` inner wrapper that
+            holds the `fill` image is the only way to give the image
+            inset breathing room (next/image fill uses absolute
+            positioning which ignores parent padding). Outer is the
+            grid item that stretches; inner h-full picks up the
+            stretched height. */}
+        <div className="bg-deep-teal/5 p-4 lg:p-6">
+          <div className="relative h-full min-h-[260px] sm:min-h-[320px] lg:min-h-[400px]">
+            <Image
+              src="/landing/built-in-riyadh-map.png"
+              alt="GCC map showing Masaar QR codes radiating from Riyadh to locations across Saudi Arabia and the wider Gulf"
+              fill
+              sizes="(max-width: 1024px) 100vw, 52vw"
+              className="object-contain object-center"
+              priority={false}
             />
-          </svg>
-
-          <div className="mt-4 grid grid-cols-3 gap-3 border-t border-charcoal/10 pt-4 text-center">
-            <Stat label="Countries" value="14" />
-            <Stat label="Avg / day" value="602" />
-            <Stat label="Peak hour" value="8 PM" />
           </div>
         </div>
       </div>
@@ -540,14 +673,174 @@ function AnalyticsPreview() {
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function CapabilityPill({ label, note }: { label: string; note: string }) {
   return (
-    <div>
-      <p className="font-display text-lg font-bold">{value}</p>
-      <p className="text-[11px] font-medium uppercase tracking-wide text-charcoal/45">
-        {label}
+    <li className="rounded-lg border border-charcoal/10 bg-white px-3 py-2.5">
+      <p className="text-sm font-semibold text-charcoal">{label}</p>
+      <p className="mt-0.5 text-[11px] font-medium uppercase tracking-wider text-charcoal/50">
+        {note}
       </p>
-    </div>
+    </li>
+  );
+}
+
+// B6/Section 6 — Pricing Teaser (NEW).
+//
+// 3-card preview of the 5-tier table that lives on /pricing (built in
+// Phase 4). Borrows getqr's pricing card grid + "Most Popular"
+// highlight + "Save X%" badge patterns — but ships HONEST tiers:
+//
+// - No $1 trial trap (getqr's pattern; their FAQ is 6/13
+//   billing-defensive as a result — see design-targets/getqr-analysis.md)
+// - Tiers are differentiated by FEATURES, not just billing cadence
+// - SAR pricing upfront, no "prices may vary by country" geo-trick
+//
+// 5 full tiers per STRATEGY.md §5 (Free / Starter / Pro / Menu Pro /
+// Menu Pro + Ordering / Agency); this teaser surfaces the 3 most
+// representative — Free / Pro (Most Popular) / Menu Pro — and links
+// to /pricing for the full comparison matrix.
+// B6 audit fix — tier renames + "Best for" subheads + tighter CTAs.
+// Menu Pro -> Restaurant Pro (better F&B positioning, Usama-approved).
+// Each tier carries a one-line "Best for X" so a visitor self-selects
+// faster. CTA copy matches the tier's intent (Free = try, Pro =
+// business, Restaurant Pro = build a menu).
+const PRICING_PREVIEW = [
+  {
+    name: "Free",
+    price: "SAR 0",
+    cadence: "forever",
+    headline: "Try Masaar with no card.",
+    bestFor: "Best for testing QR campaigns",
+    items: [
+      "5 dynamic QR codes",
+      "Basic scan analytics",
+      "PNG / SVG export",
+    ],
+    cta: "Start free",
+    href: "/create",
+    badge: null,
+  },
+  {
+    name: "Pro",
+    price: "SAR 99",
+    cadence: "per month",
+    headline: "Everything most businesses need.",
+    bestFor: "Best for active businesses tracking scans",
+    items: [
+      "Unlimited dynamic QRs",
+      "Full analytics + CSV export",
+      "Logo, colors, frames",
+      "15+ content types",
+    ],
+    cta: "Start Business plan",
+    href: "/create",
+    badge: "Most popular",
+  },
+  {
+    name: "Restaurant Pro",
+    price: "SAR 199",
+    cadence: "per month",
+    headline: "Built for Saudi cafés + restaurants.",
+    bestFor: "Best for cafés and restaurants with menus",
+    items: [
+      "Everything in Pro",
+      "Menu vertical + AI import",
+      "Photo CDN + allergen tags",
+      "Bilingual menu rendering",
+    ],
+    cta: "Build my digital menu",
+    href: "/create",
+    badge: null,
+  },
+];
+
+function PricingTeaser() {
+  return (
+    <section id="pricing" className="scroll-mt-20 bg-white">
+      <div className="mx-auto max-w-6xl px-6 py-14 lg:py-24">
+        <div className="mx-auto max-w-2xl text-center">
+          <p className="text-xs font-semibold uppercase tracking-wider text-deep-teal">
+            Pricing
+          </p>
+          <h2 className="mt-3 text-balance font-display text-3xl font-bold tracking-tight sm:text-4xl">
+            Plans that grow with you
+          </h2>
+          <p className="mt-4 text-balance text-base leading-relaxed text-charcoal/65">
+            SAR-priced, no surprise renewals. Start free, upgrade when scans
+            outgrow the limit.
+          </p>
+        </div>
+
+        <ul className="mt-10 grid gap-5 lg:grid-cols-3">
+          {PRICING_PREVIEW.map((tier) => {
+            const isPopular = tier.badge === "Most popular";
+            return (
+              <li
+                key={tier.name}
+                className={`relative rounded-2xl border bg-white p-7 ${
+                  isPopular
+                    ? "border-deep-teal/40 shadow-[0_8px_32px_-12px_rgba(15,91,85,0.18)] lg:-mt-3 lg:mb-3"
+                    : "border-charcoal/10"
+                }`}
+              >
+                {tier.badge && (
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-deep-teal px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm">
+                    {tier.badge}
+                  </span>
+                )}
+                <h3 className="font-display text-lg font-bold">{tier.name}</h3>
+                <p className="mt-1 text-[11px] font-semibold uppercase tracking-wider text-deep-teal">
+                  {tier.bestFor}
+                </p>
+                <p className="mt-2 text-xs text-charcoal/55">{tier.headline}</p>
+                <p className="mt-5">
+                  <span className="font-display text-3xl font-bold text-charcoal">
+                    {tier.price}
+                  </span>
+                  <span className="ml-1.5 text-xs text-charcoal/55">
+                    {tier.cadence}
+                  </span>
+                </p>
+                <ul className="mt-5 space-y-2.5 border-t border-charcoal/10 pt-5">
+                  {tier.items.map((item) => (
+                    <li
+                      key={item}
+                      className="flex items-start gap-2 text-sm text-charcoal/75"
+                    >
+                      <Check
+                        className="mt-0.5 h-4 w-4 shrink-0 text-deep-teal"
+                        strokeWidth={2.5}
+                      />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Link
+                  href={tier.href}
+                  className={`mt-6 inline-flex w-full items-center justify-center rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors ${
+                    isPopular
+                      ? "bg-deep-teal text-white hover:bg-deep-teal-dark"
+                      : "border border-charcoal/15 text-charcoal hover:bg-sand-light hover:text-deep-teal"
+                  }`}
+                >
+                  {tier.cta}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+
+        <div className="mt-10 text-center">
+          <Link
+            href="/pricing"
+            className="inline-flex items-center gap-1 text-sm font-semibold text-deep-teal hover:underline"
+          >
+            See all plans + the feature matrix
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -559,7 +852,10 @@ const GCC_FEATURES = [
 
 function BuiltForGCC() {
   return (
-    <section className="mx-auto max-w-6xl px-6 py-20 lg:py-28">
+    // B6 pivot follow-up — inner-card section gets reduced outer py
+    // for the same reason as BuiltInRiyadh (compounding card-internal
+    // padding inflates visible gap to next section).
+    <section className="mx-auto max-w-6xl px-6 py-14 lg:py-24">
       <div className="overflow-hidden rounded-3xl bg-deep-teal text-white">
         <div className="grid gap-10 p-10 md:grid-cols-2 lg:p-14">
           <div>
@@ -604,38 +900,104 @@ function BuiltForGCC() {
             </div>
           ))}
         </div>
+
+        {/* B6 audit fix — inline CTAs inside the dark section. Without
+            them the section was a credentialing block with no clear
+            next step. Primary CTA pushes to /create; secondary anchors
+            to the features grid (sufficient for now; an Arabic-
+            specific deep page is a Sprint 3+ candidate). */}
+        <div className="flex flex-col items-stretch gap-3 border-t border-white/15 p-6 sm:flex-row sm:items-center sm:justify-center sm:p-8">
+          <Link
+            href="/create"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-white px-6 py-3 text-sm font-semibold text-deep-teal transition-colors hover:bg-sand-light"
+          >
+            Create a GCC-ready QR
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+          <Link
+            href="#features"
+            className="inline-flex items-center justify-center rounded-lg border border-white/30 bg-transparent px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+          >
+            View Arabic features
+          </Link>
+        </div>
       </div>
     </section>
   );
 }
 
+// B6/Section 8 — GCC-relevant questions. NOT mirroring getqr's set
+// (theirs is 6/13 billing-defensive — see design-targets/getqr-
+// analysis.md §3 S7). Anchored on the questions a Saudi cafe owner
+// actually asks: language, payments, data residency, halal, edits
+// after print, what happens on cancel. Honest about what's live
+// versus roadmap — Arabic + Mada are flagged as "coming" with the
+// session they ship in.
 const FAQS = [
   {
-    q: "What is a dynamic QR code?",
-    a: "A QR code whose destination you can change after it's printed. The code points to a Masaar link you control, so the artwork never has to change.",
+    q: "How is this different from a free QR generator?",
+    a: "Free generators give you a static image — print it, and the URL behind it is locked forever. Masaar codes are dynamic: you can re-point the destination anytime, see who scanned where, and add branding without losing the scan trail. The cost difference shows up the first time a printed campaign needs a URL change.",
   },
   {
-    q: "Do I need to reprint when the URL changes?",
-    a: "No — that's the whole point. Update the destination in your dashboard and every existing printed code instantly follows.",
+    q: "Can I use it for restaurant menus?",
+    a: "Yes — the Restaurant Pro tier is built around it. Upload a paper-menu photo and the AI menu builder extracts categories, items, prices, allergens, and bilingual fields in seconds. Each scan opens a fast, mobile-first hosted menu page that respects halal / dietary tags. AI menu builder rolls out next sprint; the underlying dynamic-QR layer ships today.",
   },
   {
-    q: "Is Masaar available in Arabic?",
-    a: "Yes. The interface is built Arabic-first with full right-to-left support, alongside English.",
+    q: "Can I connect QR codes to WhatsApp?",
+    a: "Yes — WhatsApp is a first-class content type. Generate a QR that opens a chat with your business number, pre-fills a message, or routes to a WhatsApp Business catalog. Saudi customers live on WhatsApp; we treat it as a primary destination, not an afterthought.",
   },
   {
-    q: "What scan data do I get?",
-    a: "Aggregated country, city, device, browser, and timing for every scan — with hashed IPs, never raw addresses or personally identifying information.",
+    q: "Will it work in Arabic?",
+    a: "The dashboard already ships in English with brand-correct Arabic typography (IBM Plex Sans Arabic). Full Arabic UI with RTL layout rolls out next. Hosted scan-landing pages (menu, vCard) support Arabic + English side by side today.",
   },
   {
-    q: "Is there a free trial?",
-    a: "Yes. Start free with no credit card required, and set up your first code in about a minute.",
+    q: "Does it support Mada / STC Pay / Tap?",
+    a: "Not yet — payments are scaffolded but the actual gateway wiring lands next sprint. We're being deliberate: the GCC market needs Mada and Apple Pay first, not Stripe-only. Until then, activation is on a SAR-priced launch promo. We'll never charge a card you didn't put in.",
+  },
+  {
+    q: "Can I edit the destination after printing?",
+    a: "Yes — that's the whole point of a dynamic QR. The printed code points at /r/<short-id> on our edge runtime; you update where it goes in your dashboard, and every existing print instantly follows. No reprint, no downtime, no broken links.",
+  },
+  {
+    q: "Can I export QR codes for printing?",
+    a: "Yes — every QR is downloadable as PNG, SVG, and JPG. SVG is the print-shop default (vector, scales to any poster size). PNG covers digital + most print workflows. JPG for legacy systems. All exports include the design as customized — logo, colors, dot styles, gradient.",
+  },
+  {
+    q: "Do I need technical skills?",
+    a: "No. The builder is a 3-step wizard: pick a content type, fill in the details, customize colors / logo. Most cafés have their first scannable QR in under a minute. The Arabic-ready interface and SAR pricing remove the usual friction of US-market tools.",
+  },
+  {
+    q: "Are scans tracked privately?",
+    a: "We log country, city (Vercel-provided geo headers, no third-party IP service), device type, browser, and OS. IPs are SHA-256 hashed and truncated to 16 hex chars at write time — we never store raw addresses. Scans aren't tied to any user identity unless the QR is gated with a password.",
+  },
+  {
+    q: "Halal / SFDA badges for menus?",
+    a: "Halal flag and dietary tags (vegetarian, vegan, spicy, contains nuts) are first-class fields in our menu schema. They render with brand-correct iconography on the hosted menu page. The full Restaurant Pro builder ships next sprint.",
+  },
+  {
+    q: "Where is my data stored?",
+    a: "Supabase Postgres in ap-south-1 (Mumbai) — the closest AWS region to the GCC. We're evaluating a Riyadh / UAE region when AWS / Supabase land one; for now Mumbai gives us sub-100ms latency to most of the Gulf without compromising compliance.",
+  },
+  {
+    q: "What happens if I cancel?",
+    a: "Your existing QR codes stay valid — static ones keep working forever, dynamic ones either revert to a Masaar landing page (free tier) or stay live if you re-activate within 90 days. We don't auto-renew silently or send opaque \"I don't recognize this charge\" billing — every renewal is opt-in.",
   },
 ];
 
+// B6 audit polish — accordion now feels premium:
+// - Hairline divider between items (was already there via divide-y)
+// - Custom Plus icon that rotates 45deg into an X when open (was a
+//   ChevronDown rotating 180deg — fine but generic SaaS)
+// - Hover state on the closed row (subtle bg tint + label shifts to
+//   deep-teal) so it feels interactive before click
+// - Smooth open via `interpolate-size` CSS rather than the native
+//   instant jump — gracefully degrades on browsers without support
+// - Slightly tighter vertical rhythm on the summary (py-4 -> py-5
+//   feels right with the new accordion layout)
 function Faq() {
   return (
-    <section className="bg-sand-light/60">
-      <div className="mx-auto max-w-3xl px-6 py-20 lg:py-28">
+    <section id="faq" className="scroll-mt-20 bg-sand-light/60">
+      <div className="mx-auto max-w-3xl px-6 py-14 lg:py-24">
         <div className="text-center">
           <p className="text-xs font-semibold uppercase tracking-wider text-deep-teal">
             FAQ
@@ -645,62 +1007,50 @@ function Faq() {
           </h2>
         </div>
 
-        <div className="mt-12 divide-y divide-charcoal/10 border-y border-charcoal/10">
+        <ul className="mt-12 divide-y divide-charcoal/10 border-y border-charcoal/10">
           {FAQS.map(({ q, a }) => (
-            <details key={q} className="group">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-5 font-display text-base font-semibold marker:hidden [&::-webkit-details-marker]:hidden">
-                {q}
-                <ChevronDown
-                  className="h-5 w-5 shrink-0 text-charcoal/50 transition-transform group-open:rotate-180"
-                  strokeWidth={2}
-                />
-              </summary>
-              <p className="pb-5 text-sm leading-relaxed text-charcoal/65">
-                {a}
-              </p>
-            </details>
+            <li key={q}>
+              <details className="group">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-md px-2 py-5 font-display text-base font-semibold text-charcoal transition-colors hover:text-deep-teal marker:hidden [&::-webkit-details-marker]:hidden">
+                  <span>{q}</span>
+                  <span
+                    aria-hidden
+                    className="relative grid h-6 w-6 shrink-0 place-items-center rounded-full border border-charcoal/20 text-charcoal/65 transition-colors group-hover:border-deep-teal group-hover:text-deep-teal group-open:border-deep-teal group-open:bg-deep-teal group-open:text-white"
+                  >
+                    {/* Plus-to-X icon — two stacked spans, the vertical
+                        one collapses to 0 when open giving a clean X
+                        without rotating the whole element. */}
+                    <span className="absolute h-[1.5px] w-3 bg-current" />
+                    <span className="absolute h-3 w-[1.5px] bg-current transition-transform duration-200 group-open:scale-y-0" />
+                  </span>
+                </summary>
+                <p className="px-2 pb-5 text-sm leading-relaxed text-charcoal/70">
+                  {a}
+                </p>
+              </details>
+            </li>
           ))}
-        </div>
+        </ul>
       </div>
     </section>
   );
 }
 
-function FinalCta() {
-  return (
-    <section className="mx-auto max-w-6xl px-6 pb-20 lg:pb-28">
-      <div className="rounded-3xl border border-charcoal/10 bg-sand-light px-8 py-14 text-center lg:px-16 lg:py-16">
-        <h2 className="mx-auto max-w-2xl text-balance font-display text-3xl font-bold tracking-tight sm:text-4xl">
-          Ready to give every scan a path?
-        </h2>
-        <p className="mx-auto mt-4 max-w-xl text-balance text-base leading-relaxed text-charcoal/65">
-          Create your first dynamic QR code in about a minute. No credit card,
-          no reprints, ever.
-        </p>
-        <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <Link
-            href="/create"
-            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-deep-teal px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-terracotta active:bg-terracotta-dark sm:w-auto"
-          >
-            Create yours now <ArrowRight className="h-4 w-4" />
-          </Link>
-          <Link
-            href="/pricing"
-            className="inline-flex w-full items-center justify-center rounded-lg border border-charcoal/15 bg-white px-6 py-3 text-base font-semibold text-charcoal transition-colors hover:text-deep-teal sm:w-auto"
-          >
-            See pricing
-          </Link>
-        </div>
-      </div>
-    </section>
-  );
-}
-
+// B6 pivot — footer rewritten for the single-page funnel structure.
+// Product column entries point at landing anchors directly (avoid the
+// /product -> /#features redirect round-trip from the next.config.ts
+// sub-page collapse). Company column drops Solutions / About (those
+// stubs are now redirects). Resources column carries FAQ anchor +
+// legal + Contact.
+//
+// Originally folded in B5 audit M1 + M4 (footer Log in /login hop +
+// stale Resources entries); the pivot supersedes both since the whole
+// footer link map gets rewritten anyway.
 const FOOTER_COLS = [
   {
     title: "Product",
     links: [
-      { label: "Overview", href: "/product" },
+      { label: "Features", href: "#features" },
       { label: "Pricing", href: "/pricing" },
       { label: "Create a QR", href: "/create" },
     ],
@@ -708,16 +1058,16 @@ const FOOTER_COLS = [
   {
     title: "Company",
     links: [
-      { label: "About", href: "/about" },
-      { label: "Solutions", href: "/solutions" },
+      { label: "Built for GCC", href: "#gcc" },
       { label: "Contact", href: "/contact" },
     ],
   },
   {
     title: "Resources",
     links: [
-      { label: "Guides & docs", href: "/resources" },
-      { label: "Log in", href: "/login" },
+      { label: "FAQ", href: "#faq" },
+      { label: "Privacy", href: "/privacy" },
+      { label: "Terms", href: "/terms" },
     ],
   },
 ];

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Activity, Filter, Globe2, Plus, QrCode, Smartphone,
-  Sparkles, Star, Users, Wallet, X, Zap,
+  Sparkles, Users, X, Zap,
 } from "lucide-react";
 import { toast } from "sonner";
 import LogoMark from "@/components/logo-mark";
@@ -490,13 +490,11 @@ function RightRail({
       >
         View all
       </Link>
-      <button
-        type="button"
-        onClick={() => toast("Wallet integration coming in Sprint 3")}
-        className="mt-2 flex w-full items-center justify-center gap-1 rounded-lg border border-dashed border-charcoal/15 px-3 py-2 text-[11px] text-charcoal/45 hover:bg-sand-light"
-      >
-        <Wallet className="h-3 w-3" /> Add payment method <Star className="h-3 w-3" />
-      </button>
+      {/* B5/Audit M3 — "Add payment method" placeholder dropped. It
+          was a Sprint 3 stub that toasted "Wallet integration coming"
+          — same "Coming Soon" stub family Fix 20 removed from the
+          sidebar. Re-add as a real entry when wallet ships, not a
+          placeholder button living in the right rail. */}
     </aside>
   );
 }

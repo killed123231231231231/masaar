@@ -36,7 +36,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${manrope.variable} ${plexArabic.variable}`}>
+    <html lang="en" className={`scroll-smooth ${inter.variable} ${manrope.variable} ${plexArabic.variable}`}>
       <body className="font-sans antialiased">
         {children}
         <Toaster position="top-center" richColors />

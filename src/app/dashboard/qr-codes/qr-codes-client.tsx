@@ -267,15 +267,19 @@ function ListRow({
         </p>
       </div>
 
-      {/* Type chip — hidden under sm. */}
-      <span className="hidden shrink-0 items-center gap-1.5 rounded-md bg-sand-light px-2 py-1 text-xs font-medium text-charcoal/70 sm:inline-flex">
+      {/* B5/Audit M2 — chips now have fixed min-widths + centered
+          content so their left edges align across all rows. Pre-fix
+          the chips were auto-width inline-flex/inline-block, drifting
+          ~30px between rows depending on label text ("Website" vs
+          "WhatsApp", "active" vs "pending payment"). Fixed-width
+          containers + justify-center keeps the column predictable. */}
+      <span className="hidden w-32 shrink-0 items-center justify-center gap-1.5 rounded-md bg-sand-light px-2 py-1 text-xs font-medium text-charcoal/70 sm:inline-flex">
         <TypeIcon className="h-3.5 w-3.5 text-deep-teal" />
         {tm.label}
       </span>
 
-      {/* Status — hidden under md. */}
       <span
-        className={`hidden shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider md:inline-block ${statusTint}`}
+        className={`hidden w-28 shrink-0 rounded-full px-2 py-0.5 text-center text-[10px] font-bold uppercase tracking-wider md:inline-block ${statusTint}`}
       >
         {q.status.replace(/_/g, " ")}
       </span>
