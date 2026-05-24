@@ -23,12 +23,19 @@ import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
+// B6 pivot — header nav reduced to 4 anchor-scroll items mapping to
+// real sections on this landing. Dropped Product / Solutions /
+// Resources / About — single-page funnel doesn't need a sub-page
+// sprawl, and getqr's analysis shows even they get away with zero
+// header nav. We keep four so a returning visitor can jump to
+// pricing / FAQ without scrolling, but every link lands within the
+// same page. Sub-page routes (/product etc.) are server-side
+// redirected to the relevant anchor in next.config.ts (commit C).
 const NAV = [
-  { label: "Product", href: "/product" },
-  { label: "Solutions", href: "/solutions" },
-  { label: "Resources", href: "/resources" },
-  { label: "Pricing", href: "/pricing" },
-  { label: "About", href: "/about" },
+  { label: "Features", href: "#features" },
+  { label: "Pricing", href: "#pricing" },
+  { label: "GCC", href: "#gcc" },
+  { label: "FAQ", href: "#faq" },
 ];
 
 const TRUST_LOGOS = [
