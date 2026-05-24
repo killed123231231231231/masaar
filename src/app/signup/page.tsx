@@ -93,13 +93,13 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="block text-sm font-medium text-gray-700">{label}</span>
+      <span className="block text-sm font-medium text-charcoal/75">{label}</span>
       <input
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         required={required}
-        className="mt-1 block w-full rounded-lg border border-gray-200 h-11 px-3 text-sm shadow-sm transition-colors duration-150 focus:border-terracotta focus:outline-none focus:ring-2 focus:ring-terracotta/30"
+        className="mt-1 block w-full rounded-lg border border-charcoal/15 h-11 px-3 text-sm shadow-sm transition-colors duration-150 focus:border-deep-teal focus:outline-none focus:ring-2 focus:ring-deep-teal/20"
       />
     </label>
   );
