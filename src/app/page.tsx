@@ -64,8 +64,13 @@ export default async function LandingPage() {
       <BuiltInRiyadh />
       <PricingTeaser />
       <BuiltForGCC />
-      {/* FAQ section removed from landing per B5/Item 4. The Faq component
-          stays defined below so it can be reused on /pricing later. */}
+      {/* B6/Section 8 — FAQ reinstated. B5/Item 4 unmounted it pending
+          a clean rewrite; this is that rewrite. Questions are GCC-
+          relevant (Mada, Arabic, data residency, halal) and explicitly
+          NOT mirroring getqr's billing-defensive set (which is 6/13
+          questions about cancellation / refunds / "I don't recognize
+          this charge" — a symptom of their $1 trial trap). */}
+      <Faq />
       <FinalCta />
 
       <SiteFooter />
@@ -924,26 +929,45 @@ function BuiltForGCC() {
   );
 }
 
+// B6/Section 8 — GCC-relevant questions. NOT mirroring getqr's set
+// (theirs is 6/13 billing-defensive — see design-targets/getqr-
+// analysis.md §3 S7). Anchored on the questions a Saudi cafe owner
+// actually asks: language, payments, data residency, halal, edits
+// after print, what happens on cancel. Honest about what's live
+// versus roadmap — Arabic + Mada are flagged as "coming" with the
+// session they ship in.
 const FAQS = [
   {
-    q: "What is a dynamic QR code?",
-    a: "A QR code whose destination you can change after it's printed. The code points to a Masaar link you control, so the artwork never has to change.",
+    q: "How is this different from a free QR generator?",
+    a: "Free generators give you a static image — print it, and the URL behind it is locked forever. Masaar codes are dynamic: you can re-point the destination anytime, see who scanned where, and add branding without losing the scan trail. The cost difference shows up the first time a printed campaign needs a URL change.",
   },
   {
-    q: "Do I need to reprint when the URL changes?",
-    a: "No — that's the whole point. Update the destination in your dashboard and every existing printed code instantly follows.",
+    q: "Will it work in Arabic?",
+    a: "The dashboard already ships in English with brand-correct Arabic typography (IBM Plex Sans Arabic). Full Arabic UI with RTL layout lands in our next session. Hosted scan-landing pages (menu, vCard) support Arabic + English side by side today.",
   },
   {
-    q: "Is Masaar available in Arabic?",
-    a: "Yes. The interface is built Arabic-first with full right-to-left support, alongside English.",
+    q: "Does it support Mada / STC Pay / Tap?",
+    a: "Not yet — payments are scaffolded but the actual gateway wiring lands in Sprint 3. We're being deliberate: the GCC market needs Mada and Apple Pay first, not Stripe-only. Until then, activation is on a SAR-priced launch promo. We'll never charge a card you didn't put in.",
   },
   {
-    q: "What scan data do I get?",
-    a: "Aggregated country, city, device, browser, and timing for every scan — with hashed IPs, never raw addresses or personally identifying information.",
+    q: "Can I edit the destination after printing?",
+    a: "Yes — that's the whole point of a dynamic QR. The printed code points at /r/<short-id> on our edge runtime; you update where it goes in your dashboard, and every existing print instantly follows. No reprint, no downtime, no broken links.",
   },
   {
-    q: "Is there a free trial?",
-    a: "Yes. Start free with no credit card required, and set up your first code in about a minute.",
+    q: "Are scans tracked privately?",
+    a: "We log country, city (Vercel-provided geo headers, no third-party IP service), device type, browser, and OS. IPs are SHA-256 hashed and truncated to 16 hex chars at write time — we never store raw addresses. Scans aren't tied to any user identity unless the QR is gated with a password.",
+  },
+  {
+    q: "Halal / SFDA badges for menus?",
+    a: "Halal flag and dietary tags (vegetarian, vegan, spicy, contains nuts) are first-class fields in our menu schema. They render with brand-correct iconography on the hosted menu page. The full Menu Pro builder ships next sprint.",
+  },
+  {
+    q: "Where is my data stored?",
+    a: "Supabase Postgres in ap-south-1 (Mumbai) — the closest AWS region to the GCC. We're evaluating a Riyadh / UAE region when AWS / Supabase land one; for now Mumbai gives us sub-100ms latency to most of the Gulf without compromising compliance.",
+  },
+  {
+    q: "What happens if I cancel?",
+    a: "Your existing QR codes stay valid — static ones keep working forever, dynamic ones either revert to a Masaar landing page (free tier) or stay live if you re-activate within 90 days. We don't auto-renew silently or send opaque \"I don't recognize this charge\" billing — every renewal is opt-in.",
   },
 ];
 
