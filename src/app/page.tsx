@@ -2,18 +2,19 @@ import Link from "next/link";
 import Image from "next/image";
 import {
   ArrowRight,
+  BarChart3,
   Check,
-  Sparkles,
-  QrCode,
-  Printer,
-  RefreshCw,
-  Activity,
-  MapPin,
-  Pencil,
   ChevronDown,
-  Languages,
-  ShieldCheck,
   Globe,
+  Languages,
+  Layers,
+  MapPin,
+  Printer,
+  QrCode,
+  RefreshCw,
+  ShieldCheck,
+  Sparkles,
+  UtensilsCrossed,
 } from "lucide-react";
 import LogoMark from "@/components/logo-mark";
 import HeaderLoginButton from "@/components/header-login-button";
@@ -59,7 +60,7 @@ export default async function LandingPage() {
       <TrustStrip />
 
       <HowItWorks />
-      <AnalyticsPreview />
+      <FeaturesGrid />
       <BuiltForGCC />
       {/* FAQ section removed from landing per B5/Item 4. The Faq component
           stays defined below so it can be reused on /pricing later. */}
@@ -453,122 +454,97 @@ function HowItWorks() {
   );
 }
 
-const ANALYTICS_POINTS = [
+// B6/Section 4 — 5-Feature Grid (NEW).
+//
+// Replaces the old AnalyticsPreview section. Borrows getqr.com's
+// `lg:grid-cols-5` icon+h3+body card pattern as the dominant
+// "what you get" visual primitive on the landing, but every feature
+// here is Masaar-specific (GCC content types, bilingual Arabic, AI
+// Menu) — none are copied from getqr's generic 5.
+//
+// Two features carry honest "Coming soon" badges (Bilingual + AI
+// Menu). Per STRATEGY.md and the brand-discipline guardrails, no
+// roadmap item is shipped as "live" before its session lands.
+const LANDING_FEATURES = [
   {
-    icon: Activity,
-    title: "Live scan feed",
-    body: "Every scan lands in your dashboard within seconds — no polling, no delay.",
+    icon: RefreshCw,
+    title: "Dynamic destinations",
+    body:
+      "Edit where a printed QR points — anytime, no reprint, no downtime. The code on your packaging stays good for the life of the campaign.",
+    soon: false,
   },
   {
-    icon: MapPin,
-    title: "Geo & device breakdown",
-    body: "Country, city, browser, and OS for every scan, aggregated automatically.",
+    icon: Layers,
+    title: "GCC content types",
+    body:
+      "Website, Menu, WhatsApp, vCard, WiFi, App Link, and more — tuned for how Saudi customers actually engage. WhatsApp deep-links and Menu primitives ship by default.",
+    soon: false,
   },
   {
-    icon: Pencil,
-    title: "Editable destinations",
-    body: "A/B a landing page or fix a broken link in production — instantly.",
+    icon: BarChart3,
+    title: "Real-time analytics",
+    body:
+      "Riyadh-time scan trends, country + city + device breakdowns, hashed-IP unique counts. Every scan is a data point in your dashboard within seconds.",
+    soon: false,
+  },
+  {
+    icon: Languages,
+    title: "Bilingual Arabic / English",
+    body:
+      "Native RTL, IBM Plex Arabic typography, and bilingual hosted pages built for GCC scanners on the first tap — not translated as an afterthought.",
+    soon: true,
+  },
+  {
+    icon: UtensilsCrossed,
+    title: "AI Menu Builder",
+    body:
+      "Upload a photo of your paper menu — Claude Vision extracts categories, items, prices, allergens, and bilingual fields in seconds. Built for Saudi cafes from day one.",
+    soon: true,
   },
 ];
 
-/* Static analytics visual — hand-written SVG bars + trend line. */
-function AnalyticsPreview() {
-  const bars = [38, 52, 44, 70, 60, 86, 74];
+function FeaturesGrid() {
   return (
     <section className="bg-sand-light/60">
-      <div className="mx-auto grid max-w-6xl items-center gap-12 px-6 py-20 lg:grid-cols-2 lg:py-28">
-        <div>
+      <div className="mx-auto max-w-6xl px-6 py-20 lg:py-28">
+        <div className="mx-auto max-w-2xl text-center">
           <p className="text-xs font-semibold uppercase tracking-wider text-deep-teal">
-            Real-time analytics
+            What's in the box
           </p>
           <h2 className="mt-3 text-balance font-display text-3xl font-bold tracking-tight sm:text-4xl">
-            See every scan as it happens
+            More than a QR generator
           </h2>
           <p className="mt-4 text-balance text-base leading-relaxed text-charcoal/65">
-            Stop guessing what your printed campaigns do. Masaar turns each
-            scan into a data point you can act on the same minute.
+            Five capabilities most generators don't ship — built around how
+            GCC businesses actually use QR codes day to day.
           </p>
+        </div>
 
-          <ul className="mt-8 space-y-5">
-            {ANALYTICS_POINTS.map(({ icon: Icon, title, body }) => (
-              <li key={title} className="flex gap-4">
-                <span className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-deep-teal/10 text-deep-teal">
-                  <Icon className="h-5 w-5" strokeWidth={1.75} />
+        <ul className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
+          {LANDING_FEATURES.map(({ icon: Icon, title, body, soon }) => (
+            <li
+              key={title}
+              className="relative rounded-2xl border border-charcoal/10 bg-white p-6 transition-colors hover:border-deep-teal/30"
+            >
+              {soon && (
+                <span className="absolute right-4 top-4 rounded-full bg-terracotta/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-terracotta-dark">
+                  Soon
                 </span>
-                <div>
-                  <h3 className="font-semibold">{title}</h3>
-                  <p className="mt-1 text-sm leading-relaxed text-charcoal/65">
-                    {body}
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="rounded-2xl border border-charcoal/10 bg-white p-6 shadow-xl shadow-charcoal/5">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium uppercase tracking-wide text-charcoal/45">
-                Scans this week
+              )}
+              <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-deep-teal/10 text-deep-teal">
+                <Icon className="h-5 w-5" strokeWidth={1.75} />
+              </span>
+              <h3 className="mt-5 font-display text-base font-bold leading-tight">
+                {title}
+              </h3>
+              <p className="mt-2 text-sm leading-relaxed text-charcoal/65">
+                {body}
               </p>
-              <p className="mt-1 font-display text-3xl font-bold">4,218</p>
-            </div>
-            <span className="rounded-md bg-deep-teal/10 px-2.5 py-1 text-xs font-semibold text-deep-teal">
-              ▲ 23%
-            </span>
-          </div>
-
-          <svg
-            viewBox="0 0 320 160"
-            className="mt-6 h-44 w-full"
-            preserveAspectRatio="none"
-          >
-            {bars.map((h, i) => {
-              const x = 14 + i * 44;
-              const barH = (h / 100) * 130;
-              return (
-                <rect
-                  key={i}
-                  x={x}
-                  y={140 - barH}
-                  width="26"
-                  height={barH}
-                  rx="4"
-                  fill="#0F5B55"
-                  fillOpacity={i === bars.length - 1 ? "1" : "0.28"}
-                />
-              );
-            })}
-            <path
-              d="M27,96 L71,76 L115,86 L159,52 L203,62 L247,28 L291,40"
-              fill="none"
-              stroke="#E07A5F"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-
-          <div className="mt-4 grid grid-cols-3 gap-3 border-t border-charcoal/10 pt-4 text-center">
-            <Stat label="Countries" value="14" />
-            <Stat label="Avg / day" value="602" />
-            <Stat label="Peak hour" value="8 PM" />
-          </div>
-        </div>
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <p className="font-display text-lg font-bold">{value}</p>
-      <p className="text-[11px] font-medium uppercase tracking-wide text-charcoal/45">
-        {label}
-      </p>
-    </div>
   );
 }
 
