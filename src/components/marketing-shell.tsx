@@ -52,8 +52,8 @@ export default async function MarketingShell({
 
   return (
     <main className="min-h-screen bg-white text-charcoal">
-      <header className="sticky top-0 z-40 border-b border-charcoal/10 bg-white/85 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+      <header className="sticky top-0 z-40 border-b border-charcoal/10 bg-white/80 backdrop-blur-md">
+        <div className="mx-auto flex h-[76px] max-w-7xl items-center justify-between px-6 sm:h-20">
           <Link href="/" className="flex items-center gap-2">
             <LogoMark className="h-8 w-8" />
             <span className="text-lg font-bold tracking-tight">
