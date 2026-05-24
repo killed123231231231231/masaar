@@ -973,7 +973,7 @@ const FAQS = [
 
 function Faq() {
   return (
-    <section className="bg-sand-light/60">
+    <section id="faq" className="scroll-mt-24 bg-sand-light/60">
       <div className="mx-auto max-w-3xl px-6 py-20 lg:py-28">
         <div className="text-center">
           <p className="text-xs font-semibold uppercase tracking-wider text-deep-teal">
@@ -1035,6 +1035,16 @@ function FinalCta() {
   );
 }
 
+// B6/Section 10 — Footer cleanup, folds in B5 audit M1 + M4.
+//
+// M1: removed the "Log in -> /login" entry (the route was deleted in
+// B5/Bug 14; the redirect to "/" still works but it's a needless
+// 2-hop and "Log in" already lives in the SiteHeader anyway).
+//
+// M4: refreshed the Resources column to point at real anchors. The
+// /resources page itself is built out in Phase 4; until then the
+// column links to the FAQ anchor on this very landing as the
+// honest "answers to common questions" surface.
 const FOOTER_COLS = [
   {
     title: "Product",
@@ -1056,7 +1066,9 @@ const FOOTER_COLS = [
     title: "Resources",
     links: [
       { label: "Guides & docs", href: "/resources" },
-      { label: "Log in", href: "/login" },
+      { label: "FAQ", href: "#faq" },
+      { label: "Privacy", href: "/privacy" },
+      { label: "Terms", href: "/terms" },
     ],
   },
 ];
