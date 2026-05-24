@@ -588,16 +588,23 @@ function FeaturesGrid() {
 // Until then this section carries the brand/origin/mission narrative.
 function BuiltInRiyadh() {
   return (
-    // B6 pivot follow-up — inner-card sections (this one + BuiltForGCC)
-    // need smaller outer py than plain sections because the rounded
-    // card carries its own p-10 / lg:p-14 padding. Pre-fix the gap from
-    // last card content to the next section's header read as ~150px
-    // even though the section borders were touching (Usama screenshot
-    // 3 flag). py-6 lg:py-10 closes the visual gap to ~50px while
-    // keeping the card visually delineated by its own border + bg.
     <section id="gcc" className="mx-auto max-w-6xl px-6 py-14 lg:py-24">
-      <div className="grid items-center gap-10 rounded-3xl border border-charcoal/10 bg-sand-light/40 p-8 lg:grid-cols-[1.3fr_1fr] lg:p-12">
-        <div>
+      {/* B6 post-audit redesign — two-column premium card. Previous
+          version had the map at max-w-md inside a padded card, which
+          rendered as a small floating image with ~50% of the right
+          column empty (Usama screenshot flag).
+
+          Now: parent card has overflow-hidden + grid lg:grid-cols-[48%_52%]
+          with NO internal padding on the right column. The map fills
+          the entire right panel via next/image fill + object-cover.
+          CSS grid's stretch alignment keeps both columns the same
+          height; the image's container therefore matches the left
+          content's natural height, no min-h gymnastics needed on
+          desktop. Mobile gets min-h-[320px] so the image has
+          something to fill against when columns stack. */}
+      <div className="overflow-hidden rounded-3xl border border-charcoal/10 bg-sand-light/40 shadow-sm lg:grid lg:grid-cols-[48%_52%]">
+        {/* Left content column */}
+        <div className="p-8 sm:p-10 lg:p-14">
           <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-deep-teal">
             <MapPin className="h-3.5 w-3.5" strokeWidth={2.25} />
             Built in Riyadh
@@ -644,21 +651,19 @@ function BuiltInRiyadh() {
           </ul>
         </div>
 
-        {/* Right: branded GCC map illustration. Replaces the earlier
-            hand-drawn PeninsulaPin SVG (B6 first pivot). The PNG ships
-            the Masaar lockup card baked-in at the bottom-left, so no
-            overlay chip needed here. next/image handles WebP / AVIF
-            conversion + responsive resizing on Vercel; the source is
-            ~1.5 MB PNG that should serve at ~150-300 KB after
-            optimization. priority=false because below the fold. */}
-        <div className="relative mx-auto w-full max-w-md drop-shadow-md">
+        {/* Right visual panel — map fills the entire column. No internal
+            padding on this side: the map touches the rounded card edge
+            (overflow-hidden on the parent clips it cleanly to the
+            curve). Light teal tint behind the image so any
+            object-cover crop on extreme aspect ratios feels intentional
+            instead of pillarboxed. */}
+        <div className="relative min-h-[320px] bg-deep-teal/5 sm:min-h-[420px] lg:min-h-[560px]">
           <Image
             src="/landing/built-in-riyadh-map.png"
             alt="GCC map showing Masaar QR codes radiating from Riyadh to locations across Saudi Arabia and the wider Gulf"
-            width={1448}
-            height={1086}
-            sizes="(max-width: 768px) 80vw, 36vw"
-            className="h-auto w-full"
+            fill
+            sizes="(max-width: 1024px) 100vw, 52vw"
+            className="object-cover object-center"
             priority={false}
           />
         </div>
