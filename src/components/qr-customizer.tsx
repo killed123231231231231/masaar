@@ -121,6 +121,10 @@ export default function QrCustomizer({ initialShortId, onSave, saving, allowLogo
         });
       case "app_link":
         return encodeAppLink(appLink);
+      default:
+        // pdf/image/video are created via the /create wizard's upload
+        // form, not this legacy customizer — keep the memo a plain string.
+        return "";
     }
   }, [content_kind, urlValue, textValue, vcard, wifi, email, sms, phone, whatsapp, appLink]);
 

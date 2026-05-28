@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { typeMeta, type WizardType } from "../_lib/types";
 import PhonePreview from "./phone-preview";
+import FileUpload from "./file-upload";
 
 const ICONS: Record<string, LucideIcon> = {
   Globe, FileText, Image: ImageIcon, Contact, Video, Link2,
@@ -30,6 +31,9 @@ const FORM_COPY: Partial<Record<WizardType, { subtitle: string }>> = {
   phone: { subtitle: "Enter the phone number people will call when they scan" },
   whatsapp: { subtitle: "Open a WhatsApp chat with a pre-filled message" },
   app_link: { subtitle: "Send scanners to your app on the right store automatically" },
+  pdf: { subtitle: "Upload a PDF — scanners open it on a clean hosted page" },
+  image: { subtitle: "Upload an image — scanners see it full-screen" },
+  video: { subtitle: "Upload a video — it plays right after the scan" },
 };
 
 export default function Step2Content({
@@ -38,12 +42,15 @@ export default function Step2Content({
   setForm,
   name,
   setName,
+  draftToken,
 }: {
   type: WizardType;
   form: Form;
   setForm: (f: Form) => void;
   name: string;
   setName: (n: string) => void;
+  /** C — passed through to the file-upload component for anon uploads. */
+  draftToken: string;
 }) {
   const set = (k: string, v: unknown) => setForm({ ...form, [k]: v });
   const meta = typeMeta(type);
@@ -180,6 +187,15 @@ export default function Step2Content({
               <Field label="App URL (App Store / Play Store)" required><input value={form.url ?? "https://"} onChange={(e) => set("url", e.target.value)} placeholder="https://apps.apple.com/..." className={inputCls} /></Field>
               <Field label="Fallback URL (desktop, optional)"><input value={form.fallback ?? ""} onChange={(e) => set("fallback", e.target.value)} className={inputCls} /></Field>
             </div>
+          )}
+
+          {(type === "pdf" || type === "image" || type === "video") && (
+            <FileUpload
+              kind={type}
+              form={form}
+              setForm={setForm}
+              draftToken={draftToken}
+            />
           )}
 
           {!meta.ready && (
