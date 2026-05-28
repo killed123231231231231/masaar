@@ -369,3 +369,84 @@ only** (existing users, via the Welcome Back modal). Authed
 subscribers bypass the gate and checkout entirely (A.5).
 `SUPABASE_SERVICE_ROLE_KEY` is server-only (admin client at
 `lib/supabase/admin.ts`); `PAYMENTS_ENABLED=false` keeps Pay a stub.
+
+---
+
+## Current state snapshot — 2026-05-29 (Sprint 2: A–C merged)
+
+> Append-only update. The 2026-05-17 sections above are Sprint-1-era and
+> kept for history; THIS section is the live state. Read it first.
+
+### Where we are
+- **Sprint 2 progress** (see `SPRINT2_INDEX.md` for the full table):
+  ✅ A, A.5, A.7, B, B.5, B.6, **B.7 (security hardening)**, **C
+  (file-hosted content types)** all merged to `main`.
+  ⏳ Next: **D** (Remaining Content Types) → I (Power Features) → E
+  (Arabic/RTL) → Phase 2 F/G/H (Menu vertical).
+- **`main` HEAD:** `517ee1e` (Merge Session C). Live + SHA-current on prod.
+- **Live:** https://masaar-zeta.vercel.app (Vercel `qasimahmed4444s-projects/masaar`).
+- **Supabase:** ref `hsnrupadmygkeirhujiv`, region `ap-south-1`. **Migrations applied through `023`.**
+- **GitHub:** https://github.com/killed123231231231231/masaar (remote `origin`).
+
+### ⚠️ Working-directory trap (cost time this session)
+This Claude session's *default* worktree is a **different repo**
+(`Venture-Supply-SRS`, a sales dashboard). The Masaar repo lives at
+**`C:\Users\masim\Downloads\masaar`**. The shell CWD silently reverts to
+the venture-supply worktree between turns — **always `cd /c/Users/masim/Downloads/masaar`
+before any git/build/vercel command.** `git remote -v` should show
+`origin → killed123231231231231/masaar.git`; if it shows `venture-supply`,
+you're in the wrong dir.
+
+### Backend surface (Supabase) added since Sprint 1
+- **Resolvers (SECURITY DEFINER, qr_codes has no public read):**
+  `resolve_qr_v2(short_id)` → (id, destination, status, content_type) for
+  `/r`; `get_renderable_qr(id)` → render fields for active-or-owner
+  (render.png); `resolve_asset_qr(short_id)` → asset fields incl.
+  `coalesce(asset_url, destination)` for `/v`.
+- **Writes via definer RPCs:** `create_anon_qr` (anon create + per-IP cap),
+  `claim_draft_qrs` (015-hardened: pending+recent+unclaimed only),
+  `log_scan` (B.7 — scans have NO open insert policy now),
+  `record_anon_logo_upload` (logo limiter), `record_file_upload` (C —
+  10/hr per IP AND per user; table `file_uploads`).
+- **Storage buckets (public read, service-role writes):** `logos`,
+  `qr-pdfs` (10MB), `qr-images` (5MB), `qr-videos` (25MB). MIME+size capped
+  at the bucket. `storage_cleanup_queue` + BEFORE-DELETE trigger on
+  qr_codes (processor not built — no QR-delete UI yet).
+- RLS uses `(select auth.uid())` (perf); advisors clean except intentional
+  anon-callable definers + **leaked-password protection (toggle ON in
+  Supabase dashboard → Auth → Policies — still PENDING, manual).**
+
+### Key routes
+- `/create` = the 3-step wizard (`wizard-client.tsx` + `_components/` +
+  `_lib/types.ts|payload.ts`). The legacy `qr-customizer.tsx` still exists.
+- `/r/[shortId]` edge redirect + `log_scan` (bot-UA skip); routes
+  pdf/image/video → `/v`. `/v/[shortId]` = public hosted asset page.
+- `/api/upload/[bucket]` (service-role upload gateway), `/api/qr` +
+  `/api/qr/anonymous`, `/api/checkout/anon`, `/api/qr/[id]/render.png`.
+
+### Content types live
+url, text, vcard, wifi, email, sms, phone, whatsapp, app_link, **pdf,
+image, video**. Stubbed (later sessions): location, feedback, menu, payment.
+File QRs are **dynamic** (encode `/r/<shortId>` → `/v`); `destination`
+carries the asset URL.
+
+### Tests / gates
+`npm run build` (gates on lint+types), `npm run typecheck`, **`npm test`
+(Vitest — pure-logic suite added in B.7)**. ESLint flat config live.
+
+### Known limitations / open product calls
+- **Public buckets:** file lock-in gates the `/v` *page*, not the raw file
+  URL. True gating = private buckets + signed URLs (deferred).
+- One inert ~70-byte orphan test PNG in `qr-images` (storage objects can't
+  be SQL-deleted; delete via dashboard if desired).
+
+### Workflow (this owner's preferences)
+Branch per session (`sprint-2/session-<x>`), merge `--no-ff`, branch stays
+alive. **Migrations: present SQL + get approval before apply**, then verify
+in-DB. Replicate the 3 `NEXT_PUBLIC_*` + `PAYMENTS_ENABLED` to each new
+branch's **Preview** scope (`SERVICE_ROLE_KEY` is already Preview-global).
+One commit = one logical change. Gate+paste; stop-and-ask on scope/behaviour
+conflicts. Migrations on the **shared prod DB must ship atomically with
+their code** (B.7 lesson: a policy drop ahead of its code broke prod scan
+logging until merge — make migrations additive/backward-compatible while
+the branch is unmerged).
