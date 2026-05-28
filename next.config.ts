@@ -11,6 +11,43 @@ const nextConfig: NextConfig = {
   // which is deprecated in Next 15 (warned on every build). Same effect:
   // keeps qr-code-styling out of the server bundle's module transform.
   serverExternalPackages: ["qr-code-styling"],
+  // B7/P2-4 — security headers (the app shipped with none). The four
+  // hard headers are unambiguously safe + valuable. CSP is shipped in
+  // Report-Only mode: it does NOT block anything (no user impact), it
+  // just documents the intended policy and surfaces violations in the
+  // browser console so we can tighten to an enforced CSP later without
+  // guessing. frame-ancestors 'none' double-locks clickjacking with
+  // X-Frame-Options. connect-src covers Supabase REST + realtime WS;
+  // img-src covers next/image sources; script-src keeps inline/eval
+  // that Next's runtime needs (to be tightened with nonces later).
+  async headers() {
+    const csp = [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: blob: https://*.supabase.co https://lh3.googleusercontent.com",
+      "font-src 'self' data:",
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://vercel.live",
+      "frame-ancestors 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+    ].join("; ");
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=63072000; includeSubDomains; preload",
+          },
+          { key: "Content-Security-Policy-Report-Only", value: csp },
+        ],
+      },
+    ];
+  },
   async redirects() {
     // B5/Bug 14 — the legacy /login route was deleted in favor of the
     // landing-header LoginModal. Existing inbound links (middleware

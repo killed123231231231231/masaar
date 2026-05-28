@@ -533,13 +533,13 @@ function FeaturesGrid() {
       <div className="mx-auto max-w-6xl px-6 py-14 lg:py-24">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-xs font-semibold uppercase tracking-wider text-deep-teal">
-            What's in the box
+            What&apos;s in the box
           </p>
           <h2 className="mt-3 text-balance font-display text-3xl font-bold tracking-tight sm:text-4xl">
             More than a QR generator
           </h2>
           <p className="mt-4 text-balance text-base leading-relaxed text-charcoal/65">
-            Five capabilities most generators don't ship — built around how
+            Five capabilities most generators don&apos;t ship — built around how
             GCC businesses actually use QR codes day to day.
           </p>
         </div>
