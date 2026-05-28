@@ -2,7 +2,24 @@ import { NextResponse } from "next/server";
 import QRCode from "qrcode";
 import sharp from "sharp";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { appUrl } from "@/lib/env";
+import { appUrl, supabaseUrl } from "@/lib/env";
+
+// B7/P1-2 — SSRF guard. `logo_url` is attacker-influenceable (the anon
+// create route accepts an arbitrary string), and compositeLogo fetches
+// it server-side. Only allow URLs that live under this project's
+// Supabase Storage origin; everything else is refused before the fetch
+// so the render server can't be turned into an internal-host probe.
+function isAllowedLogoUrl(raw: string): boolean {
+  try {
+    const u = new URL(raw);
+    const storage = new URL(supabaseUrl());
+    return (
+      u.origin === storage.origin && u.pathname.startsWith("/storage/")
+    );
+  } catch {
+    return false;
+  }
+}
 
 // Server-side PNG render. Used by the welcome email's <img>, the
 // dashboard thumbnails (QrThumb), and the QR-codes list. `qrcode` is
@@ -58,9 +75,11 @@ export async function GET(
     color: { dark: fg, light: bg },
   });
 
-  // Default: bare QR. Composite logo on top if present.
+  // Default: bare QR. Composite logo on top if present AND the logo
+  // URL is under our Storage origin (B7/P1-2 SSRF guard). An
+  // off-origin logo_url is silently ignored — the QR still scans.
   let outBuf: Buffer = qrBuf;
-  if (qr.logo_url) {
+  if (qr.logo_url && isAllowedLogoUrl(qr.logo_url)) {
     outBuf = await compositeLogo(qrBuf, qr.logo_url, width, bg);
   }
 
