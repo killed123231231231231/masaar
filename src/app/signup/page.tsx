@@ -32,7 +32,9 @@ export default function SignupPage() {
       return;
     }
     setMsg("Check your inbox for a confirmation link.");
-    setTimeout(() => router.push("/login"), 1500);
+    // B7/P1-4 — no standalone /login page; land on the landing with the
+    // Welcome Back modal pre-opened so they can sign in once confirmed.
+    setTimeout(() => router.push("/?login=1"), 1500);
   }
 
   return (
@@ -67,7 +69,7 @@ export default function SignupPage() {
 
           <p className="mt-6 text-center text-sm text-charcoal/55">
             Already have an account?{" "}
-            <Link href="/login" className="font-semibold text-deep-teal hover:underline">
+            <Link href="/?login=1" className="font-semibold text-deep-teal hover:underline">
               Log in
             </Link>
           </p>

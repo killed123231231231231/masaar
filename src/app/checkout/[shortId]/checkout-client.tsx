@@ -140,7 +140,13 @@ export default function CheckoutClient({
           data?.message ||
             "This email already has an account. Please log in instead."
         );
-        setLoginHint("/login");
+        // B7/P1-4 — open the landing's Welcome Back modal directly (no
+        // standalone /login page) with the email prefilled and a return
+        // path back to this checkout so they finish activating after
+        // signing in.
+        setLoginHint(
+          `/?login=1&email=${encodeURIComponent(anon.email)}&redirectTo=/checkout/${qr.short_id}`
+        );
         return;
       }
       setErr(data?.message || data?.error || "Could not complete checkout.");

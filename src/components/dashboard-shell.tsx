@@ -14,7 +14,7 @@ export default async function DashboardShell({
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) redirect("/login");
+  if (!user) redirect("/?login=1&redirectTo=/dashboard");
 
   return (
     <div className="min-h-screen bg-gray-50">

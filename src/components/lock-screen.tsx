@@ -55,7 +55,7 @@ export default function LockScreen({
               Activate this QR
             </Link>
             <Link
-              href={`/login?redirectTo=/checkout/${shortId}`}
+              href={`/?login=1&redirectTo=/checkout/${shortId}`}
               className="mt-4 inline-block text-xs font-medium text-charcoal/55 underline-offset-2 transition-colors hover:text-deep-teal hover:underline"
             >
               Are you the owner? Log in to activate

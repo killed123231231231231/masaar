@@ -22,7 +22,7 @@ export default async function EditQrPage({
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  if (!user) redirect(`/?login=1&redirectTo=/dashboard/qr/${id}`);
 
   const [qrRes, me] = await Promise.all([
     supabase

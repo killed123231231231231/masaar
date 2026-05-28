@@ -55,9 +55,14 @@ const nextConfig: NextConfig = {
     // here. /auth/login was always a dead reference in older copy;
     // redirect it too. Both temporary (302) because we may restore a
     // dedicated login page later.
+    // B7/P1-4 — append ?login=1 so the landing's HeaderLoginButton
+    // autohook pre-opens the Welcome Back modal instead of dropping the
+    // user on the marketing page with no obvious next step. Any
+    // ?redirectTo= the producer attached survives the redirect (Next
+    // preserves the query string on these path-only rules).
     return [
-      { source: "/login", destination: "/", permanent: false },
-      { source: "/auth/login", destination: "/", permanent: false },
+      { source: "/login", destination: "/?login=1", permanent: false },
+      { source: "/auth/login", destination: "/?login=1", permanent: false },
       // B5/Round2 post-merge — per-QR analytics was unified into the
       // Overview as a URL-backed filter (`/dashboard?qr=<id>`). Old
       // bookmarks, sidebar "Analytics" deep links from earlier sessions,

@@ -65,6 +65,7 @@ export default function HeaderLoginButton() {
     >
       <LoginModal
         initialEmail={params.get("email") ?? undefined}
+        redirectTo={params.get("redirectTo") ?? undefined}
         onClose={() => setOpen(false)}
         onSwitchToSignup={() => {
           setOpen(false);

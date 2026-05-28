@@ -24,7 +24,7 @@ export default async function ActivityPage({
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  if (!user) redirect("/?login=1&redirectTo=/dashboard/activity");
 
   const [activity, me] = await Promise.all([
     getAccountActivity(supabase, user.id, period, page, 50),

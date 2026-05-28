@@ -17,14 +17,19 @@ export async function GET(request: NextRequest) {
 
   const abs = (path: string) => new URL(path, request.url).toString();
 
+  // B7/P1-4 — there is no standalone /login page; bounce auth errors to
+  // the landing with the login modal pre-opened (?login=1). The ?error=
+  // tag rides along for debugging/future surfacing; the modal opens
+  // regardless so the user has an obvious recovery path (re-enter email
+  // → "Send me a setup link").
   if (!code) {
-    return NextResponse.redirect(abs("/login?error=missing_code"), 303);
+    return NextResponse.redirect(abs("/?login=1&error=missing_code"), 303);
   }
 
   const supabase = await createClient();
   const { error: exchErr } = await supabase.auth.exchangeCodeForSession(code);
   if (exchErr) {
-    return NextResponse.redirect(abs("/login?error=link_expired"), 303);
+    return NextResponse.redirect(abs("/?login=1&error=link_expired"), 303);
   }
 
   let target = "/dashboard?welcome=1";
