@@ -104,22 +104,34 @@ export async function GET(
     "0.0.0.0";
   const ipHash = await sha256(ip);
 
-  // Await the insert. On the edge runtime a fire-and-forget promise is
-  // torn down when the response returns, so scans were being dropped
-  // non-deterministically. One insert keeps the hop well under the
-  // ~100ms budget. (next@15.0.3 only ships unstable_after, which needs
+  // B7/P2-1 — log via the log_scan() definer; the open scans_anon_insert
+  // policy (WITH CHECK true) was dropped, so direct table inserts no
+  // longer work. Skip obvious bots / link-preview fetchers so they don't
+  // inflate scan counts — a real camera scan opens the URL with a normal
+  // browser UA, so humans still log; only the regex runs on the hot path.
+  const isBot =
+    /bot|crawl|spider|slurp|facebookexternalhit|whatsapp|telegram|discord|skype|preview|monitor|curl|wget|headless|python-requests|axios|go-http|node-fetch/i.test(
+      ua
+    );
+
+  // Await the call. On the edge runtime a fire-and-forget promise is torn
+  // down when the response returns, so scans were being dropped
+  // non-deterministically. One RPC keeps the hop well under the ~100ms
+  // budget. (next@15.0.3 only ships unstable_after, which needs
   // experimental.after and is unstable on edge — unfit for this path.)
-  await supabase.from("scans").insert({
-    qr_code_id: qr.id,
-    country,
-    region,
-    city,
-    device_type: parsed.device.type ?? "desktop",
-    os: parsed.os.name ?? null,
-    browser: parsed.browser.name ?? null,
-    user_agent: ua,
-    ip_hash: ipHash,
-  });
+  if (!isBot) {
+    await supabase.rpc("log_scan", {
+      p_qr_code_id: qr.id,
+      p_country: country,
+      p_region: region,
+      p_city: city,
+      p_device_type: parsed.device.type ?? "desktop",
+      p_os: parsed.os.name ?? null,
+      p_browser: parsed.browser.name ?? null,
+      p_user_agent: ua,
+      p_ip_hash: ipHash,
+    });
+  }
 
   const res = NextResponse.redirect(redirectTo, 302);
   for (const [k, v] of Object.entries(NO_STORE)) res.headers.set(k, v);
