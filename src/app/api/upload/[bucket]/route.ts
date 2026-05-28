@@ -33,8 +33,8 @@ const BUCKETS: Record<
   },
   "qr-videos": {
     mime: { "video/mp4": "mp4", "video/webm": "webm" },
-    max: 50 * 1024 * 1024,
-    label: "MP4 or WebM, up to 50 MB",
+    max: 25 * 1024 * 1024,
+    label: "MP4 or WebM, up to 25 MB",
   },
 };
 
@@ -91,42 +91,38 @@ export async function POST(
 
   const draftToken = form.get("draft_token");
   let prefix: string;
-
   if (user) {
-    // (Authed uploads aren't separately rate-limited in v1 — identified
-    // users + the bucket's hard size/MIME caps. A per-user limit is a
-    // BACKLOG follow-up.)
     prefix = user.id;
   } else if (typeof draftToken === "string" && UUID_RE.test(draftToken)) {
-    // Anon rate-limit by IP via the existing SECURITY DEFINER RPC. v1
-    // reuses the anon-logo limiter as a shared anti-abuse gate (5/hr/IP);
-    // a dedicated file-upload counter with the spec's 20/hr is a BACKLOG
-    // follow-up.
-    const ip =
-      request.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
-      request.headers.get("x-real-ip") ||
-      "0.0.0.0";
-    const ipHash = await sha256_16(ip);
-    const { error: rlErr } = await supa.rpc("record_anon_logo_upload", {
-      p_ip_hash: ipHash,
-      p_draft_token: draftToken,
-    });
-    if (rlErr) {
-      if (rlErr.message?.includes("rate_limit_exceeded")) {
-        return NextResponse.json(
-          {
-            error: "rate_limit_exceeded",
-            message:
-              "Too many uploads from this network. Try again in an hour.",
-          },
-          { status: 429 }
-        );
-      }
-      return NextResponse.json({ error: rlErr.message }, { status: 400 });
-    }
     prefix = `anon/${draftToken}`;
   } else {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+
+  // Rate-limit EVERY upload: 10/hour per IP (always) AND per user (when
+  // authed), via the dedicated record_file_upload limiter (migration 023).
+  // This caps both anonymous floods and logged-in abuse — videos are the
+  // priciest payload, so this count cap pairs with the 25 MB size cap.
+  const ip =
+    request.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
+    request.headers.get("x-real-ip") ||
+    "0.0.0.0";
+  const ipHash = await sha256_16(ip);
+  const { error: rlErr } = await supa.rpc("record_file_upload", {
+    p_ip_hash: ipHash,
+    p_user_id: user?.id ?? null,
+  });
+  if (rlErr) {
+    if (rlErr.message?.includes("rate_limit_exceeded")) {
+      return NextResponse.json(
+        {
+          error: "rate_limit_exceeded",
+          message: "Too many uploads in the last hour. Try again shortly.",
+        },
+        { status: 429 }
+      );
+    }
+    return NextResponse.json({ error: rlErr.message }, { status: 400 });
   }
 
   // Service-role upload — the buckets have no client-write policy.

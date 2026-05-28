@@ -17,7 +17,7 @@ const CFG: Record<Kind, { bucket: string; accept: string; hint: string }> = {
   video: {
     bucket: "qr-videos",
     accept: "video/mp4,video/webm",
-    hint: "MP4 or WebM, up to 50 MB",
+    hint: "MP4 or WebM, up to 25 MB",
   },
 };
 
