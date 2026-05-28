@@ -7,10 +7,10 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "lh3.googleusercontent.com" },
     ],
   },
-  experimental: {
-    // Required for qr-code-styling on the server
-    serverComponentsExternalPackages: ["qr-code-styling"],
-  },
+  // B7/P1-5 — renamed from experimental.serverComponentsExternalPackages,
+  // which is deprecated in Next 15 (warned on every build). Same effect:
+  // keeps qr-code-styling out of the server bundle's module transform.
+  serverExternalPackages: ["qr-code-styling"],
   async redirects() {
     // B5/Bug 14 — the legacy /login route was deleted in favor of the
     // landing-header LoginModal. Existing inbound links (middleware
