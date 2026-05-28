@@ -413,8 +413,8 @@ you're in the wrong dir.
   at the bucket. `storage_cleanup_queue` + BEFORE-DELETE trigger on
   qr_codes (processor not built — no QR-delete UI yet).
 - RLS uses `(select auth.uid())` (perf); advisors clean except intentional
-  anon-callable definers + **leaked-password protection (toggle ON in
-  Supabase dashboard → Auth → Policies — still PENDING, manual).**
+  anon-callable definers. (One manual Supabase Auth config item remains —
+  tracked in the local `SPRINT2.md` decision log, kept out of this public repo.)
 
 ### Key routes
 - `/create` = the 3-step wizard (`wizard-client.tsx` + `_components/` +
@@ -435,8 +435,9 @@ carries the asset URL.
 (Vitest — pure-logic suite added in B.7)**. ESLint flat config live.
 
 ### Known limitations / open product calls
-- **Public buckets:** file lock-in gates the `/v` *page*, not the raw file
-  URL. True gating = private buckets + signed URLs (deferred).
+- **File hosting:** there are deferred hardening items + design trade-offs
+  for the file content types — see the local `SPRINT2.md` decision log and
+  `SECURITY_AUDIT` (intentionally kept out of this public repo).
 - One inert ~70-byte orphan test PNG in `qr-images` (storage objects can't
   be SQL-deleted; delete via dashboard if desired).
 
