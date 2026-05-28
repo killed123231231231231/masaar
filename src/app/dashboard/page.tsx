@@ -32,7 +32,7 @@ export default async function DashboardPage({
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  if (!user) redirect("/?login=1&redirectTo=/dashboard");
 
   const [bundle, me] = await Promise.all([
     getAccountAnalytics(supabase, user.id, period, filterQrId),

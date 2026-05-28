@@ -345,7 +345,7 @@ function FeatureMatrix() {
         Compare features
       </h2>
       <p className="mt-2 text-center text-sm text-charcoal/55">
-        Honest about what's live vs roadmap. Sessions referenced point to the
+        Honest about what&apos;s live vs roadmap. Sessions referenced point to the
         sprint where each capability lands.
       </p>
 
@@ -455,7 +455,7 @@ function FinalSalesCta() {
       </h2>
       <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-charcoal/65">
         Multi-brand, white-label, regional rollout, dedicated support — Agency
-        is built around the conversation. We'll match the deal to your real
+        is built around the conversation. We&apos;ll match the deal to your real
         use case.
       </p>
       <Link

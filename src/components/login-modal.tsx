@@ -30,6 +30,7 @@ import { createClient } from "@/lib/supabase/client";
 export default function LoginModal({
   draftToken,
   initialEmail,
+  redirectTo,
   onClose,
   onSwitchToSignup,
 }: {
@@ -37,6 +38,11 @@ export default function LoginModal({
   /** B5/Round2 H4 — prefill from ?email= query (e.g. /api/checkout/anon
    *  409-already-registered redirects to /?login=1&email=...). */
   initialEmail?: string;
+  /** B7/P1-4 — where to go after a successful (non-draft) login.
+   *  Comes from the ?redirectTo= query that middleware / deep links
+   *  set. MUST be validated as an internal path before use to avoid
+   *  an open-redirect (see safeRedirect below). */
+  redirectTo?: string;
   onClose: () => void;
   onSwitchToSignup: () => void;
 }) {
@@ -88,8 +94,17 @@ export default function LoginModal({
         return;
       }
     }
+    // B7/P1-4 — honor ?redirectTo= (e.g. middleware bounced an
+    // unauthed user off a dashboard URL, or the lock-screen deep
+    // link to /checkout/<id>). Guard against open-redirect: only
+    // internal absolute paths ("/x"), never protocol-relative
+    // ("//evil") or absolute URLs. Falls back to the dashboard.
+    const safeRedirect =
+      redirectTo && redirectTo.startsWith("/") && !redirectTo.startsWith("//")
+        ? redirectTo
+        : "/dashboard?welcome=1";
     onClose();
-    router.push("/dashboard?welcome=1");
+    router.push(safeRedirect);
     router.refresh();
   }
 

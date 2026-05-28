@@ -18,7 +18,7 @@ export default async function MenuPlaceholderPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  if (!user) redirect("/?login=1&redirectTo=/dashboard/menu");
 
   const me = await getMe(user.id, user.email ?? "");
 

@@ -32,11 +32,16 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Protect dashboard routes — redirect unauthenticated users to /login
+  // Protect dashboard routes — bounce unauthenticated users to the landing
+  // page with the login modal pre-opened (?login=1) and a validated
+  // return path (?redirectTo=). B7/P1-4: there is no standalone /login
+  // page anymore — the HeaderLoginButton autohook reads these params and
+  // opens the Welcome Back modal, which honors redirectTo after sign-in.
   const isDashboardRoute = request.nextUrl.pathname.startsWith("/dashboard");
   if (isDashboardRoute && !user) {
     const url = request.nextUrl.clone();
-    url.pathname = "/login";
+    url.pathname = "/";
+    url.searchParams.set("login", "1");
     url.searchParams.set("redirectTo", request.nextUrl.pathname);
     return NextResponse.redirect(url);
   }

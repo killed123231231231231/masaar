@@ -1,8 +1,25 @@
 import { NextResponse } from "next/server";
 import QRCode from "qrcode";
 import sharp from "sharp";
-import { createAdminClient } from "@/lib/supabase/admin";
-import { appUrl } from "@/lib/env";
+import { createClient } from "@/lib/supabase/server";
+import { appUrl, supabaseUrl } from "@/lib/env";
+
+// B7/P1-2 — SSRF guard. `logo_url` is attacker-influenceable (the anon
+// create route accepts an arbitrary string), and compositeLogo fetches
+// it server-side. Only allow URLs that live under this project's
+// Supabase Storage origin; everything else is refused before the fetch
+// so the render server can't be turned into an internal-host probe.
+function isAllowedLogoUrl(raw: string): boolean {
+  try {
+    const u = new URL(raw);
+    const storage = new URL(supabaseUrl());
+    return (
+      u.origin === storage.origin && u.pathname.startsWith("/storage/")
+    );
+  } catch {
+    return false;
+  }
+}
 
 // Server-side PNG render. Used by the welcome email's <img>, the
 // dashboard thumbnails (QrThumb), and the QR-codes list. `qrcode` is
@@ -20,22 +37,19 @@ export async function GET(
     return NextResponse.json({ error: "bad id" }, { status: 400 });
   }
 
-  let supabase;
-  try {
-    supabase = createAdminClient();
-  } catch {
-    return NextResponse.json({ error: "render unavailable" }, { status: 503 });
+  // B7/P1-1 — was createAdminClient() (service role, bypassed RLS so any
+  // UUID-holder could render any QR, incl. a static QR's full payload).
+  // Now the cookie-aware client + get_renderable_qr() definer renders
+  // only active QRs (public) or the authenticated owner's QRs (any
+  // status, for dashboard thumbnails). No service-role key needed here.
+  const supabase = await createClient();
+  const { data: rows, error } = await supabase.rpc("get_renderable_qr", {
+    p_id: id,
+  });
+  const qr = Array.isArray(rows) ? rows[0] : null;
+  if (error || !qr) {
+    return NextResponse.json({ error: "not found" }, { status: 404 });
   }
-
-  // logo_url is new in the SELECT — fetched conditionally for the
-  // composite step. Null is the common case.
-  const { data: qr } = await supabase
-    .from("qr_codes")
-    .select("short_id, kind, destination, fg_color, bg_color, name, logo_url")
-    .eq("id", id)
-    .maybeSingle();
-
-  if (!qr) return NextResponse.json({ error: "not found" }, { status: 404 });
 
   const data =
     qr.kind === "dynamic" && qr.short_id
@@ -58,9 +72,11 @@ export async function GET(
     color: { dark: fg, light: bg },
   });
 
-  // Default: bare QR. Composite logo on top if present.
+  // Default: bare QR. Composite logo on top if present AND the logo
+  // URL is under our Storage origin (B7/P1-2 SSRF guard). An
+  // off-origin logo_url is silently ignored — the QR still scans.
   let outBuf: Buffer = qrBuf;
-  if (qr.logo_url) {
+  if (qr.logo_url && isAllowedLogoUrl(qr.logo_url)) {
     outBuf = await compositeLogo(qrBuf, qr.logo_url, width, bg);
   }
 
@@ -69,10 +85,19 @@ export async function GET(
     .slice(0, 60);
   const filename = `${safeName}-${qr.short_id || id.slice(0, 8)}.png`;
 
+  // B7/P1-1 — an active QR renders identically for everyone, so it can
+  // sit in a shared cache; an owner-only (non-active) render must never
+  // land in a shared CDN cache or it could re-leak to a non-owner.
+  const cacheControl = wantsDownload
+    ? "no-store"
+    : qr.status === "active"
+      ? "public, max-age=300"
+      : "private, max-age=60";
+
   return new Response(new Uint8Array(outBuf), {
     headers: {
       "content-type": "image/png",
-      "cache-control": wantsDownload ? "no-store" : "public, max-age=300",
+      "cache-control": cacheControl,
       ...(wantsDownload
         ? { "content-disposition": `attachment; filename="${filename}"` }
         : {}),

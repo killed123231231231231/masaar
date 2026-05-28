@@ -13,7 +13,7 @@ export default async function QrCodesPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  if (!user) redirect("/?login=1&redirectTo=/dashboard/qr-codes");
 
   // QR list + me in parallel. scan_counts depends on the ids, runs after.
   const [qrsRes, me] = await Promise.all([
