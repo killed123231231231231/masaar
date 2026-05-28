@@ -73,13 +73,25 @@ export async function GET(
   // resolver can therefore never leak a non-active destination.
   let redirectTo: string;
   if (qr.status === "active") {
-    // A destination of "https://", a scheme-less string, javascript:/data:,
-    // or a non-URL payload would otherwise throw inside
-    // NextResponse.redirect (500 on every scan). Don't log a broken active
-    // scan (preserves prior behavior).
-    const target = parseHttpUrl(qr.destination);
-    if (!target) return notFound();
-    redirectTo = target.toString();
+    // C — file content types (pdf/image/video) render on the hosted /v
+    // page rather than redirecting to the raw asset URL. This keeps the
+    // Masaar wrapper (OG tags, footer, mobile PDF CTA) and a consistent
+    // scan log. The asset URL still lives in `destination`; /v resolves it.
+    if (
+      qr.content_type === "pdf" ||
+      qr.content_type === "image" ||
+      qr.content_type === "video"
+    ) {
+      redirectTo = new URL(`/v/${shortId}`, request.url).toString();
+    } else {
+      // A destination of "https://", a scheme-less string, javascript:/data:,
+      // or a non-URL payload would otherwise throw inside
+      // NextResponse.redirect (500 on every scan). Don't log a broken active
+      // scan (preserves prior behavior).
+      const target = parseHttpUrl(qr.destination);
+      if (!target) return notFound();
+      redirectTo = target.toString();
+    }
   } else if (qr.status === "pending_payment") {
     // Still logs the scan below — owner sees activity on an unpaid QR.
     redirectTo = new URL(`/activate/${shortId}`, request.url).toString();

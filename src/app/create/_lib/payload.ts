@@ -34,6 +34,13 @@ export interface QrSavePayload {
   dot_style: string;
   corner_style: string;
   logo_url: string | null;
+  // C — file content types. destination carries the asset URL (so the
+  // existing save routes persist it unchanged); these mirror it for
+  // forward-compat with a future asset-column-aware edit flow.
+  asset_url: string | null;
+  asset_size: number | null;
+  asset_mime: string | null;
+  asset_filename: string | null;
 }
 
 export function buildPayload(args: {
@@ -54,6 +61,10 @@ export function buildPayload(args: {
 
   let destination = "";
   let payload_json: Record<string, unknown> | null = null;
+  let asset_url: string | null = null;
+  let asset_size: number | null = null;
+  let asset_mime: string | null = null;
+  let asset_filename: string | null = null;
 
   switch (backend) {
     case "url": {
@@ -129,6 +140,29 @@ export function buildPayload(args: {
       payload_json = form;
       break;
     }
+    case "pdf":
+    case "image":
+    case "video": {
+      // The Step-2 upload component sets form.asset_url (+ metadata) on a
+      // successful upload to /api/upload/<bucket>. The asset URL is the
+      // dynamic QR's destination — /r routes file types to /v, which
+      // resolves it back via resolve_asset_qr (coalesce asset_url,
+      // destination). A storage URL is a valid http(s) URL, so it passes
+      // the dynamic-destination guard in both save routes.
+      const url = (form.asset_url || "").trim();
+      if (!url) {
+        const noun =
+          backend === "pdf" ? "a PDF" : backend === "image" ? "an image" : "a video";
+        return { error: `Upload ${noun} first.` };
+      }
+      destination = url;
+      asset_url = url;
+      asset_size = typeof form.asset_size === "number" ? form.asset_size : null;
+      asset_mime = typeof form.asset_mime === "string" ? form.asset_mime : null;
+      asset_filename =
+        typeof form.asset_filename === "string" ? form.asset_filename : null;
+      break;
+    }
     default:
       return { error: "Unsupported content type." };
   }
@@ -147,6 +181,10 @@ export function buildPayload(args: {
       dot_style: c.dot_style,
       corner_style: c.corner_style,
       logo_url: c.logo_url,
+      asset_url,
+      asset_size,
+      asset_mime,
+      asset_filename,
     },
   };
 }

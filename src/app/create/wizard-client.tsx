@@ -306,6 +306,7 @@ export default function WizardClient({
             setForm={setForm}
             name={name}
             setName={setName}
+            draftToken={draftToken.current}
           />
         )}
         {step === 3 && type && (

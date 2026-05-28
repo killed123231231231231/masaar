@@ -37,10 +37,10 @@ export interface TypeMeta {
 // in the first half and it's a real backend content_kind).
 export const CONTENT_TYPES: TypeMeta[] = [
   { key: "url", label: "Website", desc: "Open a website or landing page", icon: "Globe", badge: "MOST USED", backend: "url", ready: true },
-  { key: "pdf", label: "PDF", desc: "Open a PDF document", icon: "FileText", backend: null, ready: false },
-  { key: "image", label: "Image", desc: "Display an image or photo", icon: "Image", backend: null, ready: false },
+  { key: "pdf", label: "PDF", desc: "Open a PDF document", icon: "FileText", backend: "pdf", ready: true },
+  { key: "image", label: "Image", desc: "Display an image or photo", icon: "Image", backend: "image", ready: true },
   { key: "vcard", label: "vCard", desc: "Share a digital business card", icon: "Contact", backend: "vcard", ready: true },
-  { key: "video", label: "Video", desc: "Display a video with one scan", icon: "Video", backend: null, ready: false },
+  { key: "video", label: "Video", desc: "Display a video with one scan", icon: "Video", backend: "video", ready: true },
   { key: "app_link", label: "App Link", desc: "Redirect to different App stores", icon: "Link2", backend: "app_link", ready: true },
   { key: "whatsapp", label: "WhatsApp", desc: "Start a WhatsApp chat instantly", icon: "MessageCircle", backend: "whatsapp", ready: true },
   { key: "sms", label: "SMS", desc: "Send text message instantly", icon: "MessageSquare", backend: "sms", ready: true },
@@ -59,8 +59,18 @@ export function typeMeta(t: WizardType): TypeMeta {
 }
 
 // url / whatsapp / app_link produce a URL → routed through /r/ (dynamic,
-// editable, trackable). Everything else encodes its payload directly.
-const DYNAMIC: ContentKind[] = ["url", "whatsapp", "app_link"];
+// editable, trackable). File types (pdf/image/video) are also dynamic:
+// they encode /r/<shortId>, which routes to the hosted /v page — that
+// gives them scan analytics + the payment lock-in. Everything else
+// encodes its payload directly.
+const DYNAMIC: ContentKind[] = [
+  "url",
+  "whatsapp",
+  "app_link",
+  "pdf",
+  "image",
+  "video",
+];
 export function kindFor(backend: ContentKind): QrKind {
   return DYNAMIC.includes(backend) ? "dynamic" : "static";
 }

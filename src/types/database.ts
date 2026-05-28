@@ -17,7 +17,10 @@ export type ContentKind =
   | "sms"
   | "phone"
   | "whatsapp"
-  | "app_link";
+  | "app_link"
+  | "pdf"
+  | "image"
+  | "video";
 export type QrStatus = "draft" | "pending_payment" | "active" | "suspended";
 
 export interface QrCode {
@@ -41,6 +44,12 @@ export interface QrCode {
   logo_url: string | null;
   frame_style: string | null;
   frame_text: string | null;
+  // C — file-hosted content types (pdf/image/video). Nullable; populated
+  // for file QRs. asset_url falls back to `destination` in resolve_asset_qr.
+  asset_url: string | null;
+  asset_size: number | null;
+  asset_mime: string | null;
+  asset_filename: string | null;
   is_active: boolean;
   creator_ip_hash: string | null;
   creator_email: string | null;
@@ -121,6 +130,18 @@ export interface Database {
           destination: string;
           status: QrStatus;
           content_type: ContentKind;
+        }[];
+      };
+      resolve_asset_qr: {
+        Args: { p_short_id: string };
+        Returns: {
+          name: string;
+          status: QrStatus;
+          content_kind: ContentKind;
+          asset_url: string | null;
+          asset_mime: string | null;
+          asset_filename: string | null;
+          asset_size: number | null;
         }[];
       };
       scan_counts: {
