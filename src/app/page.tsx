@@ -192,33 +192,33 @@ function HeroBackdrop() {
   );
 }
 
+// C2 hero refresh (Usama spec): badge → "Arabic-first QR platform",
+// cleaner two-line headline (no italic), leaner subcopy to cut text
+// heaviness, and the old benefit chip + "no credit card / setup in
+// minutes" proof points collapsed into three compact benefit pills.
+const HERO_BENEFITS = [
+  "Arabic + English ready",
+  "Update after printing",
+  "Track every scan",
+];
+
 function HeroCopy() {
   return (
     <div className="relative z-10">
       <span className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-deep-teal">
         <Sparkles className="h-3.5 w-3.5 text-deep-teal-light" strokeWidth={2.25} />
-        Adaptive QR platform
+        Arabic-first QR platform
       </span>
 
-      <h1 className="mt-5 text-balance font-display text-[2.4rem] font-bold leading-[1.05] tracking-tight sm:text-5xl lg:text-[3.6rem]">
-        Dynamic QR menus, campaigns, and scan analytics for{" "}
-        <span className="italic text-deep-teal">GCC businesses</span>
+      <h1 className="mt-5 text-balance font-display text-[1.9rem] font-bold leading-[1.14] tracking-tight sm:text-[2.3rem]">
+        QR menus and scan analytics built for{" "}
+        <span className="text-deep-teal">GCC businesses</span>
       </h1>
 
-      <p className="mt-5 max-w-xl text-balance text-base leading-relaxed text-charcoal/65">
-        Create QR codes once, update destinations anytime, and track every
-        scan across menus, WhatsApp, WiFi, vCards, and campaigns — built
-        for Arabic-first Gulf businesses.
+      <p className="mt-5 max-w-md text-balance text-base leading-relaxed text-charcoal/65">
+        One dynamic QR for your menu, WhatsApp, WiFi, or vCard — update where
+        it points anytime, and track every scan.
       </p>
-
-      <div className="mt-7 inline-flex items-center gap-3 rounded-xl border border-charcoal/10 bg-white/60 px-4 py-3">
-        <span className="grid h-9 w-9 place-items-center rounded-lg bg-deep-teal text-white">
-          <LogoMark className="h-5 w-5 brightness-0 invert" />
-        </span>
-        <span className="text-sm font-medium text-charcoal/75">
-          Update after printing. Track every scan.
-        </span>
-      </div>
 
       <div className="mt-7 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
         <Link
@@ -235,25 +235,39 @@ function HeroCopy() {
         </Link>
       </div>
 
-      <ul className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs font-medium text-charcoal/55">
-        <li className="inline-flex items-center gap-1.5">
-          <Check className="h-3.5 w-3.5 text-deep-teal" strokeWidth={2.5} />
-          No credit card required
-        </li>
-        <li className="inline-flex items-center gap-1.5">
-          <Check className="h-3.5 w-3.5 text-deep-teal" strokeWidth={2.5} />
-          Setup in minutes
-        </li>
+      <ul className="mt-6 flex flex-wrap gap-2">
+        {HERO_BENEFITS.map((b) => (
+          <li
+            key={b}
+            className="inline-flex items-center gap-1.5 rounded-full border border-charcoal/10 bg-white/70 px-3 py-1.5 text-xs font-medium text-charcoal/70"
+          >
+            <Check className="h-3.5 w-3.5 text-deep-teal" strokeWidth={2.5} />
+            {b}
+          </li>
+        ))}
       </ul>
     </div>
   );
 }
 
+// C2 hero refresh — the dashboard was a tiny static PNG (unreadable
+// metrics, lots of fuzzy detail). Rebuilt as crisp HTML/CSS so the key
+// KPIs (total / unique scans, engagement rate, top country) are large
+// and sharp at hero size — the dashboard is the dominant visual; the
+// phone + QR card are deliberately smaller, softer-shadowed secondaries
+// so they stop competing with it.
+const HERO_KPIS = [
+  { label: "Total scans", value: "12,480", delta: "+18%" },
+  { label: "Unique scans", value: "8,210", delta: "+12%" },
+  { label: "Engagement rate", value: "64%", delta: "+5%" },
+  { label: "Top country", value: "Saudi Arabia", flag: "🇸🇦" },
+];
+
 function HeroPreview() {
   return (
     <div className="relative z-10 w-full">
-      {/* Dashboard browser-frame card */}
-      <div className="relative rounded-2xl border border-charcoal/10 bg-white p-2 shadow-[0_30px_60px_-20px_rgba(15,91,85,0.25)] sm:p-2.5">
+      {/* Dashboard browser-frame card — primary hero visual */}
+      <div className="relative rounded-2xl border border-charcoal/10 bg-white p-2 shadow-[0_30px_60px_-20px_rgba(15,91,85,0.28)] sm:p-2.5">
         <div className="flex items-center gap-1.5 px-2 pb-2 pt-1">
           <span className="h-2.5 w-2.5 rounded-full bg-terracotta/55" />
           <span className="h-2.5 w-2.5 rounded-full bg-sand-dark" />
@@ -262,31 +276,22 @@ function HeroPreview() {
             masaar.app / dashboard
           </span>
         </div>
-        <div className="overflow-hidden rounded-xl">
-          <Image
-            src="/landing/dashboard-preview.png"
-            alt="Masaar dashboard preview — account-wide scan analytics, KPI row, trend chart, and recent activity"
-            width={1672}
-            height={941}
-            priority
-            sizes="(min-width: 1024px) 56vw, 100vw"
-            className="h-auto w-full"
-          />
-        </div>
+        <DashboardMock />
       </div>
 
-      {/* Phone mock — menu QR-scan result, bottom-left */}
-      <div className="pointer-events-none absolute -bottom-6 -left-3 hidden w-40 rotate-[-4deg] sm:block lg:-bottom-10 lg:-left-8 lg:w-44">
-        <div className="rounded-[1.75rem] border-[5px] border-charcoal bg-charcoal p-1 shadow-2xl shadow-charcoal/25">
-          <div className="overflow-hidden rounded-[1.35rem] bg-white">
+      {/* Phone mock — secondary, bottom-left. Smaller + softer shadow,
+          rotation eased to sit closer to the dashboard plane. */}
+      <div className="pointer-events-none absolute -bottom-5 -left-2 hidden w-28 rotate-[-3deg] sm:block lg:-bottom-8 lg:-left-7 lg:w-32">
+        <div className="rounded-[1.5rem] border-[5px] border-charcoal bg-charcoal p-1 shadow-xl shadow-charcoal/20">
+          <div className="overflow-hidden rounded-[1.1rem] bg-white">
             <div className="flex items-center justify-center gap-1.5 bg-deep-teal py-1.5">
-              <LogoMark className="h-3.5 w-3.5 brightness-0 invert" />
-              <span className="text-[8px] font-bold uppercase tracking-wider text-white/90">
+              <LogoMark className="h-3 w-3 brightness-0 invert" />
+              <span className="text-[7px] font-bold uppercase tracking-wider text-white/90">
                 Menu
               </span>
             </div>
-            <div className="space-y-1.5 p-3">
-              <p className="text-[10px] font-display font-bold text-charcoal">
+            <div className="space-y-1.5 p-2.5">
+              <p className="text-[9px] font-display font-bold text-charcoal">
                 Today’s specials
               </p>
               {[
@@ -296,36 +301,124 @@ function HeroPreview() {
               ].map((d) => (
                 <div
                   key={d.name}
-                  className="flex items-center justify-between border-b border-charcoal/5 pb-1 text-[9px] text-charcoal/65 last:border-b-0"
+                  className="flex items-center justify-between border-b border-charcoal/5 pb-1 text-[8px] text-charcoal/65 last:border-b-0"
                 >
                   <span>{d.name}</span>
                   <span className="font-semibold text-charcoal">SAR {d.price}</span>
                 </div>
               ))}
-              <div className="mt-2 rounded-md bg-deep-teal py-1 text-center text-[9px] font-semibold text-white">
-                Order now
-              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Signage card — bottom-right, "Luxury Lifestyle of the Sea" */}
-      <div className="pointer-events-none absolute -bottom-4 right-2 hidden w-44 rotate-[4deg] sm:block lg:-bottom-8 lg:-right-4 lg:w-52">
-        <div className="rounded-xl border border-charcoal/10 bg-white p-3 text-center shadow-xl shadow-charcoal/15">
-          <p className="text-[9px] font-bold uppercase tracking-[0.22em] text-terracotta">
-            View our menu
+      {/* QR signage card — secondary, bottom-right. Smaller, with the
+          menu-relevant copy from the spec (Scan Our Menu / Riyadh Branch
+          / Arabic + English). Shadow direction matches the phone. */}
+      <div className="pointer-events-none absolute -bottom-4 right-1 hidden w-32 rotate-[3deg] sm:block lg:-bottom-7 lg:-right-4 lg:w-36">
+        <div className="rounded-xl border border-charcoal/10 bg-white p-3 text-center shadow-xl shadow-charcoal/20">
+          <p className="text-[8px] font-bold uppercase tracking-[0.2em] text-terracotta">
+            Scan our menu
           </p>
-          <MiniQr className="mx-auto mt-2 h-16 w-16" />
+          <MiniQr className="mx-auto mt-2 h-12 w-12" />
           <p className="mt-2 font-display text-[10px] font-semibold leading-tight text-charcoal">
-            Luxury Lifestyle of the Sea
+            Riyadh Branch
           </p>
           <p className="mt-0.5 text-[8px] uppercase tracking-wider text-charcoal/45">
-            Scan to explore
+            Arabic + English
           </p>
         </div>
       </div>
     </div>
+  );
+}
+
+// Crisp HTML stand-in for the analytics dashboard. Numbers are
+// illustrative (not live). Big values + a single clean trend chart —
+// deliberately few elements so it reads premium, not busy.
+function DashboardMock() {
+  return (
+    <div className="rounded-xl bg-[#FAF9F5] p-3.5 sm:p-5">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="font-display text-sm font-bold text-charcoal">Overview</p>
+          <p className="text-[10px] text-charcoal/45">Scan performance · all QR codes</p>
+        </div>
+        <span className="rounded-full border border-charcoal/10 bg-white px-2.5 py-1 text-[10px] font-medium text-charcoal/55">
+          Last 30 days
+        </span>
+      </div>
+
+      <div className="mt-4 grid grid-cols-2 gap-2.5 sm:gap-3">
+        {HERO_KPIS.map((k) => (
+          <div
+            key={k.label}
+            className="rounded-lg border border-charcoal/10 bg-white p-3"
+          >
+            <p className="text-[10px] font-medium uppercase tracking-wide text-charcoal/45">
+              {k.label}
+            </p>
+            <p className="mt-1 flex items-baseline gap-1.5">
+              {"flag" in k && k.flag && (
+                <span className="text-base leading-none">{k.flag}</span>
+              )}
+              <span className="font-display text-xl font-bold tracking-tight text-charcoal sm:text-2xl">
+                {k.value}
+              </span>
+              {"delta" in k && k.delta && (
+                <span className="text-[10px] font-semibold text-deep-teal">
+                  {k.delta}
+                </span>
+              )}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-3 rounded-lg border border-charcoal/10 bg-white p-3">
+        <div className="flex items-center justify-between">
+          <p className="text-[10px] font-medium uppercase tracking-wide text-charcoal/45">
+            Scans this month
+          </p>
+          <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-deep-teal">
+            <span className="h-1.5 w-1.5 rounded-full bg-deep-teal" />
+            Daily scans
+          </span>
+        </div>
+        <TrendChart />
+      </div>
+    </div>
+  );
+}
+
+// Decorative upward-trending area chart (fixed series, not real data).
+function TrendChart() {
+  return (
+    <svg
+      viewBox="0 0 320 72"
+      preserveAspectRatio="none"
+      aria-hidden
+      className="mt-2 h-14 w-full"
+    >
+      <defs>
+        <linearGradient id="heroArea" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#0F5B55" stopOpacity="0.22" />
+          <stop offset="100%" stopColor="#0F5B55" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path
+        d="M0,56 L40,50 L80,54 L120,38 L160,42 L200,26 L240,30 L280,16 L320,10 L320,72 L0,72 Z"
+        fill="url(#heroArea)"
+      />
+      <path
+        d="M0,56 L40,50 L80,54 L120,38 L160,42 L200,26 L240,30 L280,16 L320,10"
+        fill="none"
+        stroke="#0F5B55"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
 
