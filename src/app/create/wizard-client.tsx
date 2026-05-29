@@ -358,16 +358,7 @@ export default function WizardClient({
           </button>
         )}
 
-        {step < 3 ? (
-          <button
-            type="button"
-            onClick={next}
-            disabled={step === 1 && !type}
-            className="inline-flex h-11 min-w-[140px] items-center justify-center gap-2 rounded-xl bg-deep-teal text-sm font-semibold text-white shadow-sm transition-colors hover:bg-deep-teal-dark disabled:cursor-not-allowed disabled:opacity-[0.45]"
-          >
-            Next <ArrowRight className="h-4 w-4" />
-          </button>
-        ) : (
+        {step === 3 ? (
           <button
             type="button"
             onClick={download}
@@ -375,6 +366,19 @@ export default function WizardClient({
             className="inline-flex h-11 min-w-[140px] items-center justify-center gap-2 rounded-xl bg-deep-teal text-sm font-semibold text-white shadow-sm transition-colors hover:bg-deep-teal-dark disabled:cursor-not-allowed disabled:opacity-60"
           >
             {saving ? "Creating…" : "Download QR"}
+          </button>
+        ) : type === "payment" && step === 2 ? (
+          // Payment is a waitlist placeholder — its form self-submits, so
+          // there's no Next/create action here.
+          <span />
+        ) : (
+          <button
+            type="button"
+            onClick={next}
+            disabled={step === 1 && !type}
+            className="inline-flex h-11 min-w-[140px] items-center justify-center gap-2 rounded-xl bg-deep-teal text-sm font-semibold text-white shadow-sm transition-colors hover:bg-deep-teal-dark disabled:cursor-not-allowed disabled:opacity-[0.45]"
+          >
+            Next <ArrowRight className="h-4 w-4" />
           </button>
         )}
       </div>

@@ -11,6 +11,7 @@ import FileUpload from "./file-upload";
 import SocialForm from "./social-form";
 import LocationForm from "./location-form";
 import FeedbackForm from "./feedback-form";
+import PaymentForm from "./payment-form";
 
 const ICONS: Record<string, LucideIcon> = {
   Globe, FileText, Image: ImageIcon, Contact, Video, Link2,
@@ -200,6 +201,8 @@ export default function Step2Content({
 
           {type === "feedback" && <FeedbackForm form={form} setForm={setForm} />}
 
+          {type === "payment" && <PaymentForm />}
+
           {(type === "pdf" || type === "image" || type === "video") && (
             <FileUpload
               kind={type}
@@ -209,7 +212,7 @@ export default function Step2Content({
             />
           )}
 
-          {!meta.ready && (
+          {!meta.ready && type !== "payment" && (
             <div className="rounded-xl border border-charcoal/10 bg-sand-light/50 p-6 text-sm text-charcoal/60">
               The <strong>{meta.label}</strong> form lands in a later
               session (its backend isn’t live yet). Pick a ready type to
@@ -217,14 +220,16 @@ export default function Step2Content({
             </div>
           )}
 
-          <Field label="Name your QR Code">
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className={inputCls}
-              placeholder="My QR code"
-            />
-          </Field>
+          {type !== "payment" && (
+            <Field label="Name your QR Code">
+              <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className={inputCls}
+                placeholder="My QR code"
+              />
+            </Field>
+          )}
         </div>
       </section>
 
