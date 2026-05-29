@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { generateShortId, isValidShortId } from "@/lib/shortid";
+import bcrypt from "bcryptjs";
 import { parseHttpUrl } from "@/lib/url";
 import type { QrCode } from "@/types/database";
 
@@ -75,6 +76,15 @@ export async function POST(request: Request) {
     corner_style: body.corner_style ?? "square",
     logo_url: body.logo_url ?? null,
   };
+
+  // I — power features: logo scale, frame text, and password (hashed).
+  if (typeof body.logo_scale === "number") insert.logo_scale = body.logo_scale;
+  if (typeof body.qr_text === "string" && body.qr_text.trim())
+    insert.frame_text = body.qr_text.trim();
+  if (typeof body.password === "string" && body.password.trim().length >= 4) {
+    insert.password_hash = await bcrypt.hash(body.password.trim(), 10);
+    insert.password_set_at = new Date().toISOString();
+  }
 
   // A dynamic QR's printed code points at /r/<shortId>, which 302s to
   // `destination`. Reject anything that isn't a valid http(s) URL up front
