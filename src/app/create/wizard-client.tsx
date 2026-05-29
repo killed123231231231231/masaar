@@ -49,6 +49,9 @@ export default function WizardClient({
   const [saving, setSaving] = useState(false);
   const [gateOpen, setGateOpen] = useState(false);
   const [gateShortId, setGateShortId] = useState("");
+  // C2 — the token the just-created anon QR carries. The gate/checkout uses
+  // THIS (not draftToken.current, which we rotate forward after each create).
+  const [gateToken, setGateToken] = useState("");
   const draftToken = useRef<string>("");
   const draftTokenCreatedAt = useRef<number>(0);
   const shortId = useRef<string>("");
@@ -226,10 +229,11 @@ export default function WizardClient({
     }
 
     // Anonymous → create draft, then email gate.
+    const tokenForThisQr = draftToken.current;
     const res = await fetch("/api/qr/anonymous", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ ...payload, draft_token: draftToken.current }),
+      body: JSON.stringify({ ...payload, draft_token: tokenForThisQr }),
     });
     setSaving(false);
     if (!res.ok) {
@@ -239,7 +243,15 @@ export default function WizardClient({
     }
     const row = await res.json().catch(() => null);
     setGateShortId(row?.short_id || "");
+    setGateToken(tokenForThisQr);
     setGateOpen(true);
+    // C2 — rotate the draft token + short id forward so the NEXT anonymous
+    // QR can't share this one's token (which would otherwise get it claimed
+    // together at signup). The gate above uses tokenForThisQr to claim THIS
+    // QR; the next create starts clean.
+    draftToken.current = crypto.randomUUID();
+    draftTokenCreatedAt.current = Date.now();
+    shortId.current = generateShortId();
   }
 
   function clearState() {
@@ -371,7 +383,7 @@ export default function WizardClient({
           decides whether the anon path opens it. */}
       <EmailGateModal
         open={gateOpen}
-        draftToken={draftToken.current}
+        draftToken={gateToken}
         shortId={gateShortId}
         onClose={() => setGateOpen(false)}
       />
