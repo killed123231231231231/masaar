@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { UAParser } from "ua-parser-js";
-import { parseHttpUrl } from "@/lib/url";
+import { qrTarget } from "@/lib/qr-target";
 import { supabaseUrl, supabaseAnonKey } from "@/lib/env";
 
 // Edge runtime is fast and exposes Vercel geo headers
@@ -77,27 +77,18 @@ export async function GET(
     // page rather than redirecting to the raw asset URL. This keeps the
     // Masaar wrapper (OG tags, footer, mobile PDF CTA) and a consistent
     // scan log. The asset URL still lives in `destination`; /v resolves it.
-    if (
-      qr.content_type === "pdf" ||
-      qr.content_type === "image" ||
-      qr.content_type === "video"
-    ) {
-      redirectTo = new URL(`/v/${shortId}`, request.url).toString();
-    } else if (qr.content_type === "social") {
-      // Session D — hosted bio-link page.
-      redirectTo = new URL(`/s/${shortId}`, request.url).toString();
-    } else if (qr.content_type === "location") {
-      redirectTo = new URL(`/loc/${shortId}`, request.url).toString();
-    } else if (qr.content_type === "feedback") {
-      redirectTo = new URL(`/f/${shortId}`, request.url).toString();
+    if (qr.has_password) {
+      // I — password-protected: gate at /unlock (node), which verifies the
+      // unlock cookie and only then redirects onward to the real target.
+      redirectTo = new URL(`/unlock/${shortId}`, request.url).toString();
     } else {
-      // A destination of "https://", a scheme-less string, javascript:/data:,
-      // or a non-URL payload would otherwise throw inside
-      // NextResponse.redirect (500 on every scan). Don't log a broken active
-      // scan (preserves prior behavior).
-      const target = parseHttpUrl(qr.destination);
-      if (!target) return notFound();
-      redirectTo = target.toString();
+      // Hosted types (pdf/image/video/social/location/feedback) render on our
+      // own pages; url/static go to their destination. A bad destination
+      // ("https://", javascript:, non-URL) returns null → 404 instead of
+      // throwing a 500 inside NextResponse.redirect.
+      const t = qrTarget(shortId, qr.content_type, qr.destination);
+      if (!t) return notFound();
+      redirectTo = t.startsWith("/") ? new URL(t, request.url).toString() : t;
     }
   } else if (qr.status === "pending_payment") {
     // Still logs the scan below — owner sees activity on an unpaid QR.

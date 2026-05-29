@@ -48,6 +48,12 @@ export interface QrCode {
   logo_url: string | null;
   frame_style: string | null;
   frame_text: string | null;
+  // I — power features (migration 028).
+  frame_color: string | null;
+  text_color: string | null;
+  corner_dot_shape: string | null;
+  logo_scale: number | null;
+  password_set_at: string | null;
   // C — file-hosted content types (pdf/image/video). Nullable; populated
   // for file QRs. asset_url falls back to `destination` in resolve_asset_qr.
   asset_url: string | null;

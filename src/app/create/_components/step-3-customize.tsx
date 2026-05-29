@@ -136,27 +136,36 @@ export default function Step3Customize({
           </Acc>
 
           <Acc title="Protect this QR with a password" defaultOpen={false}>
-            <label className="flex items-center gap-2 text-sm text-charcoal/70">
-              <input
-                type="checkbox"
-                checked={!!c.password}
-                onChange={(e) => set("password", e.target.checked ? " " : "")}
-              />
-              Enable password protection
-            </label>
-            {!!c.password && (
-              <input
-                type="password"
-                value={c.password.trim()}
-                onChange={(e) => set("password", e.target.value)}
-                placeholder="4–64 characters"
-                className="mt-3 block w-full rounded-lg border border-charcoal/15 px-3 py-2 text-sm outline-none focus:border-deep-teal focus:ring-2 focus:ring-deep-teal/20"
-              />
+            {isAuthed ? (
+              <>
+                <label className="flex items-center gap-2 text-sm text-charcoal/70">
+                  <input
+                    type="checkbox"
+                    checked={!!c.password}
+                    onChange={(e) => set("password", e.target.checked ? " " : "")}
+                  />
+                  Enable password protection
+                </label>
+                {!!c.password && (
+                  <input
+                    type="password"
+                    value={c.password.trim()}
+                    onChange={(e) => set("password", e.target.value)}
+                    placeholder="4–64 characters"
+                    className="mt-3 block w-full rounded-lg border border-charcoal/15 px-3 py-2 text-sm outline-none focus:border-deep-teal focus:ring-2 focus:ring-deep-teal/20"
+                  />
+                )}
+                <p className="mt-2 rounded-lg bg-sand-light/60 p-2 text-xs text-charcoal/55">
+                  Scanners enter this password before the QR opens. Stored
+                  hashed (bcrypt) — we never keep the plaintext.
+                </p>
+              </>
+            ) : (
+              <p className="rounded-lg bg-sand-light/60 p-3 text-xs text-charcoal/55">
+                Password protection is available once you have an account —
+                create this QR, then add a password from your dashboard.
+              </p>
             )}
-            <p className="mt-2 rounded-lg bg-sand-light/60 p-2 text-xs text-charcoal/55">
-              UI only this session — scan-time password enforcement is
-              Session I. Not submitted yet (no plaintext stored).
-            </p>
           </Acc>
         </div>
       </div>

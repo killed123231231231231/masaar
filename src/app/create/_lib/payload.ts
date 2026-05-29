@@ -35,6 +35,11 @@ export interface QrSavePayload {
   dot_style: string;
   corner_style: string;
   logo_url: string | null;
+  // I — power features. `password` is plaintext here; the authed save route
+  // hashes it (bcrypt) into password_hash and never stores it raw.
+  password: string | null;
+  logo_scale: number | null;
+  qr_text: string | null;
   // C — file content types. destination carries the asset URL (so the
   // existing save routes persist it unchanged); these mirror it for
   // forward-compat with a future asset-column-aware edit flow.
@@ -228,6 +233,9 @@ export function buildPayload(args: {
       dot_style: c.dot_style,
       corner_style: c.corner_style,
       logo_url: c.logo_url,
+      password: c.password?.trim() || null,
+      logo_scale: typeof c.logo_scale === "number" ? c.logo_scale : null,
+      qr_text: c.qr_text?.trim() || null,
       asset_url,
       asset_size,
       asset_mime,
