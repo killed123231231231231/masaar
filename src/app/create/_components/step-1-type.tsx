@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useRef } from "react";
 import {
   Globe, FileText, Image as ImageIcon, Contact, Video, Link2,
   MessageCircle, MessageSquare, Wifi, Mail, Phone, Type, MapPin,
@@ -26,8 +25,11 @@ export default function Step1Type({
     : null;
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
-      {/* LEFT — header + "Most used" caption + card grid (getqr layout). */}
+    /* No vertical divider between the grid and the preview — getqr has
+       none (the old border-l ran up into the header). Just a wide column
+       gap, left grid + right sticky preview. */
+    <div className="grid gap-8 lg:grid-cols-[1fr_360px] lg:gap-12">
+      {/* LEFT — header + "Most used" caption + card grid. */}
       <div className="pt-8 lg:pt-12">
         <h1 className="font-display text-3xl font-bold tracking-tight text-charcoal lg:text-[2rem]">
           What do you want to create?
@@ -49,10 +51,10 @@ export default function Step1Type({
                 key={c.key}
                 type="button"
                 onClick={() => onSelect(c.key)}
-                /* getqr card: white tile, light neutral border + soft
-                   shadow, lifts on hover; selected = brand border + tint
-                   + ring. Centered icon-chip / title / description. */
-                className={`group relative rounded-2xl border bg-white px-5 py-6 text-center shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${
+                /* getqr card: flat white tile, light border, bare teal
+                   icon (no chip), bold title, gray description, all
+                   centered. Lifts on hover; selected = teal border+tint+ring. */
+                className={`group relative rounded-2xl border bg-white px-6 py-7 text-center transition hover:-translate-y-0.5 hover:shadow-md ${
                   active
                     ? "border-deep-teal bg-deep-teal/[0.04] ring-1 ring-deep-teal"
                     : "border-charcoal/10 hover:border-deep-teal/40"
@@ -60,9 +62,8 @@ export default function Step1Type({
               >
                 {c.badge && (
                   <span
-                    /* getqr places the pill in the card's top-right
-                       corner (not straddling the top border). */
-                    className={`absolute right-2.5 top-2.5 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${
+                    /* getqr: pill straddles the TOP-CENTER border. */
+                    className={`absolute left-1/2 -top-2.5 -translate-x-1/2 whitespace-nowrap rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
                       c.badge === "Coming soon"
                         ? "bg-charcoal/10 text-charcoal/55"
                         : "bg-deep-teal text-white"
@@ -71,13 +72,11 @@ export default function Step1Type({
                     {c.badge}
                   </span>
                 )}
-                <span className="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-deep-teal/10 text-deep-teal transition-colors group-hover:bg-deep-teal/15">
-                  <Icon className="h-6 w-6" strokeWidth={1.75} />
-                </span>
-                <h3 className="mt-4 font-display text-base font-bold text-charcoal">
+                <Icon className="mx-auto h-8 w-8 text-deep-teal" strokeWidth={1.75} />
+                <h3 className="mt-4 font-display text-lg font-bold text-charcoal">
                   {c.label}
                 </h3>
-                <p className="mt-1 text-[13px] leading-snug text-charcoal/55">
+                <p className="mt-1.5 text-sm leading-snug text-charcoal/55">
                   {c.desc}
                 </p>
               </button>
@@ -86,19 +85,19 @@ export default function Step1Type({
         </div>
       </div>
 
-      {/* RIGHT — sticky preview, separated from the grid by a single thin
-          vertical divider line (the getqr look the user called out). */}
-      <aside className="hidden lg:block lg:border-l lg:border-charcoal/10 lg:pl-8 lg:pt-12">
+      {/* RIGHT — sticky preview. Neutral light-gray panel (getqr uses
+          gray, not a teal tint), sparkle top-right, QR motif centered,
+          heading + subcopy below. No divider line. */}
+      <aside className="hidden lg:block lg:pt-12">
         <div className="sticky top-28">
-          <div className="relative aspect-square w-full overflow-hidden rounded-2xl bg-deep-teal/[0.06] p-8">
-            <span className="absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-full bg-deep-teal/15 text-deep-teal">
+          <div className="relative aspect-square w-full overflow-hidden rounded-2xl bg-charcoal/[0.04] p-8">
+            <span className="absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-full bg-white text-deep-teal shadow-sm">
               <Sparkles className="h-4 w-4" />
             </span>
             <div className="grid h-full w-full place-items-center">
-              {selMeta ? <Step1LiveQr /> : <DashedQrPlaceholder />}
+              <DashedQrPlaceholder />
             </div>
           </div>
-          {/* Heading + subcopy sit BELOW the panel, matching getqr. */}
           <div className="mt-6 text-center">
             <h3 className="font-display text-xl font-bold text-charcoal">
               {selMeta ? `${selMeta.label} QR` : "Create Your Perfect QR Code"}
@@ -115,47 +114,10 @@ export default function Step1Type({
   );
 }
 
-/* Live brand QR preview shown once a type is selected — a real
-   qr-code-styling render of a placeholder, on a white card, so the panel
-   "comes to life" exactly like getqr's. Data is a brand placeholder; the
-   real destination is encoded after Step 2. */
-function Step1LiveQr() {
-  const ref = useRef<HTMLDivElement | null>(null);
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      const { createQr } = await import("@/lib/qr");
-      const qr = await createQr({
-        data: "https://masaar.sa",
-        width: 200,
-        height: 200,
-        fgColor: "#0F5B55",
-        bgColor: "#ffffff",
-        dotStyle: "rounded",
-        cornerStyle: "extra-rounded",
-      });
-      if (cancelled || !ref.current) return;
-      ref.current.innerHTML = "";
-      qr.append(ref.current);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-  return (
-    <div className="rounded-2xl bg-white p-4 shadow-sm">
-      <div
-        ref={ref}
-        aria-hidden
-        className="grid place-items-center [&>svg]:h-36 [&>svg]:w-36"
-      />
-    </div>
-  );
-}
-
 /* A decorative QR-shaped placeholder — 3 dashed finder-pattern
    corners + a few solid alignment dots, in the brand teal at low
-   alpha. Mirrors getqr's right-panel illustration (empty state). */
+   alpha. Mirrors getqr's right-panel illustration. Pure SVG so it
+   always renders (no JS / hydration race). */
 function DashedQrPlaceholder() {
   return (
     <svg viewBox="0 0 100 100" className="h-3/5 w-3/5 text-deep-teal" aria-hidden>
