@@ -286,37 +286,30 @@ export default function WizardClient({
     return payload?.destination || " ";
   })();
 
-  // B5/Item 6 — authed users get the wizard wrapped in the deep-teal
-  // Sidebar shell so the sidebar stays locked on every authed surface.
-  // Anon users keep the bare wizard layout (no account context to show).
-  //
-  // B5 (Step-1/2 reference match) — wizard nav extracted into a
-  // sticky bottom bar (Cancel/Back on left, Next/Download on right)
-  // so it lives outside the step body and matches the getqr layout.
-  // Body container widened from max-w-4xl to max-w-7xl + pb-32 to
-  // clear the fixed bottom bar.
-  const wizardBody = (
-    <div className="flex min-h-screen flex-col">
-      <ProgressBar current={step} maxStep={maxStep} onJump={(n) => goStep(n)} />
-
-      <div className="mx-auto w-full max-w-7xl flex-1 px-5 pb-32 pt-2 sm:px-8 lg:px-10">
-        {step === 1 && (
-          <Step1Type
-            selected={type}
-            onSelect={(t) => {
-              // Switching type invalidates the type-specific Step-2
-              // form, so reset it + progress (don't allow a stale
-              // forward-jump). Re-picking the same type is a no-op.
-              if (t !== type) {
-                setForm({});
-                setMaxStep(1);
-                setName(defaultName(t));
-              }
-              setType(t);
-            }}
-          />
-        )}
-        {step === 2 && type && (
+  // Contained getqr-style wizard shell: an outer rounded card (inset
+  // ~18px from the viewport) holding a fixed stepper, a single
+  // internally-scrolling middle, and a fixed footer. The PAGE never
+  // scrolls (h-screen + overflow-hidden); only the middle does — so
+  // cards can't slide under the stepper or hide behind the footer.
+  const stepContent = (
+    <>
+      {step === 1 && (
+        <Step1Type
+          selected={type}
+          onSelect={(t) => {
+            // Switching type invalidates the type-specific Step-2 form,
+            // so reset it + progress. Re-picking the same type is a no-op.
+            if (t !== type) {
+              setForm({});
+              setMaxStep(1);
+              setName(defaultName(t));
+            }
+            setType(t);
+          }}
+        />
+      )}
+      {step === 2 && type && (
+        <div className="mx-auto w-full max-w-7xl px-6 py-10 sm:px-10">
           <Step2Content
             type={type}
             form={form}
@@ -325,8 +318,10 @@ export default function WizardClient({
             setName={setName}
             draftToken={draftToken.current}
           />
-        )}
-        {step === 3 && type && (
+        </div>
+      )}
+      {step === 3 && type && (
+        <div className="mx-auto w-full max-w-7xl px-6 py-10 sm:px-10">
           <Step3Customize
             previewData={preview}
             shortId={shortId.current}
@@ -335,76 +330,86 @@ export default function WizardClient({
             c={custom}
             setC={setCustom}
           />
+        </div>
+      )}
+    </>
+  );
+
+  // Fixed footer inside the shell (not a page-sticky bar). Cancel/Back
+  // left, Next/Download right; Next disabled until a type is picked.
+  const footer = (
+    <div className="shrink-0 border-t border-[#E5E7EB] bg-white">
+      <div className="flex h-[86px] items-center justify-between px-6 sm:px-10 lg:px-16">
+        {step === 1 ? (
+          <button
+            type="button"
+            onClick={() => router.push("/")}
+            className="inline-flex h-11 min-w-[136px] items-center justify-center gap-2 rounded-xl border-[1.5px] border-deep-teal/50 text-sm font-semibold text-deep-teal transition-colors hover:bg-deep-teal/5"
+          >
+            Cancel
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => goStep((step - 1) as Step)}
+            className="inline-flex h-11 min-w-[136px] items-center justify-center gap-2 rounded-xl border-[1.5px] border-deep-teal/50 text-sm font-semibold text-deep-teal transition-colors hover:bg-deep-teal/5"
+          >
+            <ArrowLeft className="h-4 w-4" /> Back
+          </button>
+        )}
+
+        {step < 3 ? (
+          <button
+            type="button"
+            onClick={next}
+            disabled={step === 1 && !type}
+            className="inline-flex h-11 min-w-[140px] items-center justify-center gap-2 rounded-xl bg-deep-teal text-sm font-semibold text-white shadow-sm transition-colors hover:bg-deep-teal-dark disabled:cursor-not-allowed disabled:opacity-[0.45]"
+          >
+            Next <ArrowRight className="h-4 w-4" />
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={download}
+            disabled={saving}
+            className="inline-flex h-11 min-w-[140px] items-center justify-center gap-2 rounded-xl bg-deep-teal text-sm font-semibold text-white shadow-sm transition-colors hover:bg-deep-teal-dark disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {saving ? "Creating…" : "Download QR"}
+          </button>
         )}
       </div>
+    </div>
+  );
 
-      {/* Sticky bottom action bar — outside the body container so it
-          spans the wizard column. Cancel on Step 1, Back on later
-          steps; Next on Steps 1+2, Download on Step 3. Outlined-pill
-          left / solid-pill right per the reference. */}
-      <div className="sticky bottom-0 z-30 border-t border-charcoal/10 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 sm:px-8 lg:px-10">
-          {step === 1 ? (
-            <button
-              type="button"
-              onClick={() => router.push("/")}
-              className="inline-flex items-center gap-2 rounded-full border-2 border-deep-teal/40 px-7 py-2.5 text-sm font-semibold text-deep-teal transition-colors hover:bg-deep-teal/5"
-            >
-              Cancel
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={() => goStep((step - 1) as Step)}
-              className="inline-flex items-center gap-2 rounded-full border-2 border-deep-teal/40 px-7 py-2.5 text-sm font-semibold text-deep-teal transition-colors hover:bg-deep-teal/5"
-            >
-              <ArrowLeft className="h-4 w-4" /> Back
-            </button>
-          )}
+  const shell = (
+    <div className="m-[18px] flex h-[calc(100vh-36px)] flex-col overflow-hidden rounded-[20px] border border-[#E5E7EB] bg-white">
+      <ProgressBar current={step} maxStep={maxStep} onJump={(n) => goStep(n)} />
+      {/* The ONLY scroll area in the wizard. */}
+      <div className="min-h-0 flex-1 overflow-y-auto">{stepContent}</div>
+      {footer}
+    </div>
+  );
 
-          {step < 3 ? (
-            <button
-              type="button"
-              onClick={next}
-              disabled={step === 1 && !type}
-              className="inline-flex items-center gap-2 rounded-full bg-deep-teal px-8 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-deep-teal-dark disabled:opacity-50"
-            >
-              Next <ArrowRight className="h-4 w-4" />
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={download}
-              disabled={saving}
-              className="inline-flex items-center gap-2 rounded-full bg-deep-teal px-8 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-deep-teal-dark disabled:opacity-60"
-            >
-              {saving ? "Creating…" : "Download QR"}
-            </button>
-          )}
+  return (
+    <>
+      {me ? (
+        <div className="h-screen overflow-hidden bg-[#F6F4EE] text-charcoal">
+          <div className="flex h-full">
+            <Sidebar me={me} current="none" />
+            <div className="min-w-0 flex-1">{shell}</div>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="h-screen overflow-hidden bg-[#F6F4EE] text-charcoal">{shell}</div>
+      )}
 
-      {/* Always mounted: the live auth check (not the stale prop)
-          decides whether the anon path opens it. */}
+      {/* Outside the overflow-hidden shell so the modal isn't clipped. */}
       <EmailGateModal
         open={gateOpen}
         draftToken={gateToken}
         shortId={gateShortId}
         onClose={() => setGateOpen(false)}
       />
-    </div>
+    </>
   );
-
-  if (me) {
-    return (
-      <div className="min-h-screen bg-white text-charcoal">
-        <div className="flex">
-          <Sidebar me={me} current="none" />
-          <div className="min-w-0 flex-1">{wizardBody}</div>
-        </div>
-      </div>
-    );
-  }
-
-  return <div className="min-h-screen bg-white text-charcoal">{wizardBody}</div>;
 }
