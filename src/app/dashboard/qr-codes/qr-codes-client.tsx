@@ -11,7 +11,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import LogoMark from "@/components/logo-mark";
-import QrThumb from "@/components/qr-thumb";
+import StyledQr from "@/components/styled-qr";
+import { createQr } from "@/lib/qr";
+import { appUrl } from "@/lib/utils";
 import Sidebar, { type SidebarMe } from "@/components/dashboard/sidebar";
 import MobileDashboardNav from "@/components/dashboard/mobile-dashboard-nav";
 
@@ -190,16 +192,46 @@ function ListRow({
   const TypeIcon = tm.icon;
   const statusTint = STATUS_TINT[q.status] ?? STATUS_TINT.active;
 
+  // What the QR encodes: dynamic → the /r short link; static → its payload.
+  const qrData =
+    q.kind === "dynamic" && q.short_id
+      ? `${appUrl()}/r/${q.short_id}`
+      : q.destination || " ";
+
+  // C2 — styled client-side download (dot-style/gradient/logo), matching
+  // the builder preview, instead of the plain server render.png.
+  async function downloadStyled() {
+    const qr = await createQr({
+      data: qrData,
+      width: 1024,
+      height: 1024,
+      fgColor: q.fg_color,
+      bgColor: q.bg_color,
+      gradientColor: q.gradient_color,
+      dotStyle: q.dot_style,
+      cornerStyle: q.corner_style,
+      logoUrl: q.logo_url,
+    });
+    await qr.download({ name: q.name || "masaar-qr", extension: "png" });
+  }
+
   return (
     <li
       className={`flex items-center gap-4 px-4 py-4 transition-colors hover:bg-sand-light/40 sm:px-5 ${
         !isLast ? "border-b border-charcoal/5" : ""
       }`}
     >
-      {/* Thumbnail — server-rendered PNG via /api/qr/<id>/render.png. */}
-      <QrThumb
+      {/* Thumbnail — client-rendered styled QR (dot-style/gradient/logo),
+          with a render.png fallback until it mounts. */}
+      <StyledQr
         qrId={q.id}
+        data={qrData}
+        fgColor={q.fg_color}
         bgColor={q.bg_color}
+        gradientColor={q.gradient_color}
+        dotStyle={q.dot_style}
+        cornerStyle={q.corner_style}
+        logoUrl={q.logo_url}
         size={56}
         className="border border-charcoal/10"
       />
@@ -282,15 +314,16 @@ function ListRow({
         {scans.toLocaleString()}
       </Link>
 
-      {/* Download */}
-      <a
-        href={`/api/qr/${q.id}/render.png?download=1&size=1024`}
+      {/* Download — client-rendered styled PNG (matches the builder preview). */}
+      <button
+        type="button"
+        onClick={downloadStyled}
         className="grid h-9 w-9 shrink-0 place-items-center rounded-md text-charcoal/55 hover:bg-sand-light hover:text-deep-teal"
         title="Download PNG"
         aria-label="Download PNG"
       >
         <Download className="h-4 w-4" />
-      </a>
+      </button>
 
       <RowMenu id={q.id} />
     </li>
