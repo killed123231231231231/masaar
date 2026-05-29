@@ -7,6 +7,7 @@ export type WizardType =
   | "url"
   | "text"
   | "vcard"
+  | "social"
   | "wifi"
   | "email"
   | "sms"
@@ -33,25 +34,30 @@ export interface TypeMeta {
   ready: boolean;
 }
 
-// Order = spec §2 usage order. "Text" appended (spec §3 wants its form
-// in the first half and it's a real backend content_kind).
+// Order mirrors getqr.com's Step-1 grid 1:1 (the types getqr surfaces,
+// in its order), then Masaar-only extras (Phone, Text, Restaurant Menu)
+// last. Descriptions match getqr's exact wording for the shared cards.
+// `social` ships its full bio-links feature in Session D (card visible
+// now); location/feedback/payment activate in Session D too.
 export const CONTENT_TYPES: TypeMeta[] = [
   { key: "url", label: "Website", desc: "Open a website or landing page", icon: "Globe", badge: "MOST USED", backend: "url", ready: true },
+  { key: "vcard", label: "vCard", desc: "Share a digital business card", icon: "Contact", backend: "vcard", ready: true },
+  { key: "social", label: "Social Media", desc: "Share your profile & grow audience", icon: "Share2", backend: null, ready: false },
+  { key: "app_link", label: "App Link", desc: "Redirects to different App stores", icon: "Link2", backend: "app_link", ready: true },
   { key: "pdf", label: "PDF", desc: "Open a PDF document", icon: "FileText", backend: "pdf", ready: true },
   { key: "image", label: "Image", desc: "Display an image or photo", icon: "Image", backend: "image", ready: true },
-  { key: "vcard", label: "vCard", desc: "Share a digital business card", icon: "Contact", backend: "vcard", ready: true },
   { key: "video", label: "Video", desc: "Display a video with one scan", icon: "Video", backend: "video", ready: true },
-  { key: "app_link", label: "App Link", desc: "Redirect to different App stores", icon: "Link2", backend: "app_link", ready: true },
-  { key: "whatsapp", label: "WhatsApp", desc: "Start a WhatsApp chat instantly", icon: "MessageCircle", backend: "whatsapp", ready: true },
-  { key: "sms", label: "SMS", desc: "Send text message instantly", icon: "MessageSquare", backend: "sms", ready: true },
   { key: "wifi", label: "WiFi", desc: "Connect to a WiFi network", icon: "Wifi", backend: "wifi", ready: true },
-  { key: "email", label: "Email", desc: "Open mail app with prefilled message", icon: "Mail", backend: "email", ready: true },
+  { key: "email", label: "Email", desc: "Open a prefilled email", icon: "Mail", backend: "email", ready: true },
+  { key: "sms", label: "SMS", desc: "Send text message instantly", icon: "MessageSquare", backend: "sms", ready: true },
+  { key: "whatsapp", label: "WhatsApp", desc: "Start a WhatsApp chat instantly", icon: "MessageCircle", backend: "whatsapp", ready: true },
+  { key: "location", label: "Location", desc: "Open a location in Google Maps", icon: "MapPin", backend: null, ready: false },
+  { key: "payment", label: "Payment", desc: "Receive payments", icon: "Wallet", badge: "Coming soon", backend: null, ready: false },
+  { key: "feedback", label: "Feedback", desc: "Request feedback or a review", icon: "Star", backend: null, ready: false },
+  // Masaar-only extras (getqr has no equivalent) — kept last.
   { key: "phone", label: "Phone", desc: "Start a phone call", icon: "Phone", backend: "phone", ready: true },
   { key: "text", label: "Text", desc: "Encode plain text", icon: "Type", backend: "text", ready: true },
-  { key: "location", label: "Location", desc: "Open in Google or Apple Maps", icon: "MapPin", backend: null, ready: false },
-  { key: "feedback", label: "Feedback", desc: "Collect customer feedback", icon: "Star", backend: null, ready: false },
-  { key: "menu", label: "Restaurant Menu", desc: "Build a digital menu", icon: "UtensilsCrossed", backend: null, ready: false },
-  { key: "payment", label: "Payment", desc: "Coming soon", icon: "Wallet", badge: "Coming soon", backend: null, ready: false },
+  { key: "menu", label: "Restaurant Menu", desc: "Build a digital menu", icon: "UtensilsCrossed", badge: "Coming soon", backend: null, ready: false },
 ];
 
 export function typeMeta(t: WizardType): TypeMeta {
