@@ -160,6 +160,10 @@ export async function PATCH(request: Request) {
     patch.gradient_color = body.gradient_color;
   if (typeof body.dot_style === "string") patch.dot_style = body.dot_style;
   if (typeof body.corner_style === "string") patch.corner_style = body.corner_style;
+  // C2 — logo is now editable from the edit page (owner-scoped public
+  // `logos` URL, or null to remove).
+  if (typeof body.logo_url === "string" || body.logo_url === null)
+    patch.logo_url = body.logo_url;
 
   if (Object.keys(patch).length === 0) {
     return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
