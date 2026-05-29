@@ -9,6 +9,7 @@ import { typeMeta, type WizardType } from "../_lib/types";
 import PhonePreview from "./phone-preview";
 import FileUpload from "./file-upload";
 import SocialForm from "./social-form";
+import LocationForm from "./location-form";
 
 const ICONS: Record<string, LucideIcon> = {
   Globe, FileText, Image: ImageIcon, Contact, Video, Link2,
@@ -193,6 +194,8 @@ export default function Step2Content({
           {type === "social" && (
             <SocialForm form={form} setForm={setForm} draftToken={draftToken} />
           )}
+
+          {type === "location" && <LocationForm form={form} setForm={setForm} />}
 
           {(type === "pdf" || type === "image" || type === "video") && (
             <FileUpload
