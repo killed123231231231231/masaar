@@ -25,20 +25,21 @@ export default function Step1Type({
     : null;
 
   return (
-    /* No vertical divider between the grid and the preview — getqr has
-       none (the old border-l ran up into the header). Just a wide column
-       gap, left grid + right sticky preview. */
-    <div className="grid gap-8 lg:grid-cols-[1fr_360px] lg:gap-12">
-      {/* LEFT — header + "Most used" caption + card grid. */}
-      <div className="pt-8 lg:pt-12">
-        <h1 className="font-display text-3xl font-bold tracking-tight text-charcoal lg:text-[2rem]">
+    /* 2-column split — left card grid ~64%, right preview ~36%, with a
+       vertical divider that spans the full content height (min-h-full,
+       so it runs under the stepper down to the footer). getqr layout. */
+    <div className="grid min-h-full grid-cols-1 lg:grid-cols-[64fr_36fr]">
+      {/* LEFT — heading + subheading + compact card grid. ~90px left
+          padding on wide desktop; bottom padding clears the footer. */}
+      <div className="px-6 pb-16 pt-12 sm:px-10 lg:pb-20 lg:pl-[90px] lg:pr-12 lg:pt-[60px]">
+        <h1 className="font-display text-[32px] font-extrabold leading-tight tracking-tight text-charcoal lg:text-[34px]">
           What do you want to create?
         </h1>
-        <p className="mt-2 text-sm text-charcoal/55">
+        <p className="mt-2 text-[17px] text-[#6B7280] lg:text-[18px]">
           Select a QR code type to get started in seconds.
         </p>
 
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-7 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {CONTENT_TYPES.map((c) => {
             const Icon = ICONS[c.icon] ?? QrCode;
             const active = selected === c.key;
@@ -47,19 +48,19 @@ export default function Step1Type({
                 key={c.key}
                 type="button"
                 onClick={() => onSelect(c.key)}
-                /* getqr card: flat white tile, light border, bare teal
-                   icon (no chip), bold title, gray description, all
-                   centered. Lifts on hover; selected = teal border+tint+ring. */
-                className={`group relative rounded-2xl border bg-white px-6 py-7 text-center transition hover:-translate-y-0.5 hover:shadow-md ${
+                /* Compact getqr card: ~150px tall, bare teal icon near
+                   the top, centered title + description. Visible-but-
+                   subtle teal border; teal on hover/selected. */
+                className={`relative flex min-h-[150px] flex-col items-center rounded-xl border-[1.3px] px-4 pb-5 pt-6 text-center transition duration-150 hover:-translate-y-0.5 hover:border-deep-teal hover:shadow-[0_10px_24px_rgba(15,91,85,0.10)] ${
                   active
-                    ? "border-deep-teal bg-deep-teal/[0.04] ring-1 ring-deep-teal"
-                    : "border-charcoal/10 hover:border-deep-teal/40"
+                    ? "border-deep-teal bg-deep-teal/[0.04] shadow-[0_12px_28px_rgba(15,91,85,0.14)]"
+                    : "border-deep-teal/20"
                 }`}
               >
                 {c.badge && (
                   <span
-                    /* getqr: pill straddles the TOP-CENTER border. */
-                    className={`absolute left-1/2 -top-2.5 -translate-x-1/2 whitespace-nowrap rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                    /* Pill straddles the TOP-CENTER border of the card. */
+                    className={`absolute left-1/2 -top-[11px] flex h-[22px] -translate-x-1/2 items-center whitespace-nowrap rounded-full px-2.5 text-[10px] font-bold uppercase tracking-wider ${
                       c.badge === "Coming soon"
                         ? "bg-charcoal/10 text-charcoal/55"
                         : "bg-deep-teal text-white"
@@ -68,11 +69,11 @@ export default function Step1Type({
                     {c.badge}
                   </span>
                 )}
-                <Icon className="mx-auto h-8 w-8 text-deep-teal" strokeWidth={1.75} />
-                <h3 className="mt-4 font-display text-lg font-bold text-charcoal">
+                <Icon className="h-8 w-8 text-deep-teal" strokeWidth={1.75} />
+                <h3 className="mt-3 font-display text-[17px] font-bold leading-tight text-charcoal">
                   {c.label}
                 </h3>
-                <p className="mt-1.5 text-sm leading-snug text-charcoal/55">
+                <p className="mt-2 text-[14px] leading-snug text-[#6B7280]">
                   {c.desc}
                 </p>
               </button>
@@ -81,12 +82,11 @@ export default function Step1Type({
         </div>
       </div>
 
-      {/* RIGHT — sticky preview. Neutral light-gray panel (getqr uses
-          gray, not a teal tint), sparkle top-right, QR motif centered,
-          heading + subcopy below. No divider line. */}
-      <aside className="hidden lg:block lg:pt-12">
-        <div className="sticky top-28">
-          <div className="relative aspect-square w-full overflow-hidden rounded-2xl bg-charcoal/[0.04] p-8">
+      {/* RIGHT — sticky preview. Vertical divider via border-l. Preview
+          card ~290px square; heading + body below, all centered. */}
+      <aside className="hidden px-8 pb-16 pt-[60px] lg:block lg:border-l lg:border-[#E5E7EB] lg:px-10">
+        <div className="sticky top-[60px] flex flex-col items-center">
+          <div className="relative aspect-square w-full max-w-[300px] overflow-hidden rounded-[30px] bg-deep-teal/[0.05] p-8">
             <span className="absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-full bg-white text-deep-teal shadow-sm">
               <Sparkles className="h-4 w-4" />
             </span>
@@ -94,26 +94,23 @@ export default function Step1Type({
               <DashedQrPlaceholder />
             </div>
           </div>
-          <div className="mt-6 text-center">
-            <h3 className="font-display text-xl font-bold text-charcoal">
-              {selMeta ? `${selMeta.label} QR` : "Create Your Perfect QR Code"}
-            </h3>
-            <p className="mt-1.5 text-sm leading-relaxed text-charcoal/55">
-              {selMeta
-                ? "Looking good — continue to add your content."
-                : "Choose a type to see your personalized, dynamic QR code come to life."}
-            </p>
-          </div>
+          <h3 className="mt-6 text-center font-display text-[28px] font-bold leading-tight text-charcoal">
+            {selMeta ? `${selMeta.label} QR` : "Create Your Perfect QR Code"}
+          </h3>
+          <p className="mt-2 max-w-[360px] text-center text-[15px] leading-relaxed text-[#6B7280]">
+            {selMeta
+              ? "Looking good — continue to add your content."
+              : "Choose a type to see your personalized, dynamic QR code come to life."}
+          </p>
         </div>
       </aside>
     </div>
   );
 }
 
-/* A decorative QR-shaped placeholder — 3 dashed finder-pattern
-   corners + a few solid alignment dots, in the brand teal at low
-   alpha. Mirrors getqr's right-panel illustration. Pure SVG so it
-   always renders (no JS / hydration race). */
+/* A decorative QR-shaped placeholder — 3 dashed finder-pattern corners
+   + a few solid alignment dots, in brand teal at low alpha. Pure SVG so
+   it always renders (no JS / hydration race). */
 function DashedQrPlaceholder() {
   return (
     <svg viewBox="0 0 100 100" className="h-3/5 w-3/5 text-deep-teal" aria-hidden>

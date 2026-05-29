@@ -20,12 +20,12 @@ export default function ProgressBar({
   onJump: (step: 1 | 2 | 3) => void;
 }) {
   return (
-    <div className="sticky top-0 z-30 border-b border-charcoal/10 bg-white/90 backdrop-blur">
-      {/* B5/HANDOFF — step row uses justify-between so Step 1 anchors
-          left, Step 3 anchors right, Step 2 floats centered, with the
-          chevrons sitting in the gaps. max-w-7xl matches the wizard
-          body container so the bar lines up with the content below. */}
-      <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-8 py-6">
+    <div className="shrink-0 border-b border-[#E5E7EB] bg-white">
+      {/* Contained-shell stepper (getqr): a fixed ~88px header inside
+          the wizard card (no page-sticky — the card's middle scrolls,
+          not the page). max-w + justify-between → Step 1 left, Step 2
+          centered, Step 3 right. */}
+      <div className="mx-auto flex h-[88px] w-full max-w-[1140px] items-center justify-between px-8">
         {STEPS.map((s, i) => {
           const active = s.n === current;
           // Completed = reached before (≤ maxStep) and not the current
@@ -49,7 +49,7 @@ export default function ProgressBar({
                       ? "bg-deep-teal text-white"
                       : done
                         ? "bg-deep-teal/15 text-deep-teal"
-                        : "bg-charcoal/10 text-charcoal/40"
+                        : "bg-charcoal/[0.07] text-charcoal/50"
                   }`}
                 >
                   {done ? <Check className="h-4 w-4" /> : <s.Icon className="h-4 w-4" />}
@@ -60,11 +60,11 @@ export default function ProgressBar({
                       ? "font-bold text-charcoal"
                       : done
                         ? "font-medium text-charcoal/70"
-                        : "text-charcoal/40"
+                        : "font-medium text-charcoal/55"
                   }`}
                 >
                   {/* Sentence case per mockup ("Step 1", not "STEP 1"). */}
-                  <span className="text-xs tracking-wide text-charcoal/40">
+                  <span className="text-xs tracking-wide text-charcoal/45">
                     Step {s.n}
                   </span>
                   <br />
