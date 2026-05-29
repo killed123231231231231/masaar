@@ -83,6 +83,13 @@ export async function GET(
       qr.content_type === "video"
     ) {
       redirectTo = new URL(`/v/${shortId}`, request.url).toString();
+    } else if (qr.content_type === "social") {
+      // Session D — hosted bio-link page.
+      redirectTo = new URL(`/s/${shortId}`, request.url).toString();
+    } else if (qr.content_type === "location") {
+      redirectTo = new URL(`/loc/${shortId}`, request.url).toString();
+    } else if (qr.content_type === "feedback") {
+      redirectTo = new URL(`/f/${shortId}`, request.url).toString();
     } else {
       // A destination of "https://", a scheme-less string, javascript:/data:,
       // or a non-URL payload would otherwise throw inside

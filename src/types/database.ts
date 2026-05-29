@@ -20,7 +20,11 @@ export type ContentKind =
   | "app_link"
   | "pdf"
   | "image"
-  | "video";
+  | "video"
+  | "social"
+  | "location"
+  | "feedback"
+  | "payment_placeholder";
 export type QrStatus = "draft" | "pending_payment" | "active" | "suspended";
 
 export interface QrCode {
