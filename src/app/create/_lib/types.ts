@@ -98,6 +98,10 @@ export interface Customization {
   /** Logo scale as a fraction of the QR (qr-code-styling imageSize). */
   logo_scale: number;
   password: string;
+  /** I — frame around the QR (key from FRAMES) + its colors. */
+  frame_style: string;
+  frame_color: string;
+  text_color: string;
 }
 
 export const DEFAULT_CUSTOMIZATION: Customization = {
@@ -110,6 +114,9 @@ export const DEFAULT_CUSTOMIZATION: Customization = {
   logo_url: null,
   logo_scale: 0.3,
   password: "",
+  frame_style: "none",
+  frame_color: "#0F5B55",
+  text_color: "#FFFFFF",
 };
 
 export const DOT_STYLES = [

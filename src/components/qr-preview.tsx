@@ -3,7 +3,13 @@
 import { useEffect, useRef } from "react";
 import { createQr, type QrStyle } from "@/lib/qr";
 
-export default function QrPreview({ style }: { style: QrStyle }) {
+export default function QrPreview({
+  style,
+  hideActions = false,
+}: {
+  style: QrStyle;
+  hideActions?: boolean;
+}) {
   const ref = useRef<HTMLDivElement | null>(null);
   const qrRef = useRef<Awaited<ReturnType<typeof createQr>> | null>(null);
 
@@ -70,11 +76,13 @@ export default function QrPreview({ style }: { style: QrStyle }) {
         ref={ref}
         className="qr-live rounded-2xl border border-gray-100 bg-white p-4 shadow-sm"
       />
-      <div className="flex gap-2">
-        <DownloadBtn onClick={() => download("png")}>PNG</DownloadBtn>
-        <DownloadBtn onClick={() => download("svg")}>SVG</DownloadBtn>
-        <DownloadBtn onClick={() => download("jpeg")}>JPG</DownloadBtn>
-      </div>
+      {!hideActions && (
+        <div className="flex gap-2">
+          <DownloadBtn onClick={() => download("png")}>PNG</DownloadBtn>
+          <DownloadBtn onClick={() => download("svg")}>SVG</DownloadBtn>
+          <DownloadBtn onClick={() => download("jpeg")}>JPG</DownloadBtn>
+        </div>
+      )}
     </div>
   );
 }

@@ -40,6 +40,9 @@ export interface QrSavePayload {
   password: string | null;
   logo_scale: number | null;
   qr_text: string | null;
+  frame_style: string | null;
+  frame_color: string | null;
+  text_color: string | null;
   // C — file content types. destination carries the asset URL (so the
   // existing save routes persist it unchanged); these mirror it for
   // forward-compat with a future asset-column-aware edit flow.
@@ -236,6 +239,9 @@ export function buildPayload(args: {
       password: c.password?.trim() || null,
       logo_scale: typeof c.logo_scale === "number" ? c.logo_scale : null,
       qr_text: c.qr_text?.trim() || null,
+      frame_style: c.frame_style && c.frame_style !== "none" ? c.frame_style : null,
+      frame_color: c.frame_color || null,
+      text_color: c.text_color || null,
       asset_url,
       asset_size,
       asset_mime,

@@ -85,6 +85,10 @@ export async function POST(request: Request) {
     insert.password_hash = await bcrypt.hash(body.password.trim(), 10);
     insert.password_set_at = new Date().toISOString();
   }
+  if (typeof body.frame_style === "string" && body.frame_style !== "none")
+    insert.frame_style = body.frame_style;
+  if (typeof body.frame_color === "string") insert.frame_color = body.frame_color;
+  if (typeof body.text_color === "string") insert.text_color = body.text_color;
 
   // A dynamic QR's printed code points at /r/<shortId>, which 302s to
   // `destination`. Reject anything that isn't a valid http(s) URL up front
