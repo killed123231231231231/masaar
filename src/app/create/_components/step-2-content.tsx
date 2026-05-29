@@ -10,6 +10,7 @@ import PhonePreview from "./phone-preview";
 import FileUpload from "./file-upload";
 import SocialForm from "./social-form";
 import LocationForm from "./location-form";
+import FeedbackForm from "./feedback-form";
 
 const ICONS: Record<string, LucideIcon> = {
   Globe, FileText, Image: ImageIcon, Contact, Video, Link2,
@@ -196,6 +197,8 @@ export default function Step2Content({
           )}
 
           {type === "location" && <LocationForm form={form} setForm={setForm} />}
+
+          {type === "feedback" && <FeedbackForm form={form} setForm={setForm} />}
 
           {(type === "pdf" || type === "image" || type === "video") && (
             <FileUpload
