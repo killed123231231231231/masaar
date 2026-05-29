@@ -164,7 +164,11 @@ function ListBlock({
           No codes match “{query}”.
         </p>
       ) : (
-        <ul className="overflow-hidden rounded-2xl border border-charcoal/10 bg-white shadow-[0_1px_2px_rgba(15,91,85,0.06),0_2px_8px_-2px_rgba(15,91,85,0.08)]">
+        <ul className="rounded-2xl border border-charcoal/10 bg-white shadow-[0_1px_2px_rgba(15,91,85,0.06),0_2px_8px_-2px_rgba(15,91,85,0.08)]">
+          {/* No overflow-hidden on the <ul>: the row 3-dot menu is an
+              absolutely positioned dropdown, and clipping it to the list
+              box cut the menu off on the last/only row. Corner rounding is
+              handled per row (first:/last:) so the card still looks clipped. */}
           {filtered.map((q, i) => (
             <ListRow
               key={q.id}
@@ -217,7 +221,7 @@ function ListRow({
 
   return (
     <li
-      className={`flex items-center gap-4 px-4 py-4 transition-colors hover:bg-sand-light/40 sm:px-5 ${
+      className={`flex items-center gap-4 px-4 py-4 transition-colors first:rounded-t-2xl last:rounded-b-2xl hover:bg-sand-light/40 sm:px-5 ${
         !isLast ? "border-b border-charcoal/5" : ""
       }`}
     >
