@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import LogoMark from "@/components/logo-mark";
 import QrThumb from "@/components/qr-thumb";
 import Sidebar, { type SidebarMe } from "@/components/dashboard/sidebar";
+import MobileDashboardNav from "@/components/dashboard/mobile-dashboard-nav";
 import {
   BarCard, DonutCard, KpiCard, PeriodPills, TrendCard, fmtTime,
 } from "@/components/dashboard/widgets";
@@ -74,7 +75,7 @@ function Main({
 }) {
   return (
     <main className="min-w-0 flex-1 space-y-7 px-4 py-5 sm:px-5 sm:py-6 lg:px-8">
-      <MobileTopBar />
+      <MobileDashboardNav me={me} current="overview" />
       <PageHeader
         me={me}
         period={bundle.period}
@@ -98,22 +99,6 @@ function Main({
         </>
       )}
     </main>
-  );
-}
-
-function MobileTopBar() {
-  return (
-    <div className="mb-4 flex items-center justify-between lg:hidden">
-      <Link href="/dashboard" className="inline-flex items-center gap-2 text-sm font-semibold text-charcoal/65 hover:text-deep-teal">
-        <span className="grid h-7 w-7 place-items-center rounded-md bg-deep-teal p-1">
-          <LogoMark className="h-full w-full brightness-0 invert" />
-        </span>
-        Dashboard
-      </Link>
-      <Link href="/create" className="inline-flex items-center gap-1 rounded-md bg-deep-teal px-2.5 py-1 text-xs font-semibold text-white">
-        <Plus className="h-3 w-3" /> Create
-      </Link>
-    </div>
   );
 }
 

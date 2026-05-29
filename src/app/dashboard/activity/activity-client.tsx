@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ChevronLeft, ChevronRight, Download, ExternalLink, Search } from "lucide-react";
 import LogoMark from "@/components/logo-mark";
 import Sidebar, { type SidebarMe } from "@/components/dashboard/sidebar";
+import MobileDashboardNav from "@/components/dashboard/mobile-dashboard-nav";
 import { PeriodPills, fmtTime } from "@/components/dashboard/widgets";
 import type { AccountActivityPage, AccountRecentScan, Period } from "@/lib/analytics";
 
@@ -22,25 +23,11 @@ export default function ActivityClient({
       <div className="flex">
         <Sidebar me={me} current="activity" />
         <main className="min-w-0 flex-1 space-y-7 px-4 py-5 sm:px-5 sm:py-6 lg:px-8">
-          <MobileTopBar />
+          <MobileDashboardNav me={me} current="activity" />
           <PageHeader total={activity.totalCount} period={period} />
           <ListBlock activity={activity} period={period} />
         </main>
       </div>
-    </div>
-  );
-}
-
-function MobileTopBar() {
-  return (
-    <div className="flex items-center justify-between lg:hidden">
-      <Link href="/dashboard" className="inline-flex items-center gap-2 text-sm font-semibold text-charcoal/65 hover:text-deep-teal">
-        <span className="grid h-7 w-7 place-items-center rounded-md bg-deep-teal p-1">
-          <LogoMark className="h-full w-full brightness-0 invert" />
-        </span>
-        Dashboard
-      </Link>
-      <span className="text-xs text-charcoal/45">Activity</span>
     </div>
   );
 }

@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Camera, Globe2, Sparkles, Timer, Utensils, UtensilsCrossed, Zap } from "lucide-react";
-import LogoMark from "@/components/logo-mark";
 import Sidebar from "@/components/dashboard/sidebar";
+import MobileDashboardNav from "@/components/dashboard/mobile-dashboard-nav";
 import { createClient } from "@/lib/supabase/server";
 import { getMe } from "@/lib/me";
 
@@ -27,19 +27,7 @@ export default async function MenuPlaceholderPage() {
       <div className="flex">
         <Sidebar me={me} current="menu" />
         <main className="min-w-0 flex-1 space-y-7 px-4 py-5 sm:px-5 sm:py-6 lg:px-8">
-          {/* Mobile top bar — same pattern as other surfaces. */}
-          <div className="flex items-center justify-between lg:hidden">
-            <Link
-              href="/dashboard"
-              className="inline-flex items-center gap-2 text-sm font-semibold text-charcoal/65 hover:text-deep-teal"
-            >
-              <span className="grid h-7 w-7 place-items-center rounded-md bg-deep-teal p-1">
-                <LogoMark className="h-full w-full brightness-0 invert" />
-              </span>
-              Dashboard
-            </Link>
-            <span className="text-xs text-charcoal/45">AI Menu Builder</span>
-          </div>
+          <MobileDashboardNav me={me} current="menu" />
 
           <div className="rounded-2xl border border-charcoal/10 bg-white p-8 shadow-[0_1px_2px_rgba(15,91,85,0.06),0_2px_8px_-2px_rgba(15,91,85,0.08)] sm:p-12">
             <div className="mx-auto max-w-2xl text-center">

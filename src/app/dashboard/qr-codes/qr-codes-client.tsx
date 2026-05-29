@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import LogoMark from "@/components/logo-mark";
 import QrThumb from "@/components/qr-thumb";
 import Sidebar, { type SidebarMe } from "@/components/dashboard/sidebar";
+import MobileDashboardNav from "@/components/dashboard/mobile-dashboard-nav";
 
 export interface QrCardData {
   id: string;
@@ -78,7 +79,7 @@ export default function QrCodesClient({
       <div className="flex">
         <Sidebar me={me} current="qrcodes" />
         <main className="min-w-0 flex-1 space-y-7 px-4 py-5 sm:px-5 sm:py-6 lg:px-8">
-          <MobileTopBar />
+          <MobileDashboardNav me={me} current="qrcodes" />
           <PageHeader total={qrs.length} />
           {qrs.length === 0 ? (
             <EmptyState />
@@ -87,20 +88,6 @@ export default function QrCodesClient({
           )}
         </main>
       </div>
-    </div>
-  );
-}
-
-function MobileTopBar() {
-  return (
-    <div className="flex items-center justify-between lg:hidden">
-      <Link href="/dashboard" className="inline-flex items-center gap-2 text-sm font-semibold text-charcoal/65 hover:text-deep-teal">
-        <span className="grid h-7 w-7 place-items-center rounded-md bg-deep-teal p-1">
-          <LogoMark className="h-full w-full brightness-0 invert" />
-        </span>
-        Dashboard
-      </Link>
-      <span className="text-xs text-charcoal/45">QR Codes</span>
     </div>
   );
 }
