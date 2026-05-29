@@ -52,18 +52,13 @@ export async function POST(request: Request) {
   const sizeErr = sizeError(body);
   if (sizeErr) return NextResponse.json({ error: sizeErr }, { status: 400 });
 
-  // SaaS model: an active subscriber's QRs go live immediately (skip
-  // the checkout lock-in). Everyone else's start pending_payment.
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("subscription_status")
-    .eq("id", user.id)
-    .maybeSingle();
-  const subscribed = profile?.subscription_status === "active";
-
+  // Every signed-in user's QR goes live immediately. The per-QR paywall
+  // now applies ONLY to anonymous creators (handled in /api/qr/anonymous
+  // → email gate → /checkout). This route is auth-gated above, so anyone
+  // reaching here is a logged-in user, subscriber or not.
   const insert: Partial<QrCode> = {
     user_id: user.id,
-    status: subscribed ? "active" : "pending_payment",
+    status: "active",
     name: body.name || "Untitled",
     kind: body.kind === "static" ? "static" : "dynamic",
     content_kind: body.content_kind || "url",
