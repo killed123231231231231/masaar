@@ -63,6 +63,41 @@ export default function Step3Customize({
     a.click();
   }
 
+  // Print-ready PDF (A4): the framed QR centered + a Masaar footer. Done
+  // client-side so it works before the QR is saved (no id needed).
+  async function downloadPdf() {
+    const node = previewRef.current;
+    if (!node) return;
+    const [{ toPng }, pdfLib] = await Promise.all([
+      import("html-to-image"),
+      import("pdf-lib"),
+    ]);
+    const { PDFDocument, rgb, StandardFonts } = pdfLib;
+    const pngUrl = await toPng(node, { pixelRatio: 3, backgroundColor: "#ffffff", cacheBust: true });
+    const pngBytes = await (await fetch(pngUrl)).arrayBuffer();
+    const pdf = await PDFDocument.create();
+    const A4 = { w: 595.28, h: 841.89 };
+    const page = pdf.addPage([A4.w, A4.h]);
+    const png = await pdf.embedPng(pngBytes);
+    const w = 340;
+    const h = (png.height / png.width) * w;
+    page.drawImage(png, { x: (A4.w - w) / 2, y: (A4.h - h) / 2 + 30, width: w, height: h });
+    const font = await pdf.embedFont(StandardFonts.Helvetica);
+    const footer = "Created with Masaar · masaar.sa";
+    const fs = 10;
+    const tw = font.widthOfTextAtSize(footer, fs);
+    page.drawText(footer, { x: (A4.w - tw) / 2, y: 64, size: fs, font, color: rgb(0.42, 0.42, 0.42) });
+    const bytes = await pdf.save();
+    const url = URL.createObjectURL(
+      new Blob([bytes as unknown as BlobPart], { type: "application/pdf" })
+    );
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "masaar-qr.pdf";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <div className="grid gap-8 lg:grid-cols-[1fr_300px]">
       <div>
@@ -259,6 +294,13 @@ export default function Step3Customize({
               className="inline-flex items-center gap-1.5 rounded-lg border border-charcoal/20 bg-white px-4 py-2 text-sm font-semibold text-charcoal/75 transition-colors hover:bg-sand-light"
             >
               <Download className="h-4 w-4" /> SVG
+            </button>
+            <button
+              type="button"
+              onClick={downloadPdf}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-charcoal/20 bg-white px-4 py-2 text-sm font-semibold text-charcoal/75 transition-colors hover:bg-sand-light"
+            >
+              <Download className="h-4 w-4" /> PDF
             </button>
           </div>
         </div>
