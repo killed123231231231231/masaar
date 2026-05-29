@@ -32,9 +32,9 @@ const BUCKETS: Record<
     label: "JPG, PNG or WebP, up to 5 MB",
   },
   "qr-videos": {
-    mime: { "video/mp4": "mp4", "video/webm": "webm" },
-    max: 25 * 1024 * 1024,
-    label: "MP4 or WebM, up to 25 MB",
+    mime: { "video/mp4": "mp4", "video/webm": "webm", "video/quicktime": "mov" },
+    max: 40 * 1024 * 1024,
+    label: "MP4, WebM or MOV, up to 40 MB",
   },
 };
 
