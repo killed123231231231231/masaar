@@ -38,11 +38,7 @@ export default function Step1Type({
           Select a QR code type to get started in seconds.
         </p>
 
-        <p className="mt-8 text-xs font-semibold uppercase tracking-[0.14em] text-charcoal/45">
-          Most used
-        </p>
-
-        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {CONTENT_TYPES.map((c) => {
             const Icon = ICONS[c.icon] ?? QrCode;
             const active = selected === c.key;
