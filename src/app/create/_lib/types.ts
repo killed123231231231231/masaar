@@ -42,7 +42,7 @@ export interface TypeMeta {
 export const CONTENT_TYPES: TypeMeta[] = [
   { key: "url", label: "Website", desc: "Open a website or landing page", icon: "Globe", badge: "MOST USED", backend: "url", ready: true },
   { key: "vcard", label: "vCard", desc: "Share a digital business card", icon: "Contact", backend: "vcard", ready: true },
-  { key: "social", label: "Social Media", desc: "Share your profile & grow audience", icon: "Share2", backend: null, ready: false },
+  { key: "social", label: "Social Media", desc: "Share your profile & grow audience", icon: "Share2", backend: "social", ready: true },
   { key: "app_link", label: "App Link", desc: "Redirects to different App stores", icon: "Link2", backend: "app_link", ready: true },
   { key: "pdf", label: "PDF", desc: "Open a PDF document", icon: "FileText", backend: "pdf", ready: true },
   { key: "image", label: "Image", desc: "Display an image or photo", icon: "Image", backend: "image", ready: true },
@@ -51,9 +51,9 @@ export const CONTENT_TYPES: TypeMeta[] = [
   { key: "email", label: "Email", desc: "Open a prefilled email", icon: "Mail", backend: "email", ready: true },
   { key: "sms", label: "SMS", desc: "Send text message instantly", icon: "MessageSquare", backend: "sms", ready: true },
   { key: "whatsapp", label: "WhatsApp", desc: "Start a WhatsApp chat instantly", icon: "MessageCircle", backend: "whatsapp", ready: true },
-  { key: "location", label: "Location", desc: "Open a location in Google Maps", icon: "MapPin", backend: null, ready: false },
+  { key: "location", label: "Location", desc: "Open a location in Google Maps", icon: "MapPin", backend: "location", ready: true },
   { key: "payment", label: "Payment", desc: "Receive payments", icon: "Wallet", badge: "Coming soon", backend: null, ready: false },
-  { key: "feedback", label: "Feedback", desc: "Request feedback or a review", icon: "Star", backend: null, ready: false },
+  { key: "feedback", label: "Feedback", desc: "Request feedback or a review", icon: "Star", backend: "feedback", ready: true },
   // Masaar-only extras (getqr has no equivalent) — kept last.
   { key: "phone", label: "Phone", desc: "Start a phone call", icon: "Phone", backend: "phone", ready: true },
   { key: "text", label: "Text", desc: "Encode plain text", icon: "Type", backend: "text", ready: true },
@@ -76,6 +76,12 @@ const DYNAMIC: ContentKind[] = [
   "pdf",
   "image",
   "video",
+  // Session D — hosted content types: the QR encodes /r/<shortId>, which
+  // routes to the hosted page (/s, /loc, /f). Dynamic = scan-tracked +
+  // editable + payment lock-in, same as file types.
+  "social",
+  "location",
+  "feedback",
 ];
 export function kindFor(backend: ContentKind): QrKind {
   return DYNAMIC.includes(backend) ? "dynamic" : "static";

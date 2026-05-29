@@ -8,6 +8,7 @@ import {
   encodeAppLink,
 } from "@/lib/content-types";
 import { normalizeUrl } from "@/lib/url";
+import { appUrl } from "@/lib/utils";
 import type { ContentKind, QrKind } from "@/types/database";
 import {
   typeMeta,
@@ -161,6 +162,52 @@ export function buildPayload(args: {
       asset_mime = typeof form.asset_mime === "string" ? form.asset_mime : null;
       asset_filename =
         typeof form.asset_filename === "string" ? form.asset_filename : null;
+      break;
+    }
+    // Session D — hosted types. The data lives in payload_json; destination
+    // is the hosted URL (valid http(s) so the save-route dynamic guard
+    // passes). /r routes to the hosted page by content_kind, not destination.
+    case "social": {
+      const rawLinks = Array.isArray(form.links) ? form.links : [];
+      const links = rawLinks
+        .filter(
+          (l: { platform?: string; url?: string }) =>
+            l && l.platform && (l.url || "").trim()
+        )
+        .map((l: { platform: string; url: string }) => ({
+          platform: l.platform,
+          url: l.url.trim(),
+        }));
+      const displayName = (form.display_name || "").trim();
+      if (!displayName && links.length === 0) {
+        return { error: "Add your name or at least one social link." };
+      }
+      destination = `${appUrl()}/s/${shortId}`;
+      payload_json = {
+        display_name: displayName,
+        bio: (form.bio || "").trim(),
+        avatar_url: form.avatar_url || null,
+        links,
+      };
+      break;
+    }
+    case "location": {
+      const lat = parseFloat(form.lat);
+      const lng = parseFloat(form.lng);
+      if (!isFinite(lat) || !isFinite(lng)) {
+        return { error: "Pick a location on the map." };
+      }
+      destination = `${appUrl()}/loc/${shortId}`;
+      payload_json = { lat, lng, label: (form.label || "").trim() };
+      break;
+    }
+    case "feedback": {
+      destination = `${appUrl()}/f/${shortId}`;
+      payload_json = {
+        headline: (form.headline || "How was your experience?").trim(),
+        prompt: (form.prompt || "Tell us more").trim(),
+        ask_email: !!form.ask_email,
+      };
       break;
     }
     default:

@@ -8,6 +8,7 @@ import {
 import { typeMeta, type WizardType } from "../_lib/types";
 import PhonePreview from "./phone-preview";
 import FileUpload from "./file-upload";
+import SocialForm from "./social-form";
 
 const ICONS: Record<string, LucideIcon> = {
   Globe, FileText, Image: ImageIcon, Contact, Video, Link2,
@@ -187,6 +188,10 @@ export default function Step2Content({
               <Field label="App URL (App Store / Play Store)" required><input value={form.url ?? "https://"} onChange={(e) => set("url", e.target.value)} placeholder="https://apps.apple.com/..." className={inputCls} /></Field>
               <Field label="Fallback URL (desktop, optional)"><input value={form.fallback ?? ""} onChange={(e) => set("fallback", e.target.value)} className={inputCls} /></Field>
             </div>
+          )}
+
+          {type === "social" && (
+            <SocialForm form={form} setForm={setForm} draftToken={draftToken} />
           )}
 
           {(type === "pdf" || type === "image" || type === "video") && (
