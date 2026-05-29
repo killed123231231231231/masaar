@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ChevronDown, Download } from "lucide-react";
 import QrPreview from "@/components/qr-preview";
+import FramedQr from "./framed-qr";
+import { FRAMES } from "../_lib/frames";
 import { createClient } from "@/lib/supabase/client";
 import {
   DOT_STYLES,
@@ -44,6 +46,23 @@ export default function Step3Customize({
   );
   const style = JSON.parse(debounced) as { previewData: string } & Customization;
 
+  // Framed download: composite the frame + QR (the previewRef subtree) to an
+  // image with html-to-image. Works for the no-frame case too (just the QR).
+  const previewRef = useRef<HTMLDivElement | null>(null);
+  async function downloadFramed(format: "png" | "svg") {
+    const node = previewRef.current;
+    if (!node) return;
+    const lib = await import("html-to-image");
+    const dataUrl =
+      format === "png"
+        ? await lib.toPng(node, { pixelRatio: 3, cacheBust: true, backgroundColor: "#ffffff" })
+        : await lib.toSvg(node, { cacheBust: true });
+    const a = document.createElement("a");
+    a.href = dataUrl;
+    a.download = `masaar-qr.${format}`;
+    a.click();
+  }
+
   return (
     <div className="grid gap-8 lg:grid-cols-[1fr_300px]">
       <div>
@@ -56,13 +75,45 @@ export default function Step3Customize({
 
         <div className="mt-6 space-y-3">
           <Acc title="Frame around the QR code" defaultOpen={false}>
-            <p className="text-sm text-charcoal/55">
-              Basic frames only. The full ~20-style library ships with
-              Session I; this consumes it when available.
-            </p>
-            <div className="mt-3 inline-flex rounded-lg border border-charcoal/15 px-3 py-2 text-sm text-charcoal/60">
-              None (default)
+            <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+              {FRAMES.map((f) => {
+                const active = c.frame_style === f.key;
+                return (
+                  <button
+                    key={f.key}
+                    type="button"
+                    onClick={() => set("frame_style", f.key)}
+                    className={`flex flex-col items-center gap-1.5 rounded-lg border p-2 transition ${
+                      active
+                        ? "border-deep-teal ring-1 ring-deep-teal"
+                        : "border-charcoal/10 hover:border-deep-teal/40"
+                    }`}
+                  >
+                    <span className="flex h-[60px] w-full items-center justify-center overflow-hidden">
+                      <span className="origin-center scale-[0.4]">
+                        <FramedQr
+                          frame={f.key}
+                          frameColor={c.frame_color}
+                          textColor={c.text_color}
+                          text={c.qr_text || "SCAN ME"}
+                        >
+                          <span className="block h-20 w-20 bg-charcoal" />
+                        </FramedQr>
+                      </span>
+                    </span>
+                    <span className="text-center text-[10px] leading-tight text-charcoal/55">
+                      {f.label}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
+            {c.frame_style !== "none" && (
+              <div className="mt-4 grid grid-cols-2 gap-4">
+                <ColorRow label="Frame color" value={c.frame_color} onChange={(v) => set("frame_color", v)} />
+                <ColorRow label="Text color" value={c.text_color} onChange={(v) => set("text_color", v)} />
+              </div>
+            )}
           </Acc>
 
           <Acc title="Customization" defaultOpen>
@@ -171,19 +222,45 @@ export default function Step3Customize({
       </div>
 
       <aside className="lg:sticky lg:top-24 self-start">
-        <div className="rounded-2xl border border-charcoal/10 bg-white p-5 shadow-sm">
-          <QrPreview
-            style={{
-              data: style.previewData || " ",
-              fgColor: style.fg_color,
-              bgColor: style.bg_color,
-              gradientColor: style.gradient_color,
-              dotStyle: style.dot_style,
-              cornerStyle: style.corner_style,
-              logoUrl: style.logo_url,
-              imageSize: style.logo_scale,
-            }}
-          />
+        <div className="flex flex-col items-center gap-4 rounded-2xl border border-charcoal/10 bg-white p-5 shadow-sm">
+          <div ref={previewRef} className="inline-block bg-white p-2">
+            <FramedQr
+              frame={style.frame_style}
+              frameColor={style.frame_color}
+              textColor={style.text_color}
+              text={style.qr_text}
+            >
+              <QrPreview
+                hideActions
+                style={{
+                  data: style.previewData || " ",
+                  fgColor: style.fg_color,
+                  bgColor: style.bg_color,
+                  gradientColor: style.gradient_color,
+                  dotStyle: style.dot_style,
+                  cornerStyle: style.corner_style,
+                  logoUrl: style.logo_url,
+                  imageSize: style.logo_scale,
+                }}
+              />
+            </FramedQr>
+          </div>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => downloadFramed("png")}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-charcoal/20 bg-white px-4 py-2 text-sm font-semibold text-charcoal/75 transition-colors hover:bg-sand-light"
+            >
+              <Download className="h-4 w-4" /> PNG
+            </button>
+            <button
+              type="button"
+              onClick={() => downloadFramed("svg")}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-charcoal/20 bg-white px-4 py-2 text-sm font-semibold text-charcoal/75 transition-colors hover:bg-sand-light"
+            >
+              <Download className="h-4 w-4" /> SVG
+            </button>
+          </div>
         </div>
       </aside>
     </div>
