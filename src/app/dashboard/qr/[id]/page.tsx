@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, BarChart3 } from "lucide-react";
+import { ArrowLeft, BarChart3, MessageSquare } from "lucide-react";
 import Sidebar from "@/components/dashboard/sidebar";
 import MobileDashboardNav from "@/components/dashboard/mobile-dashboard-nav";
 import LogoMark from "@/components/logo-mark";
@@ -73,12 +73,22 @@ export default async function EditQrPage({
                 {qr.short_id ? ` · /r/${qr.short_id}` : ""}
               </p>
             </div>
-            <Link
-              href={`/dashboard?qr=${qr.id}`}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-charcoal/15 bg-white px-3 py-1.5 text-sm font-medium text-charcoal/75 hover:bg-sand-light hover:text-deep-teal"
-            >
-              <BarChart3 className="h-4 w-4" /> View analytics
-            </Link>
+            <div className="flex flex-wrap items-center gap-2">
+              {qr.content_kind === "feedback" && (
+                <Link
+                  href={`/dashboard/qr/${qr.id}/feedback`}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-charcoal/15 bg-white px-3 py-1.5 text-sm font-medium text-charcoal/75 hover:bg-sand-light hover:text-deep-teal"
+                >
+                  <MessageSquare className="h-4 w-4" /> View feedback
+                </Link>
+              )}
+              <Link
+                href={`/dashboard?qr=${qr.id}`}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-charcoal/15 bg-white px-3 py-1.5 text-sm font-medium text-charcoal/75 hover:bg-sand-light hover:text-deep-teal"
+              >
+                <BarChart3 className="h-4 w-4" /> View analytics
+              </Link>
+            </div>
           </div>
 
           <EditQrClient initial={qr} />
