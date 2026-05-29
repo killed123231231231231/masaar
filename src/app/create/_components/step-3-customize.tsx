@@ -5,6 +5,7 @@ import { ChevronDown, Download } from "lucide-react";
 import QrPreview from "@/components/qr-preview";
 import FramedQr from "./framed-qr";
 import { FRAMES } from "../_lib/frames";
+import { LOGO_PRESETS } from "../_lib/logo-presets";
 import { createClient } from "@/lib/supabase/client";
 import {
   DOT_STYLES,
@@ -188,6 +189,26 @@ export default function Step3Customize({
           </Acc>
 
           <Acc title="Logo" defaultOpen={false}>
+            <p className="mb-2 text-sm font-medium text-charcoal/75">Quick icons</p>
+            <div className="mb-4 grid grid-cols-6 gap-2">
+              {LOGO_PRESETS.map((p) => (
+                <button
+                  key={p.key}
+                  type="button"
+                  onClick={() => set("logo_url", p.url)}
+                  title={p.label}
+                  className={`grid aspect-square place-items-center overflow-hidden rounded-lg border p-1 transition ${
+                    c.logo_url === p.url
+                      ? "border-deep-teal ring-1 ring-deep-teal"
+                      : "border-charcoal/10 hover:border-deep-teal/40"
+                  }`}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={p.url} alt={p.label} className="h-full w-full" />
+                </button>
+              ))}
+            </div>
+            <p className="mb-2 text-sm font-medium text-charcoal/75">Or upload your own</p>
             {/* B5/Fix 21 — anon users can upload too. LogoUpload branches
                 internally based on isAuthed + draftToken. */}
             <LogoUpload
