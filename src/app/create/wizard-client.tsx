@@ -219,11 +219,16 @@ export default function WizardClient({
       clearState();
       if (row?.status === "active") {
         toast.success("QR created!");
-        setTimeout(() => router.push("/dashboard?welcome_new_qr=1"), 800);
+        setTimeout(() => {
+          router.push("/dashboard?welcome_new_qr=1");
+          router.refresh();
+        }, 800);
       } else if (row?.short_id) {
         router.push(`/checkout/${row.short_id}`);
+        router.refresh();
       } else {
         router.push(`/dashboard/qr/${row?.id}`);
+        router.refresh();
       }
       return;
     }
