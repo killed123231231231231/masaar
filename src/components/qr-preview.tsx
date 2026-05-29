@@ -32,7 +32,7 @@ export default function QrPreview({ style }: { style: QrStyle }) {
       imageOptions: {
         crossOrigin: "anonymous",
         margin: 4,
-        imageSize: 0.3,
+        imageSize: style.imageSize ?? 0.3,
         hideBackgroundDots: true,
       },
       dotsOptions: {
