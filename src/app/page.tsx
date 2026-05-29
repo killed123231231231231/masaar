@@ -12,7 +12,6 @@ import {
   QrCode,
   RefreshCw,
   ShieldCheck,
-  Sparkles,
   UtensilsCrossed,
 } from "lucide-react";
 import LogoMark from "@/components/logo-mark";
@@ -205,12 +204,7 @@ const HERO_BENEFITS = [
 function HeroCopy() {
   return (
     <div className="relative z-10">
-      <span className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-deep-teal">
-        <Sparkles className="h-3.5 w-3.5 text-deep-teal-light" strokeWidth={2.25} />
-        Arabic-first QR platform
-      </span>
-
-      <h1 className="mt-5 text-balance font-display text-[1.9rem] font-bold leading-[1.14] tracking-tight sm:text-[2.3rem]">
+      <h1 className="text-balance font-display text-[1.9rem] font-bold leading-[1.14] tracking-tight sm:text-[2.3rem]">
         QR menus and scan analytics built for{" "}
         <span className="text-deep-teal">GCC businesses</span>
       </h1>
@@ -250,19 +244,9 @@ function HeroCopy() {
   );
 }
 
-// C2 hero refresh — the dashboard was a tiny static PNG (unreadable
-// metrics, lots of fuzzy detail). Rebuilt as crisp HTML/CSS so the key
-// KPIs (total / unique scans, engagement rate, top country) are large
-// and sharp at hero size — the dashboard is the dominant visual; the
-// phone + QR card are deliberately smaller, softer-shadowed secondaries
-// so they stop competing with it.
-const HERO_KPIS = [
-  { label: "Total scans", value: "12,480", delta: "+18%" },
-  { label: "Unique scans", value: "8,210", delta: "+12%" },
-  { label: "Engagement rate", value: "64%", delta: "+5%" },
-  { label: "Top country", value: "Saudi Arabia", flag: "🇸🇦" },
-];
-
+// C2 hero refresh (Usama spec): dashboard is the dominant visual — the
+// real product screenshot — with the phone + QR card as smaller,
+// softer-shadowed secondaries so they don't compete with it.
 function HeroPreview() {
   return (
     <div className="relative z-10 w-full">
@@ -276,7 +260,17 @@ function HeroPreview() {
             masaar.app / dashboard
           </span>
         </div>
-        <DashboardMock />
+        <div className="overflow-hidden rounded-xl">
+          <Image
+            src="/landing/dashboard-preview.png"
+            alt="Masaar dashboard preview — account-wide scan analytics, KPI row, trend chart, and recent activity"
+            width={1672}
+            height={941}
+            priority
+            sizes="(min-width: 1024px) 56vw, 100vw"
+            className="h-auto w-full"
+          />
+        </div>
       </div>
 
       {/* Phone mock — secondary, bottom-left. Smaller + softer shadow,
@@ -330,95 +324,6 @@ function HeroPreview() {
         </div>
       </div>
     </div>
-  );
-}
-
-// Crisp HTML stand-in for the analytics dashboard. Numbers are
-// illustrative (not live). Big values + a single clean trend chart —
-// deliberately few elements so it reads premium, not busy.
-function DashboardMock() {
-  return (
-    <div className="rounded-xl bg-[#FAF9F5] p-3.5 sm:p-5">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="font-display text-sm font-bold text-charcoal">Overview</p>
-          <p className="text-[10px] text-charcoal/45">Scan performance · all QR codes</p>
-        </div>
-        <span className="rounded-full border border-charcoal/10 bg-white px-2.5 py-1 text-[10px] font-medium text-charcoal/55">
-          Last 30 days
-        </span>
-      </div>
-
-      <div className="mt-4 grid grid-cols-2 gap-2.5 sm:gap-3">
-        {HERO_KPIS.map((k) => (
-          <div
-            key={k.label}
-            className="rounded-lg border border-charcoal/10 bg-white p-3"
-          >
-            <p className="text-[10px] font-medium uppercase tracking-wide text-charcoal/45">
-              {k.label}
-            </p>
-            <p className="mt-1 flex items-baseline gap-1.5">
-              {"flag" in k && k.flag && (
-                <span className="text-base leading-none">{k.flag}</span>
-              )}
-              <span className="font-display text-xl font-bold tracking-tight text-charcoal sm:text-2xl">
-                {k.value}
-              </span>
-              {"delta" in k && k.delta && (
-                <span className="text-[10px] font-semibold text-deep-teal">
-                  {k.delta}
-                </span>
-              )}
-            </p>
-          </div>
-        ))}
-      </div>
-
-      <div className="mt-3 rounded-lg border border-charcoal/10 bg-white p-3">
-        <div className="flex items-center justify-between">
-          <p className="text-[10px] font-medium uppercase tracking-wide text-charcoal/45">
-            Scans this month
-          </p>
-          <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-deep-teal">
-            <span className="h-1.5 w-1.5 rounded-full bg-deep-teal" />
-            Daily scans
-          </span>
-        </div>
-        <TrendChart />
-      </div>
-    </div>
-  );
-}
-
-// Decorative upward-trending area chart (fixed series, not real data).
-function TrendChart() {
-  return (
-    <svg
-      viewBox="0 0 320 72"
-      preserveAspectRatio="none"
-      aria-hidden
-      className="mt-2 h-14 w-full"
-    >
-      <defs>
-        <linearGradient id="heroArea" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#0F5B55" stopOpacity="0.22" />
-          <stop offset="100%" stopColor="#0F5B55" stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <path
-        d="M0,56 L40,50 L80,54 L120,38 L160,42 L200,26 L240,30 L280,16 L320,10 L320,72 L0,72 Z"
-        fill="url(#heroArea)"
-      />
-      <path
-        d="M0,56 L40,50 L80,54 L120,38 L160,42 L200,26 L240,30 L280,16 L320,10"
-        fill="none"
-        stroke="#0F5B55"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
   );
 }
 
