@@ -50,4 +50,16 @@ section[id] {
   .qr-live * {
     transition-property: none !important;
   }
+  /* C2 — the rendered QR was a fixed 320px and overflowed the narrow
+     builder/edit preview columns ("QR too big out of the box"). Scale it
+     to its card, centered, capped at its natural size. */
+  .qr-live svg,
+  .qr-live canvas,
+  .qr-live img {
+    width: 100% !important;
+    height: auto !important;
+    max-width: 320px;
+    display: block;
+    margin-inline: auto;
+  }
 }
