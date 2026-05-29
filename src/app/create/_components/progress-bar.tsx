@@ -25,7 +25,7 @@ export default function ProgressBar({
           the wizard card (no page-sticky — the card's middle scrolls,
           not the page). max-w + justify-between → Step 1 left, Step 2
           centered, Step 3 right. */}
-      <div className="mx-auto flex h-[88px] w-full max-w-[1140px] items-center justify-between px-8">
+      <div className="mx-auto flex w-[90%] items-center justify-between py-4">
         {STEPS.map((s, i) => {
           const active = s.n === current;
           // Completed = reached before (≤ maxStep) and not the current

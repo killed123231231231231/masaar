@@ -339,7 +339,7 @@ export default function WizardClient({
   // left, Next/Download right; Next disabled until a type is picked.
   const footer = (
     <div className="shrink-0 border-t border-[#E5E7EB] bg-white">
-      <div className="flex h-[86px] items-center justify-between px-6 sm:px-10 lg:px-16">
+      <div className="flex h-[86px] items-center justify-between px-4 sm:px-6 md:px-8">
         {step === 1 ? (
           <button
             type="button"
@@ -384,8 +384,11 @@ export default function WizardClient({
   const shell = (
     <div className="m-[18px] flex h-[calc(100vh-36px)] flex-col overflow-hidden rounded-[20px] border border-[#E5E7EB] bg-white">
       <ProgressBar current={step} maxStep={maxStep} onJump={(n) => goStep(n)} />
-      {/* The ONLY scroll area in the wizard. */}
-      <div className="min-h-0 flex-1 overflow-y-auto">{stepContent}</div>
+      {/* The ONLY scroll area in the wizard (getqr: overscroll-contain
+          so scroll never chains to the page). */}
+      <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain">
+        {stepContent}
+      </div>
       {footer}
     </div>
   );

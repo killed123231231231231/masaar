@@ -25,21 +25,21 @@ export default function Step1Type({
     : null;
 
   return (
-    /* 2-column split — left card grid ~64%, right preview ~36%, with a
-       vertical divider that spans the full content height (min-h-full,
-       so it runs under the stepper down to the footer). getqr layout. */
-    <div className="grid min-h-full grid-cols-1 lg:grid-cols-[64fr_36fr]">
-      {/* LEFT — heading + subheading + compact card grid. ~90px left
-          padding on wide desktop; bottom padding clears the footer. */}
-      <div className="px-6 pb-16 pt-12 sm:px-10 lg:pb-20 lg:pl-[90px] lg:pr-12 lg:pt-[60px]">
-        <h1 className="font-display text-[32px] font-extrabold leading-tight tracking-tight text-charcoal lg:text-[34px]">
-          What do you want to create?
-        </h1>
-        <p className="mt-2 text-[17px] text-[#6B7280] lg:text-[18px]">
-          Select a QR code type to get started in seconds.
-        </p>
+    // Content wrapper — getqr `mx-auto w-full md:px-8`, min-h-full so the
+    // divider + row span the full content height.
+    <div className="mx-auto flex min-h-full w-full flex-col px-4 pt-8 sm:px-6 md:px-8 md:pt-12">
+      <h1 className="font-display text-[30px] font-extrabold leading-tight tracking-tight text-charcoal md:text-[34px]">
+        What do you want to create?
+      </h1>
+      <p className="mt-2 text-[16px] text-[#6B7280] md:text-[18px]">
+        Select a QR code type to get started in seconds.
+      </p>
 
-        <div className="mt-7 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      {/* getqr 2-column row: grid (flex-1) | 1px divider | fixed preview.
+          `flex gap-8 xl:gap-12 flex-1 pb-8`. */}
+      <div className="mt-6 flex flex-1 gap-8 pb-8 xl:gap-12">
+        {/* LEFT — card grid IS the flex-1 child (getqr). */}
+        <div className="grid min-w-0 flex-1 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:gap-5">
           {CONTENT_TYPES.map((c) => {
             const Icon = ICONS[c.icon] ?? QrCode;
             const active = selected === c.key;
@@ -48,18 +48,18 @@ export default function Step1Type({
                 key={c.key}
                 type="button"
                 onClick={() => onSelect(c.key)}
-                /* Compact getqr card: ~150px tall, bare teal icon near
-                   the top, centered title + description. Visible-but-
-                   subtle teal border; teal on hover/selected. */
-                className={`relative flex min-h-[150px] flex-col items-center rounded-xl border-[1.3px] px-4 pb-5 pt-6 text-center transition duration-150 hover:-translate-y-0.5 hover:border-deep-teal hover:shadow-[0_10px_24px_rgba(15,91,85,0.10)] ${
+                /* getqr card: rounded-xl, ring (not border), small padding
+                   (xl:px-6 xl:py-4), content vertically centered, ~140px.
+                   ring-1 default → hover ring-2 + shadow; selected teal. */
+                className={`group relative flex cursor-pointer flex-col items-center justify-center overflow-visible rounded-xl p-3 text-center transition-all duration-300 ease-in-out max-lg:min-h-[150px] lg:px-3 lg:py-2.5 xl:px-6 xl:py-4 ${
                   active
-                    ? "border-deep-teal bg-deep-teal/[0.04] shadow-[0_12px_28px_rgba(15,91,85,0.14)]"
-                    : "border-deep-teal/20"
+                    ? "bg-deep-teal/[0.04] ring-2 ring-deep-teal"
+                    : "bg-white ring-1 ring-deep-teal/25 hover:shadow-md hover:ring-2 hover:ring-deep-teal"
                 }`}
               >
                 {c.badge && (
                   <span
-                    /* Pill straddles the TOP-CENTER border of the card. */
+                    /* Pill straddles the TOP-CENTER border. */
                     className={`absolute left-1/2 -top-[11px] flex h-[22px] -translate-x-1/2 items-center whitespace-nowrap rounded-full px-2.5 text-[10px] font-bold uppercase tracking-wider ${
                       c.badge === "Coming soon"
                         ? "bg-charcoal/10 text-charcoal/55"
@@ -73,44 +73,45 @@ export default function Step1Type({
                 <h3 className="mt-3 font-display text-[17px] font-bold leading-tight text-charcoal">
                   {c.label}
                 </h3>
-                <p className="mt-2 text-[14px] leading-snug text-[#6B7280]">
+                <p className="mt-1.5 text-[14px] leading-snug text-[#6B7280]">
                   {c.desc}
                 </p>
               </button>
             );
           })}
         </div>
-      </div>
 
-      {/* RIGHT — sticky preview. Vertical divider via border-l. Preview
-          card ~290px square; heading + body below, all centered. */}
-      <aside className="hidden px-8 pb-16 pt-[60px] lg:block lg:border-l lg:border-[#E5E7EB] lg:px-10">
-        <div className="sticky top-[60px] flex flex-col items-center">
-          <div className="relative aspect-square w-full max-w-[300px] overflow-hidden rounded-[30px] bg-deep-teal/[0.05] p-8">
-            <span className="absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-full bg-white text-deep-teal shadow-sm">
-              <Sparkles className="h-4 w-4" />
-            </span>
-            <div className="grid h-full w-full place-items-center">
+        {/* DIVIDER — 1px, full row height (getqr `w-px self-stretch`). */}
+        <div
+          aria-hidden
+          className="hidden w-px shrink-0 self-stretch bg-[#E5E7EB] lg:block"
+        />
+
+        {/* RIGHT — fixed-width preview (getqr `w-[280px] xl:w-[360px]`). */}
+        <div className="hidden w-[280px] shrink flex-col items-center text-center lg:flex xl:w-[360px]">
+          <div className="relative mb-8 xl:mb-10">
+            <div className="flex h-48 w-48 items-center justify-center rounded-3xl bg-deep-teal/10 xl:h-64 xl:w-64">
               <DashedQrPlaceholder />
             </div>
+            <span className="absolute -right-2 -top-2 grid h-10 w-10 place-items-center rounded-full bg-deep-teal/20 text-deep-teal xl:-right-3 xl:-top-3 xl:h-12 xl:w-12">
+              <Sparkles className="h-4 w-4 xl:h-5 xl:w-5" />
+            </span>
           </div>
-          <h3 className="mt-6 text-center font-display text-[28px] font-bold leading-tight text-charcoal">
+          <h3 className="font-display text-xl font-bold text-charcoal xl:text-2xl">
             {selMeta ? `${selMeta.label} QR` : "Create Your Perfect QR Code"}
           </h3>
-          <p className="mt-2 max-w-[360px] text-center text-[15px] leading-relaxed text-[#6B7280]">
+          <p className="mt-2 max-w-[280px] text-sm leading-relaxed text-[#6B7280] xl:max-w-[320px] xl:text-base">
             {selMeta
               ? "Looking good — continue to add your content."
               : "Choose a type to see your personalized, dynamic QR code come to life."}
           </p>
         </div>
-      </aside>
+      </div>
     </div>
   );
 }
 
-/* A decorative QR-shaped placeholder — 3 dashed finder-pattern corners
-   + a few solid alignment dots, in brand teal at low alpha. Pure SVG so
-   it always renders (no JS / hydration race). */
+/* Decorative QR-shaped placeholder — pure SVG so it always renders. */
 function DashedQrPlaceholder() {
   return (
     <svg viewBox="0 0 100 100" className="h-3/5 w-3/5 text-deep-teal" aria-hidden>
