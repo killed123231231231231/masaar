@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import QrPreview from "@/components/qr-preview";
 import type { QrCode } from "@/types/database";
 import { appUrl } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/client";
 
 const DOT_STYLES = [
   "square",
@@ -28,7 +29,46 @@ export default function EditQrClient({ initial }: { initial: QrCode }) {
   );
   const [dotStyle, setDotStyle] = useState(initial.dot_style);
   const [cornerStyle, setCornerStyle] = useState(initial.corner_style);
+  const [logoUrl, setLogoUrl] = useState<string | null>(initial.logo_url);
+  const [logoScale, setLogoScale] = useState(0.3);
+  const [logoBusy, setLogoBusy] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  // Authed logo upload — direct to the owner-scoped `logos` bucket (RLS
+  // path = auth.uid()), same path the create wizard's authed branch uses.
+  async function handleLogo(file: File) {
+    if (!["image/png", "image/jpeg", "image/svg+xml"].includes(file.type)) {
+      toast.error("PNG, JPG or SVG only.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Logo must be under 5 MB.");
+      return;
+    }
+    setLogoBusy(true);
+    try {
+      const sb = createClient();
+      const {
+        data: { user },
+      } = await sb.auth.getUser();
+      if (!user) {
+        toast.error("Sign in to upload a logo.");
+        return;
+      }
+      const ext = file.name.split(".").pop()?.toLowerCase() || "png";
+      const path = `${user.id}/${initial.short_id || initial.id}/${crypto.randomUUID()}.${ext}`;
+      const { error } = await sb.storage
+        .from("logos")
+        .upload(path, file, { upsert: false, contentType: file.type });
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      setLogoUrl(sb.storage.from("logos").getPublicUrl(path).data.publicUrl);
+    } finally {
+      setLogoBusy(false);
+    }
+  }
 
   const previewData =
     initial.kind === "dynamic" && initial.short_id
@@ -49,6 +89,7 @@ export default function EditQrClient({ initial }: { initial: QrCode }) {
         gradient_color: gradient,
         dot_style: dotStyle,
         corner_style: cornerStyle,
+        logo_url: logoUrl,
       }),
     });
     setSaving(false);
@@ -139,6 +180,60 @@ export default function EditQrClient({ initial }: { initial: QrCode }) {
           </div>
         </Section>
 
+        <Section title="Logo">
+          <div className="flex items-center gap-3">
+            {logoUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={logoUrl}
+                alt="logo"
+                className="h-10 w-10 rounded border border-charcoal/15 object-contain"
+              />
+            )}
+            <label className="cursor-pointer rounded-lg border border-charcoal/15 px-3 py-1.5 text-sm font-medium text-charcoal/75 hover:bg-sand-light/60">
+              {logoBusy ? "Uploading…" : logoUrl ? "Replace" : "Upload logo"}
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/svg+xml"
+                className="hidden"
+                disabled={logoBusy}
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) handleLogo(f);
+                  e.target.value = "";
+                }}
+              />
+            </label>
+            {logoUrl && (
+              <button
+                type="button"
+                onClick={() => setLogoUrl(null)}
+                className="text-xs text-charcoal/45 hover:text-charcoal/70"
+              >
+                Remove
+              </button>
+            )}
+          </div>
+          {logoUrl && (
+            <label className="mt-3 block">
+              <span className="mb-1 flex items-center justify-between text-xs font-medium text-charcoal/55">
+                <span>Logo size</span>
+                <span>{Math.round(logoScale * 100)}%</span>
+              </span>
+              <input
+                type="range"
+                min={0.1}
+                max={0.45}
+                step={0.01}
+                value={logoScale}
+                onChange={(e) => setLogoScale(Number(e.target.value))}
+                className="w-full accent-deep-teal"
+              />
+            </label>
+          )}
+          <p className="mt-1 text-xs text-charcoal/45">PNG/JPG/SVG · under 5 MB</p>
+        </Section>
+
         <button
           onClick={save}
           disabled={saving}
@@ -158,7 +253,8 @@ export default function EditQrClient({ initial }: { initial: QrCode }) {
               gradientColor: gradient,
               dotStyle,
               cornerStyle,
-              logoUrl: initial.logo_url,
+              logoUrl,
+              imageSize: logoScale,
             }}
           />
         </div>

@@ -54,13 +54,16 @@ export async function POST(request: Request) {
   // session matches old orphan rows and silently attaches them to the
   // new user (see SPRINT2.md 2026-05-24 contamination fix entry).
   const draftCutoff = new Date(Date.now() - 24 * 3600_000).toISOString();
+  // C2 — order newest-first so we claim ONLY the single most-recent draft
+  // (the QR being checked out), never the whole pile sharing this token.
   const { data: draftRows, error: draftErr } = await admin
     .from("qr_codes")
     .select("id, short_id, user_id")
     .eq("draft_token", draftToken)
     .is("user_id", null)
     .eq("status", "pending_payment")
-    .gte("created_at", draftCutoff);
+    .gte("created_at", draftCutoff)
+    .order("created_at", { ascending: false });
   if (draftErr)
     return NextResponse.json({ error: draftErr.message }, { status: 400 });
   if (!draftRows || draftRows.length === 0)
@@ -152,6 +155,10 @@ export async function POST(request: Request) {
   // recent + unclaimed only. The same filters live on the discovery
   // SELECT above; redundant here intentionally as a belt-and-suspenders
   // race guard between SELECT and UPDATE.
+  // C2 — claim/activate ONLY the single most-recent draft (the one being
+  // checked out), not every draft sharing this token. Stray anon QRs stay
+  // unclaimed so a new account never inherits a pile.
+  const targetDraftId = draftRows[0].id;
   const { data: claimed, error: upErr } = await admin
     .from("qr_codes")
     .update({
@@ -160,10 +167,9 @@ export async function POST(request: Request) {
       status: "active",
       draft_token: null,
     })
-    .eq("draft_token", draftToken)
+    .eq("id", targetDraftId)
     .is("user_id", null)
     .eq("status", "pending_payment")
-    .gte("created_at", draftCutoff)
     .select("id, short_id");
   if (upErr)
     return NextResponse.json({ error: upErr.message }, { status: 400 });

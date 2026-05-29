@@ -111,6 +111,28 @@ export default function Step3Customize({
               value={c.logo_url}
               onChange={(v) => set("logo_url", v)}
             />
+            {c.logo_url && (
+              <label className="mt-4 block">
+                <span className="mb-1 flex items-center justify-between text-sm font-medium text-charcoal/75">
+                  <span>Logo size</span>
+                  <span className="text-xs text-charcoal/45">
+                    {Math.round(c.logo_scale * 100)}%
+                  </span>
+                </span>
+                <input
+                  type="range"
+                  min={0.1}
+                  max={0.45}
+                  step={0.01}
+                  value={c.logo_scale}
+                  onChange={(e) => set("logo_scale", Number(e.target.value))}
+                  className="w-full accent-deep-teal"
+                />
+                <span className="mt-1 block text-xs text-charcoal/45">
+                  Bigger logos can make the QR harder to scan — keep it readable.
+                </span>
+              </label>
+            )}
           </Acc>
 
           <Acc title="Protect this QR with a password" defaultOpen={false}>
@@ -150,6 +172,7 @@ export default function Step3Customize({
               dotStyle: style.dot_style,
               cornerStyle: style.corner_style,
               logoUrl: style.logo_url,
+              imageSize: style.logo_scale,
             }}
           />
         </div>

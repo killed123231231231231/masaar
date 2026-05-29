@@ -18,6 +18,7 @@ import {
 import LogoMark from "@/components/logo-mark";
 import HeaderLoginButton from "@/components/header-login-button";
 import HeaderProfileMenu from "@/components/header-profile-menu";
+import MobileNav from "@/components/mobile-nav";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -148,12 +149,16 @@ function SiteHeader({
               <HeaderLoginButton />
               <Link
                 href="/create"
-                className="rounded-lg bg-deep-teal px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-deep-teal-dark"
+                className="rounded-lg bg-deep-teal px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-deep-teal-dark sm:px-4"
               >
                 Create QR Code
               </Link>
             </>
           )}
+          {/* C2 — mobile menu (hamburger + drawer). Renders md:hidden; the
+              nav anchors and anon Log in are otherwise unreachable on
+              mobile. */}
+          <MobileNav nav={NAV} isAuthed={isAuthed} />
         </div>
       </div>
     </header>

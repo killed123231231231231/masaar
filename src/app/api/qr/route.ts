@@ -160,6 +160,10 @@ export async function PATCH(request: Request) {
     patch.gradient_color = body.gradient_color;
   if (typeof body.dot_style === "string") patch.dot_style = body.dot_style;
   if (typeof body.corner_style === "string") patch.corner_style = body.corner_style;
+  // C2 — logo is now editable from the edit page (owner-scoped public
+  // `logos` URL, or null to remove).
+  if (typeof body.logo_url === "string" || body.logo_url === null)
+    patch.logo_url = body.logo_url;
 
   if (Object.keys(patch).length === 0) {
     return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
@@ -175,4 +179,30 @@ export async function PATCH(request: Request) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   return NextResponse.json(data);
+}
+
+export async function DELETE(request: Request) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const body = await request.json().catch(() => null);
+  const id = body?.id;
+  if (!id || typeof id !== "string") {
+    return NextResponse.json({ error: "id required" }, { status: 400 });
+  }
+
+  // Owner-scoped delete (RLS qr_codes_owner_all + the explicit user_id
+  // guard). The BEFORE DELETE trigger (migration 020) queues any hosted
+  // asset for storage cleanup. scans cascade via their FK.
+  const { error } = await supabase
+    .from("qr_codes")
+    .delete()
+    .eq("id", id)
+    .eq("user_id", user.id);
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  return NextResponse.json({ ok: true });
 }

@@ -5,13 +5,17 @@ import {
   Activity, BarChart3, Calendar, ExternalLink, Filter, LinkIcon, Download,
   Mail, MapPin, MessageSquare, MoreVertical, Pencil, Phone, Plus,
   Search, Smartphone, Text as TextIcon, UserSquare,
-  Wifi, type LucideIcon,
+  Wifi, Trash2, type LucideIcon,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import LogoMark from "@/components/logo-mark";
-import QrThumb from "@/components/qr-thumb";
+import StyledQr from "@/components/styled-qr";
+import { createQr } from "@/lib/qr";
+import { appUrl } from "@/lib/utils";
 import Sidebar, { type SidebarMe } from "@/components/dashboard/sidebar";
+import MobileDashboardNav from "@/components/dashboard/mobile-dashboard-nav";
 
 export interface QrCardData {
   id: string;
@@ -78,7 +82,7 @@ export default function QrCodesClient({
       <div className="flex">
         <Sidebar me={me} current="qrcodes" />
         <main className="min-w-0 flex-1 space-y-7 px-4 py-5 sm:px-5 sm:py-6 lg:px-8">
-          <MobileTopBar />
+          <MobileDashboardNav me={me} current="qrcodes" />
           <PageHeader total={qrs.length} />
           {qrs.length === 0 ? (
             <EmptyState />
@@ -87,20 +91,6 @@ export default function QrCodesClient({
           )}
         </main>
       </div>
-    </div>
-  );
-}
-
-function MobileTopBar() {
-  return (
-    <div className="flex items-center justify-between lg:hidden">
-      <Link href="/dashboard" className="inline-flex items-center gap-2 text-sm font-semibold text-charcoal/65 hover:text-deep-teal">
-        <span className="grid h-7 w-7 place-items-center rounded-md bg-deep-teal p-1">
-          <LogoMark className="h-full w-full brightness-0 invert" />
-        </span>
-        Dashboard
-      </Link>
-      <span className="text-xs text-charcoal/45">QR Codes</span>
     </div>
   );
 }
@@ -202,16 +192,46 @@ function ListRow({
   const TypeIcon = tm.icon;
   const statusTint = STATUS_TINT[q.status] ?? STATUS_TINT.active;
 
+  // What the QR encodes: dynamic → the /r short link; static → its payload.
+  const qrData =
+    q.kind === "dynamic" && q.short_id
+      ? `${appUrl()}/r/${q.short_id}`
+      : q.destination || " ";
+
+  // C2 — styled client-side download (dot-style/gradient/logo), matching
+  // the builder preview, instead of the plain server render.png.
+  async function downloadStyled() {
+    const qr = await createQr({
+      data: qrData,
+      width: 1024,
+      height: 1024,
+      fgColor: q.fg_color,
+      bgColor: q.bg_color,
+      gradientColor: q.gradient_color,
+      dotStyle: q.dot_style,
+      cornerStyle: q.corner_style,
+      logoUrl: q.logo_url,
+    });
+    await qr.download({ name: q.name || "masaar-qr", extension: "png" });
+  }
+
   return (
     <li
       className={`flex items-center gap-4 px-4 py-4 transition-colors hover:bg-sand-light/40 sm:px-5 ${
         !isLast ? "border-b border-charcoal/5" : ""
       }`}
     >
-      {/* Thumbnail — server-rendered PNG via /api/qr/<id>/render.png. */}
-      <QrThumb
+      {/* Thumbnail — client-rendered styled QR (dot-style/gradient/logo),
+          with a render.png fallback until it mounts. */}
+      <StyledQr
         qrId={q.id}
+        data={qrData}
+        fgColor={q.fg_color}
         bgColor={q.bg_color}
+        gradientColor={q.gradient_color}
+        dotStyle={q.dot_style}
+        cornerStyle={q.corner_style}
+        logoUrl={q.logo_url}
         size={56}
         className="border border-charcoal/10"
       />
@@ -294,15 +314,16 @@ function ListRow({
         {scans.toLocaleString()}
       </Link>
 
-      {/* Download */}
-      <a
-        href={`/api/qr/${q.id}/render.png?download=1&size=1024`}
+      {/* Download — client-rendered styled PNG (matches the builder preview). */}
+      <button
+        type="button"
+        onClick={downloadStyled}
         className="grid h-9 w-9 shrink-0 place-items-center rounded-md text-charcoal/55 hover:bg-sand-light hover:text-deep-teal"
         title="Download PNG"
         aria-label="Download PNG"
       >
         <Download className="h-4 w-4" />
-      </a>
+      </button>
 
       <RowMenu id={q.id} />
     </li>
@@ -312,8 +333,34 @@ function ListRow({
 /* ───────────────────────── ROW 3-DOT MENU ───────────────────────── */
 
 function RowMenu({ id }: { id: string }) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const rootRef = useRef<HTMLDivElement | null>(null);
+
+  async function handleDelete() {
+    if (
+      !window.confirm(
+        "Delete this QR code? This can't be undone — the QR stops working and its scans are removed."
+      )
+    ) {
+      return;
+    }
+    setDeleting(true);
+    const res = await fetch("/api/qr", {
+      method: "DELETE",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    setDeleting(false);
+    setOpen(false);
+    if (!res.ok) {
+      toast.error("Couldn’t delete the QR. Try again.");
+      return;
+    }
+    toast.success("QR deleted");
+    router.refresh();
+  }
 
   useEffect(() => {
     if (!open) return;
@@ -364,6 +411,15 @@ function RowMenu({ id }: { id: string }) {
           >
             <BarChart3 className="h-4 w-4" /> Analytics
           </Link>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={handleDelete}
+            disabled={deleting}
+            className="flex w-full items-center gap-2 border-t border-charcoal/10 px-3 py-2.5 text-sm font-medium text-terracotta-dark hover:bg-terracotta/10 disabled:opacity-60"
+          >
+            <Trash2 className="h-4 w-4" /> {deleting ? "Deleting…" : "Delete"}
+          </button>
         </div>
       )}
     </div>

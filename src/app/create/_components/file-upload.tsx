@@ -5,19 +5,37 @@ import { FileText, UploadCloud, Video as VideoIcon, X } from "lucide-react";
 
 type Kind = "pdf" | "image" | "video";
 
-// Per-kind upload config. Bucket + accept mirror the server allowlist in
-// /api/upload/[bucket] and the storage caps in migration 021.
-const CFG: Record<Kind, { bucket: string; accept: string; hint: string }> = {
-  pdf: { bucket: "qr-pdfs", accept: "application/pdf", hint: "PDF, up to 10 MB" },
+// Per-kind upload config. Bucket / accept / types / max mirror the server
+// allowlist in /api/upload/[bucket] and the storage caps (migrations
+// 021/023/024). `types` + `max` drive the client-side pre-check so a
+// too-big or wrong-type file fails instantly with a friendly message
+// instead of after a long upload.
+const CFG: Record<
+  Kind,
+  { bucket: string; accept: string; hint: string; types: string[]; max: number }
+> = {
+  pdf: {
+    bucket: "qr-pdfs",
+    accept: "application/pdf,.pdf",
+    hint: "PDF, up to 10 MB",
+    types: ["application/pdf"],
+    max: 10 * 1024 * 1024,
+  },
   image: {
     bucket: "qr-images",
     accept: "image/jpeg,image/png,image/webp",
     hint: "JPG, PNG or WebP, up to 5 MB",
+    types: ["image/jpeg", "image/png", "image/webp"],
+    max: 5 * 1024 * 1024,
   },
   video: {
     bucket: "qr-videos",
-    accept: "video/mp4,video/webm",
-    hint: "MP4 or WebM, up to 25 MB",
+    // iPhones record .mov (video/quicktime). Include the extension too —
+    // some browsers report an empty MIME for .mov in the file picker.
+    accept: "video/mp4,video/webm,video/quicktime,.mov",
+    hint: "MP4, WebM or MOV, up to 40 MB",
+    types: ["video/mp4", "video/webm", "video/quicktime"],
+    max: 40 * 1024 * 1024,
   },
 };
 
@@ -57,9 +75,28 @@ export default function FileUpload({
 
   function upload(file: File) {
     setError(null);
+
+    // Client-side pre-check — instant, friendly feedback before sending
+    // (a 40MB video shouldn't upload just to be rejected by the server).
+    if (file.size > cfg.max) {
+      setError(`That file is too large — ${cfg.hint}.`);
+      return;
+    }
+    const isMov = kind === "video" && /\.mov$/i.test(file.name);
+    if (file.type && !cfg.types.includes(file.type) && !isMov) {
+      setError(`Unsupported file — ${cfg.hint}.`);
+      return;
+    }
+
     setProgress(0);
+    // iPhone .mov sometimes arrives with an empty MIME; the server keys on
+    // the part's content-type, so stamp it explicitly when we can tell.
+    const sendFile =
+      isMov && file.type !== "video/quicktime"
+        ? new File([file], file.name, { type: "video/quicktime" })
+        : file;
     const fd = new FormData();
-    fd.append("file", file);
+    fd.append("file", sendFile);
     fd.append("draft_token", draftToken);
 
     const xhr = new XMLHttpRequest();

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, BarChart3 } from "lucide-react";
 import Sidebar from "@/components/dashboard/sidebar";
+import MobileDashboardNav from "@/components/dashboard/mobile-dashboard-nav";
 import LogoMark from "@/components/logo-mark";
 import { createClient } from "@/lib/supabase/server";
 import { getMe } from "@/lib/me";
@@ -49,16 +50,7 @@ export default async function EditQrPage({
           analyticsHref={`/dashboard?qr=${qr.id}`}
         />
         <main className="min-w-0 flex-1 space-y-7 px-4 py-5 sm:px-5 sm:py-6 lg:px-8">
-          {/* Mobile top bar mirrors the analytics/overview pattern. */}
-          <div className="flex items-center justify-between lg:hidden">
-            <Link href="/dashboard" className="inline-flex items-center gap-2 text-sm font-semibold text-charcoal/65 hover:text-deep-teal">
-              <span className="grid h-7 w-7 place-items-center rounded-md bg-deep-teal p-1">
-                <LogoMark className="h-full w-full brightness-0 invert" />
-              </span>
-              Dashboard
-            </Link>
-            <span className="truncate text-xs text-charcoal/45">Edit QR</span>
-          </div>
+          <MobileDashboardNav me={me} current="qrcodes" />
 
           {/* B5/Fix 18 — Back button above the page header so the
               user has a clear escape back to the QR list without

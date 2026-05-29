@@ -14,6 +14,7 @@ export interface QrStyle {
   cornerStyle?: string;    // square | dot | extra-rounded
   logoDataUrl?: string | null;
   logoUrl?: string | null;   // public URL (Supabase storage) — preferred
+  imageSize?: number;        // logo scale, fraction of QR (qr-code-styling), ~0.1–0.45
   errorLevel?: "L" | "M" | "Q" | "H";
 }
 
@@ -56,7 +57,7 @@ export function buildQrOptions(s: QrStyle): QrOptions {
     },
     imageOptions: {
       hideBackgroundDots: true,
-      imageSize: 0.3,
+      imageSize: s.imageSize ?? 0.3,
       margin: 4,
       crossOrigin: "anonymous",
     },

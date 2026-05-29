@@ -83,6 +83,8 @@ export interface Customization {
   corner_style: string;
   qr_text: string;
   logo_url: string | null;
+  /** Logo scale as a fraction of the QR (qr-code-styling imageSize). */
+  logo_scale: number;
   password: string;
 }
 
@@ -94,6 +96,7 @@ export const DEFAULT_CUSTOMIZATION: Customization = {
   corner_style: "square",
   qr_text: "",
   logo_url: null,
+  logo_scale: 0.3,
   password: "",
 };
 
