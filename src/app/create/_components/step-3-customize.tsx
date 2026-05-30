@@ -50,13 +50,29 @@ export default function Step3Customize({
   // Framed download: composite the frame + QR (the previewRef subtree) to an
   // image with html-to-image. Works for the no-frame case too (just the QR).
   const previewRef = useRef<HTMLDivElement | null>(null);
+
+  // Export at ~2048px regardless of the small on-screen preview (~250px).
+  // At a flat pixelRatio of 3 the PNG was only ~750px — too soft to print.
+  // qr-code-styling embeds the logo at full source resolution (saveAsBlob
+  // default), and the QR itself is vector, so a higher pixelRatio yields a
+  // genuinely crisp export rather than an upscaled blur.
+  const EXPORT_TARGET_PX = 2048;
+  function exportPixelRatio(node: HTMLElement): number {
+    const w = node.offsetWidth || 256;
+    return Math.min(12, Math.max(3, Math.ceil(EXPORT_TARGET_PX / w)));
+  }
+
   async function downloadFramed(format: "png" | "svg") {
     const node = previewRef.current;
     if (!node) return;
     const lib = await import("html-to-image");
     const dataUrl =
       format === "png"
-        ? await lib.toPng(node, { pixelRatio: 3, cacheBust: true, backgroundColor: "#ffffff" })
+        ? await lib.toPng(node, {
+            pixelRatio: exportPixelRatio(node),
+            cacheBust: true,
+            backgroundColor: "#ffffff",
+          })
         : await lib.toSvg(node, { cacheBust: true });
     const a = document.createElement("a");
     a.href = dataUrl;
@@ -74,7 +90,11 @@ export default function Step3Customize({
       import("pdf-lib"),
     ]);
     const { PDFDocument, rgb, StandardFonts } = pdfLib;
-    const pngUrl = await toPng(node, { pixelRatio: 3, backgroundColor: "#ffffff", cacheBust: true });
+    const pngUrl = await toPng(node, {
+      pixelRatio: exportPixelRatio(node),
+      backgroundColor: "#ffffff",
+      cacheBust: true,
+    });
     const pngBytes = await (await fetch(pngUrl)).arrayBuffer();
     const pdf = await PDFDocument.create();
     const A4 = { w: 595.28, h: 841.89 };
@@ -402,6 +422,24 @@ function SelectRow({
   );
 }
 
+// Read a raster image's natural pixel dimensions client-side (for the
+// low-resolution quality hint). Rejects if the file can't be decoded.
+function readImageSize(file: File): Promise<{ w: number; h: number }> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      resolve({ w: img.naturalWidth, h: img.naturalHeight });
+      URL.revokeObjectURL(url);
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("decode failed"));
+    };
+    img.src = url;
+  });
+}
+
 function LogoUpload({
   shortId,
   isAuthed,
@@ -417,6 +455,7 @@ function LogoUpload({
 }) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [warn, setWarn] = useState<string | null>(null);
 
   // Anon path caps at 500 KB (server-enforced via /api/qr/anonymous/logo);
   // authed path is the existing 5 MB direct-to-storage upload.
@@ -425,6 +464,7 @@ function LogoUpload({
 
   async function handle(file: File) {
     setErr(null);
+    setWarn(null);
     if (!["image/png", "image/jpeg", "image/svg+xml"].includes(file.type)) {
       setErr("PNG, JPG or SVG only.");
       return;
@@ -432,6 +472,17 @@ function LogoUpload({
     if (file.size > maxBytes) {
       setErr(`Logo must be under ${maxLabel}.`);
       return;
+    }
+    // Quality hint (non-blocking): an enlarged logo looks soft mainly when
+    // the SOURCE is low-res — we never downscale it. SVG is vector → always
+    // crisp, so skip the check for it.
+    if (file.type !== "image/svg+xml") {
+      const dims = await readImageSize(file).catch(() => null);
+      if (dims && Math.min(dims.w, dims.h) < 512) {
+        setWarn(
+          `Heads up: this logo is ${dims.w}×${dims.h}px, so it can look soft at larger sizes. For crisp print, use 512×512 or larger — or upload an SVG.`
+        );
+      }
     }
     setBusy(true);
     try {
@@ -506,7 +557,10 @@ function LogoUpload({
         )}
       </div>
       {err && <p className="mt-1 text-xs text-red-600">{err}</p>}
-      <p className="mt-1 text-xs text-charcoal/45">PNG/JPG/SVG · under {maxLabel}</p>
+      {warn && <p className="mt-1 text-xs text-amber-600">{warn}</p>}
+      <p className="mt-1 text-xs text-charcoal/45">
+        PNG/JPG/SVG · under {maxLabel} · 512×512+ or SVG for best quality
+      </p>
     </div>
   );
 }
