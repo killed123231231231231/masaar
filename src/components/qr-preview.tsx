@@ -74,7 +74,7 @@ export default function QrPreview({
     <div className="flex flex-col items-center gap-4">
       <div
         ref={ref}
-        className="qr-live rounded-2xl border border-gray-100 bg-white p-4 shadow-sm"
+        className="qr-live rounded-2xl border border-charcoal/10 bg-white p-4 shadow-sm"
       />
       {!hideActions && (
         <div className="flex gap-2">
@@ -97,7 +97,7 @@ function DownloadBtn({
   return (
     <button
       onClick={onClick}
-      className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+      className="rounded-lg border border-charcoal/15 bg-white px-4 py-2 text-sm font-semibold text-charcoal/75 hover:bg-sand-light"
     >
       {children}
     </button>
