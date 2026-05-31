@@ -185,6 +185,14 @@ export async function PATCH(request: Request) {
   if (typeof body.frame_color === "string") patch.frame_color = body.frame_color;
   if (typeof body.text_color === "string") patch.text_color = body.text_color;
 
+  // Owner-facing Active/Inactive toggle: accept ONLY the literal values
+  // "active" or "suspended" (draft/pending_payment are workflow-gated and must
+  // never be set here). The existing owner scope (.eq("user_id") + RLS) keeps
+  // this to the user's own QRs. A suspended QR's scans land on /expired.
+  if (body.status === "active" || body.status === "suspended") {
+    patch.status = body.status;
+  }
+
   if (Object.keys(patch).length === 0) {
     return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
   }

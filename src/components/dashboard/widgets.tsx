@@ -209,10 +209,12 @@ export function DonutCard({
     <div className="rounded-2xl border border-charcoal/10 bg-white p-5 shadow-[0_1px_2px_rgba(15,91,85,0.06),0_2px_8px_-2px_rgba(15,91,85,0.08)]">
       <h2 className="font-display text-sm font-bold uppercase tracking-wider text-charcoal/75">{title}</h2>
       <div className="mt-3 grid grid-cols-[140px_1fr] items-center gap-4">
-        <div className="relative h-[140px] w-[140px]">
+        {/* outline-none on focus kills the ugly square focus box recharts'
+            Pie sectors show when clicked/focused (applies to both donuts). */}
+        <div className="relative h-[140px] w-[140px] [&_:focus]:outline-none [&_:focus-visible]:outline-none [&_svg]:outline-none">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
-              <Pie data={data} dataKey="count" nameKey="label" cx="50%" cy="50%" innerRadius={45} outerRadius={65} strokeWidth={0}>
+              <Pie data={data} dataKey="count" nameKey="label" cx="50%" cy="50%" innerRadius={45} outerRadius={65} strokeWidth={0} rootTabIndex={-1}>
                 {data.map((_, i) => (
                   <Cell key={i} fill={series.length ? PALETTE[i % PALETTE.length] : "#E9E6DF"} />
                 ))}

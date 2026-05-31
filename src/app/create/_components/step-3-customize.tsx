@@ -31,6 +31,7 @@ export default function Step3Customize({
   setC,
   showHeading = true,
   showPassword = true,
+  showDownloads = true,
   downloadRef,
 }: {
   previewData: string;
@@ -44,6 +45,9 @@ export default function Step3Customize({
   showHeading?: boolean;
   /** Hide the password accordion (edit page persists password separately). */
   showPassword?: boolean;
+  /** Hide the PNG/SVG/PDF buttons until the QR exists (create wizard gates
+   *  these behind "Create QR"; the edit page shows them since the QR exists). */
+  showDownloads?: boolean;
   /** Lets a parent (the wizard footer "Download" button) trigger the same
    *  framed export. The panel keeps this ref pointed at its current export fn. */
   downloadRef?: MutableRefObject<
@@ -346,6 +350,7 @@ export default function Step3Customize({
               />
             </FramedQr>
           </div>
+          {showDownloads && (
           <div className="flex gap-2">
             <button
               type="button"
@@ -369,6 +374,7 @@ export default function Step3Customize({
               <Download className="h-4 w-4" /> PDF
             </button>
           </div>
+          )}
         </div>
       </aside>
     </div>

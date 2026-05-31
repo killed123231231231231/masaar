@@ -118,13 +118,15 @@ export default function EditQrClient({ initial }: { initial: QrCode }) {
         showPassword={false}
       />
 
-      <button
-        onClick={save}
-        disabled={saving}
-        className="w-full rounded-lg bg-deep-teal px-4 py-3 text-sm font-semibold text-white hover:bg-deep-teal-dark transition-colors duration-200 disabled:opacity-60"
-      >
-        {saving ? "Saving…" : "Save changes"}
-      </button>
+      <div className="flex justify-end">
+        <button
+          onClick={save}
+          disabled={saving}
+          className="inline-flex items-center justify-center rounded-lg bg-deep-teal px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors duration-200 hover:bg-deep-teal-dark disabled:opacity-60"
+        >
+          {saving ? "Saving…" : "Save changes"}
+        </button>
+      </div>
     </div>
   );
 }

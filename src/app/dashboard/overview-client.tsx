@@ -216,7 +216,6 @@ function KpiRow({ bundle }: { bundle: AccountAnalyticsBundle }) {
         label="Total scans"
         value={bundle.total.toLocaleString()}
         delta={bundle.totalDeltaPct}
-        series={bundle.timeSeries}
       />
       <KpiCard
         icon={Users}

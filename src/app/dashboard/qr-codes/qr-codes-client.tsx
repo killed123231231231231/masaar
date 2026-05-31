@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import {
-  Activity, BarChart3, Calendar, ExternalLink, Filter, LinkIcon, Download,
+  BarChart3, Calendar, ExternalLink, Filter, LinkIcon, Download,
   Mail, MapPin, MessageSquare, MoreVertical, Pencil, Phone, Plus,
   Search, Smartphone, Text as TextIcon, UserSquare,
   Wifi, Trash2, type LucideIcon,
@@ -66,6 +66,17 @@ function fmtCreated(iso: string): string {
     month: "short",
     year: "numeric",
   });
+}
+
+// getqr-style compact scan count: 0, 2, 163, 2.2K, 12K, 1.2M.
+function formatScans(n: number): string {
+  if (n < 1000) return String(n);
+  if (n < 1_000_000) {
+    const k = n / 1000;
+    return `${k % 1 === 0 ? k : k.toFixed(1)}K`;
+  }
+  const m = n / 1_000_000;
+  return `${m % 1 === 0 ? m : m.toFixed(1)}M`;
 }
 
 export default function QrCodesClient({
@@ -192,9 +203,38 @@ function ListRow({
   scans: number;
   isLast: boolean;
 }) {
+  const router = useRouter();
   const tm = typeMeta(q.content_kind);
   const TypeIcon = tm.icon;
-  const statusTint = STATUS_TINT[q.status] ?? STATUS_TINT.active;
+
+  // Local (optimistic) status so the Active/Inactive toggle greys the row
+  // instantly; the server syncs on router.refresh().
+  const [status, setStatus] = useState(q.status);
+  const [toggling, setToggling] = useState(false);
+  const canToggle = status === "active" || status === "suspended";
+  const isActive = status === "active";
+  const statusTint = STATUS_TINT[status] ?? STATUS_TINT.active;
+
+  async function toggleStatus() {
+    if (!canToggle || toggling) return;
+    const next = isActive ? "suspended" : "active";
+    const prev = status;
+    setStatus(next);
+    setToggling(true);
+    const res = await fetch("/api/qr", {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ id: q.id, status: next }),
+    });
+    setToggling(false);
+    if (!res.ok) {
+      setStatus(prev);
+      toast.error("Couldn’t update status. Try again.");
+      return;
+    }
+    toast.success(next === "active" ? "QR activated" : "QR deactivated");
+    router.refresh();
+  }
 
   // What the QR encodes: dynamic → the /r short link; static → its payload.
   const qrData =
@@ -221,9 +261,9 @@ function ListRow({
 
   return (
     <li
-      className={`flex items-center gap-4 px-4 py-5 transition-colors first:rounded-t-2xl last:rounded-b-2xl hover:bg-sand-light/40 sm:gap-5 sm:px-5 lg:min-h-[128px] ${
+      className={`flex items-center gap-3 px-4 py-3 transition first:rounded-t-2xl last:rounded-b-2xl hover:bg-sand-light/40 sm:gap-4 sm:px-5 ${
         !isLast ? "border-b border-charcoal/5" : ""
-      }`}
+      } ${status === "suspended" ? "opacity-55" : ""}`}
     >
       {/* Thumbnail — the row's visual anchor. A generous, clickable preview
           (same destination as the name) in a clean rounded frame, so a QR is
@@ -232,9 +272,13 @@ function ListRow({
         href={`/dashboard/qr/${q.id}`}
         aria-label={`Open QR code ${q.name}`}
         title={`Open QR code ${q.name}`}
-        className="group/qr block shrink-0 rounded-xl border border-charcoal/10 bg-white p-1.5 shadow-sm transition-all duration-200 hover:border-deep-teal/40 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-deep-teal/40"
+        className="group/qr block shrink-0 rounded-lg border border-charcoal/10 bg-white p-1 shadow-sm transition-all duration-200 hover:border-deep-teal/40 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-deep-teal/40"
       >
-        <div className="h-16 w-16 transition-transform duration-200 group-hover/qr:scale-[1.04] sm:h-[72px] sm:w-[72px] lg:h-20 lg:w-20">
+        <div
+          className={`h-16 w-16 transition group-hover/qr:scale-[1.04] lg:h-[72px] lg:w-[72px] ${
+            status === "suspended" ? "grayscale" : ""
+          }`}
+        >
           <StyledQr
             qrId={q.id}
             data={qrData}
@@ -312,29 +356,60 @@ function ListRow({
         {tm.label}
       </span>
 
-      <span
-        className={`hidden w-28 shrink-0 rounded-full px-2 py-0.5 text-center text-[10px] font-bold uppercase tracking-wider md:inline-block ${statusTint}`}
-      >
-        {q.status.replace(/_/g, " ")}
-      </span>
+      {/* Active/Inactive toggle (Glitch 3). Flipping to Inactive (suspended)
+          greys the row; a scan of a suspended QR then lands on /expired.
+          pending_payment / draft fall back to a plain status chip. */}
+      {canToggle ? (
+        <button
+          type="button"
+          onClick={toggleStatus}
+          disabled={toggling}
+          role="switch"
+          aria-checked={isActive}
+          title={
+            isActive
+              ? "Active — click to deactivate"
+              : "Inactive — click to activate"
+          }
+          className={`hidden w-[88px] shrink-0 items-center justify-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider transition disabled:cursor-not-allowed disabled:opacity-60 md:inline-flex ${
+            isActive
+              ? "bg-deep-teal/10 text-deep-teal hover:bg-deep-teal/15"
+              : "bg-charcoal/15 text-charcoal/60 hover:bg-charcoal/20"
+          }`}
+        >
+          <span
+            className={`h-1.5 w-1.5 rounded-full ${
+              isActive ? "bg-deep-teal" : "bg-charcoal/45"
+            }`}
+          />
+          {isActive ? "Active" : "Inactive"}
+        </button>
+      ) : (
+        <span
+          className={`hidden w-[88px] shrink-0 rounded-full px-2 py-0.5 text-center text-[10px] font-bold uppercase tracking-wider md:inline-block ${statusTint}`}
+        >
+          {status.replace(/_/g, " ")}
+        </span>
+      )}
 
-      {/* Scans badge */}
+      {/* Scans — prominent pill (getqr style: "163 scans" / "2.2K scans"). */}
       <Link
         href={`/dashboard?qr=${q.id}`}
-        className="inline-flex shrink-0 items-center gap-1 rounded-md bg-deep-teal/10 px-2 py-1 text-xs font-bold text-deep-teal hover:bg-deep-teal/15"
+        className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-deep-teal/10 px-2.5 py-1.5 text-xs font-bold text-deep-teal transition hover:bg-deep-teal/15"
         title="Open analytics"
       >
-        <Activity className="h-3 w-3" />
-        {scans.toLocaleString()}
+        <BarChart3 className="h-3.5 w-3.5" />
+        {formatScans(scans)} scans
       </Link>
 
-      {/* Download — client-rendered styled PNG (matches the builder preview). */}
+      {/* Download — bordered so it clearly reads as a button. Styled PNG that
+          matches the builder preview. */}
       <button
         type="button"
         onClick={downloadStyled}
-        className="grid h-9 w-9 shrink-0 place-items-center rounded-md text-charcoal/55 hover:bg-sand-light hover:text-deep-teal"
+        className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-charcoal/15 bg-white text-charcoal/60 shadow-sm transition hover:border-deep-teal/40 hover:bg-sand-light hover:text-deep-teal"
         title="Download PNG"
-        aria-label="Download PNG"
+        aria-label={`Download ${q.name} as PNG`}
       >
         <Download className="h-4 w-4" />
       </button>

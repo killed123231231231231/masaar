@@ -1,5 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { unstable_cache } from "next/cache";
 import type { Database } from "@/types/database";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 // Single data source for the analytics page (per-QR + account-wide
 // right-rail). Server-only, owner-RLS scoped.
@@ -661,6 +663,20 @@ export async function getAccountAnalytics(
     failedScansCount, firstPendingQrId, firstPendingQrShortId,
   };
 }
+
+// Perf — cached Overview analytics. getAccountAnalytics scopes every query by
+// userId and never touches cookies/auth, so it's safe to run with the stateless
+// admin client inside unstable_cache (same rationale as getMe in lib/me.ts).
+// 30s TTL keyed by (userId, period, filterQrId): repeat navigations and period
+// toggles within the window return instantly, and ≤30s-stale analytics is
+// harmless. The QR list (qr-codes page) is deliberately NOT cached so a freshly
+// created/edited QR shows immediately.
+export const getAccountAnalyticsCached = unstable_cache(
+  async (userId: string, period: Period, filterQrId: string | null) =>
+    getAccountAnalytics(createAdminClient(), userId, period, filterQrId),
+  ["account-analytics"],
+  { revalidate: 30, tags: ["analytics"] }
+);
 
 /* ────────────────────────── ACCOUNT ACTIVITY ──────────────────────────
  * B5/Fix 23 — paginated, period-scoped, account-wide scan feed for the
