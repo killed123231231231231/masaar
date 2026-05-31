@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, Download } from "lucide-react";
 import { generateShortId } from "@/lib/shortid";
 import { createClient } from "@/lib/supabase/client";
 import { appUrl } from "@/lib/utils";
@@ -47,6 +47,13 @@ export default function WizardClient({
   const [custom, setCustom] = useState<Customization>(DEFAULT_CUSTOMIZATION);
   const [maxStep, setMaxStep] = useState<Step>(1);
   const [saving, setSaving] = useState(false);
+  // After an authed create we stay on the page and flip the footer CTA from
+  // "Create QR" → "Download"; downloadRef lets that button trigger Step-3's
+  // framed export, then we send the user to their QR list (not the overview).
+  const [created, setCreated] = useState(false);
+  const downloadRef = useRef<
+    ((format: "png" | "svg") => Promise<void> | void) | null
+  >(null);
   const [gateOpen, setGateOpen] = useState(false);
   const [gateShortId, setGateShortId] = useState("");
   // C2 — the token the just-created anon QR carries. The gate/checkout uses
@@ -216,14 +223,17 @@ export default function WizardClient({
         return;
       }
       const row = await res.json().catch(() => null);
-      clearState();
       if (row?.status === "active") {
-        toast.success("QR created!");
-        setTimeout(() => {
-          router.push("/dashboard?welcome_new_qr=1");
-          router.refresh();
-        }, 800);
-      } else if (row?.short_id) {
+        // Created + live. Stay on the page so the footer flips to "Download"
+        // and the user grabs the file first — then we send them to their QR
+        // list (not the overview). No redirect here.
+        toast.success("QR created — download it below.");
+        setCreated(true);
+        return;
+      }
+      // Non-active (e.g. a future pending_payment tier) → keep the old paths.
+      clearState();
+      if (row?.short_id) {
         router.push(`/checkout/${row.short_id}`);
         router.refresh();
       } else {
@@ -265,6 +275,20 @@ export default function WizardClient({
     } catch {
       /* ignore */
     }
+  }
+
+  // Footer "Download" (shown after an authed create): run Step-3's framed PNG
+  // export, wait for it to finish, then route to the QR list — never the
+  // overview. A failed export still releases the user to their list.
+  async function downloadAndFinish() {
+    try {
+      await downloadRef.current?.("png");
+    } catch {
+      /* ignore — don't trap the user on the wizard if export hiccups */
+    }
+    clearState();
+    router.push("/dashboard/qr-codes");
+    router.refresh();
   }
 
   // What the Step-3 live QR encodes: dynamic kinds → the /r/ short
@@ -329,6 +353,7 @@ export default function WizardClient({
             draftToken={draftToken.current}
             c={custom}
             setC={setCustom}
+            downloadRef={downloadRef}
           />
         </div>
       )}
@@ -359,14 +384,24 @@ export default function WizardClient({
         )}
 
         {step === 3 ? (
-          <button
-            type="button"
-            onClick={download}
-            disabled={saving}
-            className="inline-flex h-11 min-w-[140px] items-center justify-center gap-2 rounded-xl bg-deep-teal text-sm font-semibold text-white shadow-sm transition-colors hover:bg-deep-teal-dark disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {saving ? "Creating…" : "Download QR"}
-          </button>
+          created ? (
+            <button
+              type="button"
+              onClick={downloadAndFinish}
+              className="inline-flex h-11 min-w-[140px] items-center justify-center gap-2 rounded-xl bg-deep-teal text-sm font-semibold text-white shadow-sm transition-colors hover:bg-deep-teal-dark"
+            >
+              <Download className="h-4 w-4" /> Download
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={download}
+              disabled={saving}
+              className="inline-flex h-11 min-w-[140px] items-center justify-center gap-2 rounded-xl bg-deep-teal text-sm font-semibold text-white shadow-sm transition-colors hover:bg-deep-teal-dark disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {saving ? "Creating…" : "Create QR"}
+            </button>
+          )
         ) : type === "payment" && step === 2 ? (
           // Payment is a waitlist placeholder — its form self-submits, so
           // there's no Next/create action here.
