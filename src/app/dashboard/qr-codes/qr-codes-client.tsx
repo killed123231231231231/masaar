@@ -203,9 +203,38 @@ function ListRow({
   scans: number;
   isLast: boolean;
 }) {
+  const router = useRouter();
   const tm = typeMeta(q.content_kind);
   const TypeIcon = tm.icon;
-  const statusTint = STATUS_TINT[q.status] ?? STATUS_TINT.active;
+
+  // Local (optimistic) status so the Active/Inactive toggle greys the row
+  // instantly; the server syncs on router.refresh().
+  const [status, setStatus] = useState(q.status);
+  const [toggling, setToggling] = useState(false);
+  const canToggle = status === "active" || status === "suspended";
+  const isActive = status === "active";
+  const statusTint = STATUS_TINT[status] ?? STATUS_TINT.active;
+
+  async function toggleStatus() {
+    if (!canToggle || toggling) return;
+    const next = isActive ? "suspended" : "active";
+    const prev = status;
+    setStatus(next);
+    setToggling(true);
+    const res = await fetch("/api/qr", {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ id: q.id, status: next }),
+    });
+    setToggling(false);
+    if (!res.ok) {
+      setStatus(prev);
+      toast.error("Couldn’t update status. Try again.");
+      return;
+    }
+    toast.success(next === "active" ? "QR activated" : "QR deactivated");
+    router.refresh();
+  }
 
   // What the QR encodes: dynamic → the /r short link; static → its payload.
   const qrData =
@@ -232,9 +261,9 @@ function ListRow({
 
   return (
     <li
-      className={`flex items-center gap-3 px-4 py-3 transition-colors first:rounded-t-2xl last:rounded-b-2xl hover:bg-sand-light/40 sm:gap-4 sm:px-5 ${
+      className={`flex items-center gap-3 px-4 py-3 transition first:rounded-t-2xl last:rounded-b-2xl hover:bg-sand-light/40 sm:gap-4 sm:px-5 ${
         !isLast ? "border-b border-charcoal/5" : ""
-      }`}
+      } ${status === "suspended" ? "opacity-55" : ""}`}
     >
       {/* Thumbnail — the row's visual anchor. A generous, clickable preview
           (same destination as the name) in a clean rounded frame, so a QR is
@@ -245,7 +274,11 @@ function ListRow({
         title={`Open QR code ${q.name}`}
         className="group/qr block shrink-0 rounded-lg border border-charcoal/10 bg-white p-1 shadow-sm transition-all duration-200 hover:border-deep-teal/40 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-deep-teal/40"
       >
-        <div className="h-16 w-16 transition-transform duration-200 group-hover/qr:scale-[1.04] lg:h-[72px] lg:w-[72px]">
+        <div
+          className={`h-16 w-16 transition group-hover/qr:scale-[1.04] lg:h-[72px] lg:w-[72px] ${
+            status === "suspended" ? "grayscale" : ""
+          }`}
+        >
           <StyledQr
             qrId={q.id}
             data={qrData}
@@ -323,11 +356,41 @@ function ListRow({
         {tm.label}
       </span>
 
-      <span
-        className={`hidden w-28 shrink-0 rounded-full px-2 py-0.5 text-center text-[10px] font-bold uppercase tracking-wider md:inline-block ${statusTint}`}
-      >
-        {q.status.replace(/_/g, " ")}
-      </span>
+      {/* Active/Inactive toggle (Glitch 3). Flipping to Inactive (suspended)
+          greys the row; a scan of a suspended QR then lands on /expired.
+          pending_payment / draft fall back to a plain status chip. */}
+      {canToggle ? (
+        <button
+          type="button"
+          onClick={toggleStatus}
+          disabled={toggling}
+          role="switch"
+          aria-checked={isActive}
+          title={
+            isActive
+              ? "Active — click to deactivate"
+              : "Inactive — click to activate"
+          }
+          className={`hidden w-[88px] shrink-0 items-center justify-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider transition disabled:cursor-not-allowed disabled:opacity-60 md:inline-flex ${
+            isActive
+              ? "bg-deep-teal/10 text-deep-teal hover:bg-deep-teal/15"
+              : "bg-charcoal/15 text-charcoal/60 hover:bg-charcoal/20"
+          }`}
+        >
+          <span
+            className={`h-1.5 w-1.5 rounded-full ${
+              isActive ? "bg-deep-teal" : "bg-charcoal/45"
+            }`}
+          />
+          {isActive ? "Active" : "Inactive"}
+        </button>
+      ) : (
+        <span
+          className={`hidden w-[88px] shrink-0 rounded-full px-2 py-0.5 text-center text-[10px] font-bold uppercase tracking-wider md:inline-block ${statusTint}`}
+        >
+          {status.replace(/_/g, " ")}
+        </span>
+      )}
 
       {/* Scans — prominent pill (getqr style: "163 scans" / "2.2K scans"). */}
       <Link
