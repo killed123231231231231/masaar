@@ -353,6 +353,7 @@ export default function WizardClient({
             draftToken={draftToken.current}
             c={custom}
             setC={setCustom}
+            showDownloads={created}
             downloadRef={downloadRef}
           />
         </div>
