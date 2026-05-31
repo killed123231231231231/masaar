@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type MutableRefObject } from "react";
 import { ChevronDown, Download } from "lucide-react";
 import QrPreview from "@/components/qr-preview";
 import FramedQr from "./framed-qr";
@@ -29,6 +29,9 @@ export default function Step3Customize({
   draftToken,
   c,
   setC,
+  showHeading = true,
+  showPassword = true,
+  downloadRef,
 }: {
   previewData: string;
   shortId: string;
@@ -37,6 +40,15 @@ export default function Step3Customize({
   draftToken: string;
   c: Customization;
   setC: (c: Customization) => void;
+  /** Hide the wizard heading when embedded elsewhere (e.g. the edit page). */
+  showHeading?: boolean;
+  /** Hide the password accordion (edit page persists password separately). */
+  showPassword?: boolean;
+  /** Lets a parent (the wizard footer "Download" button) trigger the same
+   *  framed export. The panel keeps this ref pointed at its current export fn. */
+  downloadRef?: MutableRefObject<
+    ((format: "png" | "svg") => Promise<void> | void) | null
+  >;
 }) {
   const set = <K extends keyof Customization>(k: K, v: Customization[K]) =>
     setC({ ...c, [k]: v });
@@ -119,15 +131,26 @@ export default function Step3Customize({
     URL.revokeObjectURL(url);
   }
 
+  // Keep the parent's download handle pointed at the current export fn so the
+  // wizard footer's "Download" button produces the same framed PNG/SVG.
+  useEffect(() => {
+    if (downloadRef) downloadRef.current = (format) => downloadFramed(format);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  });
+
   return (
     <div className="grid gap-8 lg:grid-cols-[1fr_300px]">
       <div>
-        <h1 className="font-display text-2xl font-bold tracking-tight text-charcoal">
-          Customize &amp; protect
-        </h1>
-        <p className="mt-1 text-sm text-charcoal/60">
-          Optional — defaults look great too.
-        </p>
+        {showHeading && (
+          <>
+            <h1 className="font-display text-2xl font-bold tracking-tight text-charcoal">
+              Customize &amp; protect
+            </h1>
+            <p className="mt-1 text-sm text-charcoal/60">
+              Optional — defaults look great too.
+            </p>
+          </>
+        )}
 
         <div className="mt-6 space-y-3">
           <Acc title="Frame around the QR code" defaultOpen={false}>
@@ -262,6 +285,7 @@ export default function Step3Customize({
             )}
           </Acc>
 
+          {showPassword && (
           <Acc title="Protect this QR with a password" defaultOpen={false}>
             {isAuthed ? (
               <>
@@ -294,6 +318,7 @@ export default function Step3Customize({
               </p>
             )}
           </Acc>
+          )}
         </div>
       </div>
 

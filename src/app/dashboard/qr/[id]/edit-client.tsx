@@ -3,73 +3,39 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import QrPreview from "@/components/qr-preview";
+import Step3Customize from "@/app/create/_components/step-3-customize";
+import { DEFAULT_CUSTOMIZATION, type Customization } from "@/app/create/_lib/types";
 import type { QrCode } from "@/types/database";
 import { appUrl } from "@/lib/utils";
-import { createClient } from "@/lib/supabase/client";
-
-const DOT_STYLES = [
-  "square",
-  "dots",
-  "rounded",
-  "classy",
-  "classy-rounded",
-  "extra-rounded",
-];
-const CORNER_STYLES = ["square", "dot", "extra-rounded"];
 
 export default function EditQrClient({ initial }: { initial: QrCode }) {
   const router = useRouter();
   const [destination, setDestination] = useState(initial.destination);
   const [name, setName] = useState(initial.name);
-  const [fgColor, setFgColor] = useState(initial.fg_color);
-  const [bgColor, setBgColor] = useState(initial.bg_color);
-  const [gradient, setGradient] = useState<string | null>(
-    initial.gradient_color
-  );
-  const [dotStyle, setDotStyle] = useState(initial.dot_style);
-  const [cornerStyle, setCornerStyle] = useState(initial.corner_style);
-  const [logoUrl, setLogoUrl] = useState<string | null>(initial.logo_url);
-  const [logoScale, setLogoScale] = useState(0.3);
-  const [logoBusy, setLogoBusy] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // Authed logo upload — direct to the owner-scoped `logos` bucket (RLS
-  // path = auth.uid()), same path the create wizard's authed branch uses.
-  async function handleLogo(file: File) {
-    if (!["image/png", "image/jpeg", "image/svg+xml"].includes(file.type)) {
-      toast.error("PNG, JPG or SVG only.");
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Logo must be under 5 MB.");
-      return;
-    }
-    setLogoBusy(true);
-    try {
-      const sb = createClient();
-      const {
-        data: { user },
-      } = await sb.auth.getUser();
-      if (!user) {
-        toast.error("Sign in to upload a logo.");
-        return;
-      }
-      const ext = file.name.split(".").pop()?.toLowerCase() || "png";
-      const path = `${user.id}/${initial.short_id || initial.id}/${crypto.randomUUID()}.${ext}`;
-      const { error } = await sb.storage
-        .from("logos")
-        .upload(path, file, { upsert: false, contentType: file.type });
-      if (error) {
-        toast.error(error.message);
-        return;
-      }
-      setLogoUrl(sb.storage.from("logos").getPublicUrl(path).data.publicUrl);
-    } finally {
-      setLogoBusy(false);
-    }
-  }
+  // Seed the shared customize panel from the saved row so the edit page has
+  // the SAME controls as create Step-3 (frames, logo + presets, colours,
+  // framed PNG/SVG/PDF). Password is never surfaced here — it's managed on
+  // its own and we don't echo the existing one back.
+  const [cust, setCust] = useState<Customization>({
+    ...DEFAULT_CUSTOMIZATION,
+    fg_color: initial.fg_color,
+    bg_color: initial.bg_color,
+    gradient_color: initial.gradient_color,
+    dot_style: initial.dot_style,
+    corner_style: initial.corner_style,
+    logo_url: initial.logo_url,
+    logo_scale: initial.logo_scale ?? 0.3,
+    qr_text: initial.frame_text ?? "",
+    frame_style: initial.frame_style ?? "none",
+    frame_color: initial.frame_color ?? DEFAULT_CUSTOMIZATION.frame_color,
+    text_color: initial.text_color ?? DEFAULT_CUSTOMIZATION.text_color,
+    password: "",
+  });
 
+  // Dynamic QRs always encode /r/<short_id> (so the destination stays
+  // editable without reprinting); static QRs encode their payload directly.
   const previewData =
     initial.kind === "dynamic" && initial.short_id
       ? `${appUrl()}/r/${initial.short_id}`
@@ -84,12 +50,17 @@ export default function EditQrClient({ initial }: { initial: QrCode }) {
         id: initial.id,
         name,
         destination,
-        fg_color: fgColor,
-        bg_color: bgColor,
-        gradient_color: gradient,
-        dot_style: dotStyle,
-        corner_style: cornerStyle,
-        logo_url: logoUrl,
+        fg_color: cust.fg_color,
+        bg_color: cust.bg_color,
+        gradient_color: cust.gradient_color,
+        dot_style: cust.dot_style,
+        corner_style: cust.corner_style,
+        logo_url: cust.logo_url,
+        logo_scale: cust.logo_scale,
+        qr_text: cust.qr_text,
+        frame_style: cust.frame_style,
+        frame_color: cust.frame_color,
+        text_color: cust.text_color,
       }),
     });
     setSaving(false);
@@ -98,12 +69,12 @@ export default function EditQrClient({ initial }: { initial: QrCode }) {
       return;
     }
     toast.success("Changes saved");
-    setTimeout(() => router.push("/dashboard"), 800);
+    setTimeout(() => router.push("/dashboard/qr-codes"), 800);
   }
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
-      <div className="space-y-6">
+    <div className="space-y-6">
+      <div className="grid gap-4 sm:grid-cols-2">
         <Section title="Name">
           <input
             value={name}
@@ -131,134 +102,29 @@ export default function EditQrClient({ initial }: { initial: QrCode }) {
               in the printed code.
             </p>
           )}
-          <p className="mt-2 text-xs text-charcoal/45 capitalize">
-            Type: {initial.kind} · {initial.content_kind} (locked)
-          </p>
         </Section>
-
-        <Section title="Design">
-          <div className="grid grid-cols-2 gap-4">
-            <ColorField label="Foreground" value={fgColor} onChange={setFgColor} />
-            <ColorField label="Background" value={bgColor} onChange={setBgColor} />
-          </div>
-
-          <div className="mt-4">
-            <label className="flex items-center gap-2 text-sm text-charcoal/75">
-              <input
-                type="checkbox"
-                checked={gradient !== null}
-                onChange={(e) =>
-                  setGradient(e.target.checked ? fgColor : null)
-                }
-              />
-              Use gradient
-            </label>
-            {gradient !== null && (
-              <div className="mt-2">
-                <ColorField
-                  label="Gradient end"
-                  value={gradient}
-                  onChange={setGradient}
-                />
-              </div>
-            )}
-          </div>
-
-          <div className="mt-4 grid grid-cols-2 gap-4">
-            <SelectField
-              label="Dot style"
-              value={dotStyle}
-              options={DOT_STYLES}
-              onChange={setDotStyle}
-            />
-            <SelectField
-              label="Corner style"
-              value={cornerStyle}
-              options={CORNER_STYLES}
-              onChange={setCornerStyle}
-            />
-          </div>
-        </Section>
-
-        <Section title="Logo">
-          <div className="flex items-center gap-3">
-            {logoUrl && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={logoUrl}
-                alt="logo"
-                className="h-10 w-10 rounded border border-charcoal/15 object-contain"
-              />
-            )}
-            <label className="cursor-pointer rounded-lg border border-charcoal/15 px-3 py-1.5 text-sm font-medium text-charcoal/75 hover:bg-sand-light/60">
-              {logoBusy ? "Uploading…" : logoUrl ? "Replace" : "Upload logo"}
-              <input
-                type="file"
-                accept="image/png,image/jpeg,image/svg+xml"
-                className="hidden"
-                disabled={logoBusy}
-                onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (f) handleLogo(f);
-                  e.target.value = "";
-                }}
-              />
-            </label>
-            {logoUrl && (
-              <button
-                type="button"
-                onClick={() => setLogoUrl(null)}
-                className="text-xs text-charcoal/45 hover:text-charcoal/70"
-              >
-                Remove
-              </button>
-            )}
-          </div>
-          {logoUrl && (
-            <label className="mt-3 block">
-              <span className="mb-1 flex items-center justify-between text-xs font-medium text-charcoal/55">
-                <span>Logo size</span>
-                <span>{Math.round(logoScale * 100)}%</span>
-              </span>
-              <input
-                type="range"
-                min={0.1}
-                max={0.45}
-                step={0.01}
-                value={logoScale}
-                onChange={(e) => setLogoScale(Number(e.target.value))}
-                className="w-full accent-deep-teal"
-              />
-            </label>
-          )}
-          <p className="mt-1 text-xs text-charcoal/45">PNG/JPG/SVG · under 5 MB</p>
-        </Section>
-
-        <button
-          onClick={save}
-          disabled={saving}
-          className="w-full rounded-lg bg-deep-teal px-4 py-3 text-sm font-semibold text-white hover:bg-deep-teal-dark transition-colors duration-200 disabled:opacity-60"
-        >
-          {saving ? "Saving…" : "Save changes"}
-        </button>
       </div>
 
-      <aside className="lg:sticky lg:top-8 self-start">
-        <div className="rounded-2xl border border-charcoal/10 bg-white p-6 shadow-sm">
-          <QrPreview
-            style={{
-              data: previewData,
-              fgColor,
-              bgColor,
-              gradientColor: gradient,
-              dotStyle,
-              cornerStyle,
-              logoUrl,
-              imageSize: logoScale,
-            }}
-          />
-        </div>
-      </aside>
+      {/* Same customize panel as create Step-3 (frames, logo, framed
+          downloads). Heading + password are hidden here. */}
+      <Step3Customize
+        previewData={previewData}
+        shortId={initial.short_id || initial.id}
+        isAuthed
+        draftToken={initial.id}
+        c={cust}
+        setC={setCust}
+        showHeading={false}
+        showPassword={false}
+      />
+
+      <button
+        onClick={save}
+        disabled={saving}
+        className="w-full rounded-lg bg-deep-teal px-4 py-3 text-sm font-semibold text-white hover:bg-deep-teal-dark transition-colors duration-200 disabled:opacity-60"
+      >
+        {saving ? "Saving…" : "Save changes"}
+      </button>
     </div>
   );
 }
@@ -277,63 +143,5 @@ function Section({
       </h3>
       <div className="mt-3">{children}</div>
     </div>
-  );
-}
-
-function ColorField({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-}) {
-  return (
-    <label className="block">
-      <span className="block text-xs font-medium text-charcoal/55">{label}</span>
-      <span className="mt-1 flex items-center gap-2">
-        <input
-          type="color"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="h-9 w-12 cursor-pointer rounded border border-charcoal/15"
-        />
-        <input
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="h-9 w-full rounded-lg border border-charcoal/15 px-2 text-xs"
-        />
-      </span>
-    </label>
-  );
-}
-
-function SelectField({
-  label,
-  value,
-  options,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  options: string[];
-  onChange: (v: string) => void;
-}) {
-  return (
-    <label className="block">
-      <span className="block text-xs font-medium text-charcoal/55">{label}</span>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="mt-1 h-9 w-full rounded-lg border border-charcoal/15 bg-white px-2 text-sm capitalize"
-      >
-        {options.map((o) => (
-          <option key={o} value={o}>
-            {o.replace(/-/g, " ")}
-          </option>
-        ))}
-      </select>
-    </label>
   );
 }

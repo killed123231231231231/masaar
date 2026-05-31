@@ -174,6 +174,17 @@ export async function PATCH(request: Request) {
   if (typeof body.logo_url === "string" || body.logo_url === null)
     patch.logo_url = body.logo_url;
 
+  // I — the edit page reuses the create Step-3 panel, so these design fields
+  // (logo scale, frame + frame label) are editable too. Mirror the POST
+  // route's normalisation: empty frame label → null, "none" frame → null.
+  if (typeof body.logo_scale === "number") patch.logo_scale = body.logo_scale;
+  if (typeof body.qr_text === "string")
+    patch.frame_text = body.qr_text.trim() || null;
+  if (typeof body.frame_style === "string")
+    patch.frame_style = body.frame_style !== "none" ? body.frame_style : null;
+  if (typeof body.frame_color === "string") patch.frame_color = body.frame_color;
+  if (typeof body.text_color === "string") patch.text_color = body.text_color;
+
   if (Object.keys(patch).length === 0) {
     return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
   }
