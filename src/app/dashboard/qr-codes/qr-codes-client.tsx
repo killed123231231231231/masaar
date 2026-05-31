@@ -221,24 +221,34 @@ function ListRow({
 
   return (
     <li
-      className={`flex items-center gap-4 px-4 py-4 transition-colors first:rounded-t-2xl last:rounded-b-2xl hover:bg-sand-light/40 sm:px-5 ${
+      className={`flex items-center gap-4 px-4 py-5 transition-colors first:rounded-t-2xl last:rounded-b-2xl hover:bg-sand-light/40 sm:gap-5 sm:px-5 lg:min-h-[128px] ${
         !isLast ? "border-b border-charcoal/5" : ""
       }`}
     >
-      {/* Thumbnail — client-rendered styled QR (dot-style/gradient/logo),
-          with a render.png fallback until it mounts. */}
-      <StyledQr
-        qrId={q.id}
-        data={qrData}
-        fgColor={q.fg_color}
-        bgColor={q.bg_color}
-        gradientColor={q.gradient_color}
-        dotStyle={q.dot_style}
-        cornerStyle={q.corner_style}
-        logoUrl={q.logo_url}
-        size={56}
-        className="border border-charcoal/10"
-      />
+      {/* Thumbnail — the row's visual anchor. A generous, clickable preview
+          (same destination as the name) in a clean rounded frame, so a QR is
+          recognisable straight from the list. */}
+      <Link
+        href={`/dashboard/qr/${q.id}`}
+        aria-label={`Open QR code ${q.name}`}
+        title={`Open QR code ${q.name}`}
+        className="group/qr block shrink-0 rounded-xl border border-charcoal/10 bg-white p-1.5 shadow-sm transition-all duration-200 hover:border-deep-teal/40 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-deep-teal/40"
+      >
+        <div className="h-16 w-16 transition-transform duration-200 group-hover/qr:scale-[1.04] sm:h-[72px] sm:w-[72px] lg:h-20 lg:w-20">
+          <StyledQr
+            qrId={q.id}
+            data={qrData}
+            fgColor={q.fg_color}
+            bgColor={q.bg_color}
+            gradientColor={q.gradient_color}
+            dotStyle={q.dot_style}
+            cornerStyle={q.corner_style}
+            logoUrl={q.logo_url}
+            size={84}
+            fill
+          />
+        </div>
+      </Link>
 
       {/* Name + edit shortcut. Tappable on the whole block for fast access. */}
       <div className="min-w-0 flex-[1.4]">

@@ -15,8 +15,12 @@ export interface StyledQrProps {
   cornerStyle?: string;
   logoUrl?: string | null;
   imageSize?: number;
-  /** Display size in CSS px (square). */
+  /** Display size in CSS px (square). Also drives the internal render
+   *  resolution. When `fill` is set this is only the resolution hint. */
   size?: number;
+  /** Fill the parent box (h/w 100%) instead of a fixed inline size — lets a
+   *  responsive wrapper control the displayed size. */
+  fill?: boolean;
   className?: string;
 }
 
@@ -42,6 +46,7 @@ export default function StyledQr({
   logoUrl,
   imageSize,
   size = 56,
+  fill = false,
   className = "",
 }: StyledQrProps) {
   const ref = useRef<HTMLDivElement | null>(null);
@@ -90,16 +95,18 @@ export default function StyledQr({
 
   return (
     <div
-      className={`relative shrink-0 overflow-hidden rounded-md ${className}`}
-      style={{ width: size, height: size, backgroundColor: bgColor }}
+      className={`relative shrink-0 overflow-hidden rounded-md ${fill ? "h-full w-full" : ""} ${className}`}
+      style={
+        fill
+          ? { backgroundColor: bgColor }
+          : { width: size, height: size, backgroundColor: bgColor }
+      }
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={`/api/qr/${qrId}/render.png?size=${Math.max(128, size * 2)}`}
         alt=""
         aria-hidden
-        width={size}
-        height={size}
         loading="lazy"
         decoding="async"
         className={`absolute inset-0 h-full w-full object-contain ${styled ? "opacity-0" : ""}`}
