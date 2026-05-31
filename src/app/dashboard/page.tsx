@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getAccountAnalytics, parsePeriod } from "@/lib/analytics";
+import { getAccountAnalyticsCached, parsePeriod } from "@/lib/analytics";
 import { getMe } from "@/lib/me";
 import OverviewClient from "./overview-client";
 
@@ -35,7 +35,7 @@ export default async function DashboardPage({
   if (!user) redirect("/?login=1&redirectTo=/dashboard");
 
   const [bundle, me] = await Promise.all([
-    getAccountAnalytics(supabase, user.id, period, filterQrId),
+    getAccountAnalyticsCached(user.id, period, filterQrId),
     getMe(user.id, user.email ?? ""),
   ]);
 
