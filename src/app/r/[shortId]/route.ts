@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { UAParser } from "ua-parser-js";
 import { qrTarget } from "@/lib/qr-target";
@@ -124,22 +124,25 @@ export async function GET(
       ua
     );
 
-  // Await the call. On the edge runtime a fire-and-forget promise is torn
-  // down when the response returns, so scans were being dropped
-  // non-deterministically. One RPC keeps the hop well under the ~100ms
-  // budget. (next@15.0.3 only ships unstable_after, which needs
-  // experimental.after and is unstable on edge — unfit for this path.)
+  // Log the scan AFTER the redirect is sent, so the bounce is instant. `after`
+  // (stable since Next 15.1 — we're on 15.5) keeps the function alive until the
+  // RPC resolves, so scans still log reliably — unlike a bare fire-and-forget
+  // promise, which the edge runtime tears down with the response. This takes
+  // the log_scan round-trip OFF the critical path, which is what made the
+  // /r/<id> "Masaar link" flash for ~2s before redirecting.
   if (!isBot) {
-    await supabase.rpc("log_scan", {
-      p_qr_code_id: qr.id,
-      p_country: country,
-      p_region: region,
-      p_city: city,
-      p_device_type: parsed.device.type ?? "desktop",
-      p_os: parsed.os.name ?? null,
-      p_browser: parsed.browser.name ?? null,
-      p_user_agent: ua,
-      p_ip_hash: ipHash,
+    after(async () => {
+      await supabase.rpc("log_scan", {
+        p_qr_code_id: qr.id,
+        p_country: country,
+        p_region: region,
+        p_city: city,
+        p_device_type: parsed.device.type ?? "desktop",
+        p_os: parsed.os.name ?? null,
+        p_browser: parsed.browser.name ?? null,
+        p_user_agent: ua,
+        p_ip_hash: ipHash,
+      });
     });
   }
 
