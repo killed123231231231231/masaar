@@ -6,6 +6,13 @@ import { supabaseUrl, supabaseAnonKey } from "@/lib/env";
 
 // Edge runtime is fast and exposes Vercel geo headers
 export const runtime = "edge";
+// Pin the scan function to Mumbai (bom1) — the SAME region as the Supabase
+// project (ap-south-1). The hot path is a single resolve_qr_v2 round-trip, so
+// co-locating turns it from a cross-region hop (~300ms) into an intra-region
+// one (~10ms). Mumbai is also the nearest region to the GCC / South-Asia
+// scanners, so the whole redirect collapses to roughly one short network hop —
+// no cache, so the redirect stays live (Active/Inactive toggle stays instant).
+export const preferredRegion = "bom1";
 // The redirect target depends on the QR's *live* status — it must never
 // be cached at the route, data/fetch, or CDN/browser layer, or a QR
 // flipped to pending_payment would keep 302-ing to its destination
