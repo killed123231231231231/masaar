@@ -214,6 +214,10 @@ function ListRow({
   const canToggle = status === "active" || status === "suspended";
   const isActive = status === "active";
   const statusTint = STATUS_TINT[status] ?? STATUS_TINT.active;
+  // When suspended the row is locked — open / edit / download / analytics are
+  // all disabled (the QR is off); only the toggle (reactivate) + Delete stay.
+  const locked = status === "suspended";
+  const lockCls = locked ? "pointer-events-none" : "";
 
   async function toggleStatus() {
     if (!canToggle || toggling) return;
@@ -271,8 +275,10 @@ function ListRow({
       <Link
         href={`/dashboard/qr/${q.id}`}
         aria-label={`Open QR code ${q.name}`}
-        title={`Open QR code ${q.name}`}
-        className="group/qr block shrink-0 rounded-lg border border-charcoal/10 bg-white p-1 shadow-sm transition-all duration-200 hover:border-deep-teal/40 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-deep-teal/40"
+        title={locked ? "Inactive — reactivate to open" : `Open QR code ${q.name}`}
+        tabIndex={locked ? -1 : undefined}
+        aria-disabled={locked || undefined}
+        className={`group/qr block shrink-0 rounded-lg border border-charcoal/10 bg-white p-1 shadow-sm transition-all duration-200 hover:border-deep-teal/40 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-deep-teal/40 ${lockCls}`}
       >
         <div
           className={`h-16 w-16 transition group-hover/qr:scale-[1.04] lg:h-[72px] lg:w-[72px] ${
@@ -302,18 +308,22 @@ function ListRow({
         <div className="mt-0.5 flex items-center gap-1.5">
           <Link
             href={`/dashboard/qr/${q.id}`}
-            className="truncate text-sm font-semibold text-charcoal hover:text-deep-teal"
+            className={`truncate text-sm font-semibold text-charcoal hover:text-deep-teal ${lockCls}`}
             title={q.name}
+            tabIndex={locked ? -1 : undefined}
+            aria-disabled={locked || undefined}
           >
             {q.name}
           </Link>
-          <Link
-            href={`/dashboard/qr/${q.id}`}
-            aria-label="Edit name"
-            className="shrink-0 text-charcoal/35 hover:text-deep-teal"
-          >
-            <Pencil className="h-3 w-3" />
-          </Link>
+          {!locked && (
+            <Link
+              href={`/dashboard/qr/${q.id}`}
+              aria-label="Edit name"
+              className="shrink-0 text-charcoal/35 hover:text-deep-teal"
+            >
+              <Pencil className="h-3 w-3" />
+            </Link>
+          )}
         </div>
       </div>
 
@@ -326,8 +336,10 @@ function ListRow({
           href={q.destination}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-0.5 inline-flex max-w-full items-center gap-1.5 truncate text-sm text-charcoal/65 hover:text-deep-teal"
+          className={`mt-0.5 inline-flex max-w-full items-center gap-1.5 truncate text-sm text-charcoal/65 hover:text-deep-teal ${lockCls}`}
           title={q.destination}
+          tabIndex={locked ? -1 : undefined}
+          aria-disabled={locked || undefined}
         >
           <span className="truncate">{q.destination}</span>
           <ExternalLink className="h-3 w-3 shrink-0" />
@@ -400,8 +412,10 @@ function ListRow({
       {/* Scans — prominent pill (getqr style: "163 scans" / "2.2K scans"). */}
       <Link
         href={`/dashboard?qr=${q.id}`}
-        className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-deep-teal/10 px-2.5 py-1.5 text-xs font-bold text-deep-teal transition hover:bg-deep-teal/15"
-        title="Open analytics"
+        className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-deep-teal/10 px-2.5 py-1.5 text-xs font-bold text-deep-teal transition hover:bg-deep-teal/15 ${lockCls}`}
+        title={locked ? "Inactive — reactivate to view analytics" : "Open analytics"}
+        tabIndex={locked ? -1 : undefined}
+        aria-disabled={locked || undefined}
       >
         <BarChart3 className="h-3.5 w-3.5" />
         {formatScans(scans)} scans
@@ -412,21 +426,22 @@ function ListRow({
       <button
         type="button"
         onClick={downloadStyled}
-        className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-charcoal/15 bg-white text-charcoal/60 shadow-sm transition hover:border-deep-teal/40 hover:bg-sand-light hover:text-deep-teal"
-        title="Download PNG"
+        disabled={locked}
+        className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-charcoal/15 bg-white text-charcoal/60 shadow-sm transition hover:border-deep-teal/40 hover:bg-sand-light hover:text-deep-teal disabled:pointer-events-none disabled:opacity-40"
+        title={locked ? "Inactive — reactivate to download" : "Download PNG"}
         aria-label={`Download ${q.name} as PNG`}
       >
         <Download className="h-4 w-4" />
       </button>
 
-      <RowMenu id={q.id} />
+      <RowMenu id={q.id} locked={locked} />
     </li>
   );
 }
 
 /* ───────────────────────── ROW 3-DOT MENU ───────────────────────── */
 
-function RowMenu({ id }: { id: string }) {
+function RowMenu({ id, locked = false }: { id: string; locked?: boolean }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -489,22 +504,42 @@ function RowMenu({ id }: { id: string }) {
           role="menu"
           className="absolute right-0 top-full z-20 mt-1 w-44 overflow-hidden rounded-lg border border-charcoal/10 bg-white shadow-xl"
         >
-          <Link
-            href={`/dashboard/qr/${id}`}
-            role="menuitem"
-            onClick={() => setOpen(false)}
-            className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium text-charcoal/80 hover:bg-sand-light hover:text-deep-teal"
-          >
-            <Pencil className="h-4 w-4" /> Edit
-          </Link>
-          <Link
-            href={`/dashboard?qr=${id}`}
-            role="menuitem"
-            onClick={() => setOpen(false)}
-            className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium text-charcoal/80 hover:bg-sand-light hover:text-deep-teal"
-          >
-            <BarChart3 className="h-4 w-4" /> Analytics
-          </Link>
+          {locked ? (
+            <span
+              role="menuitem"
+              aria-disabled
+              className="flex cursor-not-allowed items-center gap-2 px-3 py-2.5 text-sm font-medium text-charcoal/35"
+            >
+              <Pencil className="h-4 w-4" /> Edit
+            </span>
+          ) : (
+            <Link
+              href={`/dashboard/qr/${id}`}
+              role="menuitem"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium text-charcoal/80 hover:bg-sand-light hover:text-deep-teal"
+            >
+              <Pencil className="h-4 w-4" /> Edit
+            </Link>
+          )}
+          {locked ? (
+            <span
+              role="menuitem"
+              aria-disabled
+              className="flex cursor-not-allowed items-center gap-2 px-3 py-2.5 text-sm font-medium text-charcoal/35"
+            >
+              <BarChart3 className="h-4 w-4" /> Analytics
+            </span>
+          ) : (
+            <Link
+              href={`/dashboard?qr=${id}`}
+              role="menuitem"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium text-charcoal/80 hover:bg-sand-light hover:text-deep-teal"
+            >
+              <BarChart3 className="h-4 w-4" /> Analytics
+            </Link>
+          )}
           <button
             type="button"
             role="menuitem"
