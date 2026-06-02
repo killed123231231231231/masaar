@@ -216,6 +216,7 @@ function KpiRow({ bundle }: { bundle: AccountAnalyticsBundle }) {
         label="Total scans"
         value={bundle.total.toLocaleString()}
         delta={bundle.totalDeltaPct}
+        today={bundle.scansLast24h}
       />
       <KpiCard
         icon={Users}
@@ -223,6 +224,7 @@ function KpiRow({ bundle }: { bundle: AccountAnalyticsBundle }) {
         label="Unique scanners"
         value={bundle.uniqueScanners.toLocaleString()}
         delta={bundle.uniqueDeltaPct}
+        today={bundle.uniqueLast24h}
       />
       <KpiCard
         icon={Smartphone}
