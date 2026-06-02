@@ -61,7 +61,7 @@ const TINT_BG: Record<KpiTint, string> = {
 };
 
 export function KpiCard({
-  icon: Icon, tint, label, value, delta, today, series,
+  icon: Icon, tint, label, value, delta, today, activeInactive, series,
 }: {
   icon: LucideIcon;
   tint: KpiTint;
@@ -71,6 +71,8 @@ export function KpiCard({
   /** Rolling last-24h count → renders a green "+N today" badge in place of
    *  the period delta (used by the Total scans / Unique scanners KPIs). */
   today?: number | null;
+  /** Active/inactive split → renders a two-stat sub-row (Active QR codes). */
+  activeInactive?: { active: number; inactive: number };
   series?: Bucket[];
 }) {
   // B5/Item 5 — bumped padding + softer 2-layer shadow so adjacent cards
@@ -87,7 +89,13 @@ export function KpiCard({
         {label}
       </p>
       <p className="mt-1.5 font-display text-2xl font-bold leading-tight">{value}</p>
-      {today != null ? <TodayBadge count={today} /> : delta != null && <Delta pct={delta} />}
+      {activeInactive ? (
+        <ActiveInactiveRow active={activeInactive.active} inactive={activeInactive.inactive} />
+      ) : today != null ? (
+        <TodayBadge count={today} />
+      ) : (
+        delta != null && <Delta pct={delta} />
+      )}
     </div>
   );
 }
@@ -119,6 +127,23 @@ export function TodayBadge({ count }: { count: number }) {
       <TrendingUp className="h-3 w-3" />
       +{count} today
     </p>
+  );
+}
+
+// Two-stat sub-row for the "Active QR codes" KPI — active (teal) vs inactive
+// (muted) counts side by side, so a single card shows both at a glance.
+export function ActiveInactiveRow({ active, inactive }: { active: number; inactive: number }) {
+  return (
+    <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-semibold">
+      <span className="inline-flex items-center gap-1.5 text-deep-teal">
+        <span className="h-1.5 w-1.5 rounded-full bg-deep-teal" />
+        {active} active
+      </span>
+      <span className="inline-flex items-center gap-1.5 text-charcoal/45">
+        <span className="h-1.5 w-1.5 rounded-full bg-charcoal/35" />
+        {inactive} inactive
+      </span>
+    </div>
   );
 }
 

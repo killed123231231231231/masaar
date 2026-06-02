@@ -244,6 +244,10 @@ function KpiRow({ bundle }: { bundle: AccountAnalyticsBundle }) {
         tint="terracotta-dark"
         label="Active QR codes"
         value={`${bundle.activeQrCount} / ${bundle.totalQrCount}`}
+        activeInactive={{
+          active: bundle.activeQrCount,
+          inactive: bundle.totalQrCount - bundle.activeQrCount,
+        }}
       />
     </div>
   );
