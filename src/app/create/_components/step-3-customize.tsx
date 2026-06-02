@@ -1,6 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState, type MutableRefObject, type ReactNode } from "react";
+import {
+  useCallback, useEffect, useMemo, useRef, useState,
+  type Dispatch, type MutableRefObject, type ReactNode, type SetStateAction,
+} from "react";
 import { ChevronDown, Download } from "lucide-react";
 import QrPreview from "@/components/qr-preview";
 import FramedQr from "./framed-qr";
@@ -41,7 +44,7 @@ export default function Step3Customize({
   /** B5/Fix 21 — wizard's stable draft token, scopes anon logo uploads. */
   draftToken: string;
   c: Customization;
-  setC: (c: Customization) => void;
+  setC: Dispatch<SetStateAction<Customization>>;
   /** Hide the wizard heading when embedded elsewhere (e.g. the edit page). */
   showHeading?: boolean;
   /** Hide the password accordion (edit page persists password separately). */
@@ -58,14 +61,42 @@ export default function Step3Customize({
    *  the QR + downloads (e.g. the edit page's "Save changes" button). */
   previewFooter?: ReactNode;
 }) {
-  const set = <K extends keyof Customization>(k: K, v: Customization[K]) =>
-    setC({ ...c, [k]: v });
+  // Stable across renders (functional update) so the memoised frame/logo
+  // grids below don't re-render merely because a new `set` closure exists.
+  const set = useCallback(
+    function set<K extends keyof Customization>(k: K, v: Customization[K]) {
+      setC((prev) => ({ ...prev, [k]: v }));
+    },
+    [setC]
+  );
 
   const debounced = useDebounced(
     JSON.stringify({ previewData, ...c }),
     300
   );
-  const style = JSON.parse(debounced) as { previewData: string } & Customization;
+  // Parse + build the preview inputs ONLY when the debounced snapshot
+  // changes. Previously `JSON.parse` and the QrPreview style object were
+  // rebuilt every render, so QrPreview's [style] effect — the expensive
+  // qr-code-styling .update() — fired on every keystroke/colour-drag and
+  // the 300ms debounce gated nothing. Memoising on `debounced` makes the
+  // debounce real: the live QR re-renders at most once per ~300ms idle.
+  const style = useMemo(
+    () => JSON.parse(debounced) as { previewData: string } & Customization,
+    [debounced]
+  );
+  const previewStyle = useMemo(
+    () => ({
+      data: style.previewData || " ",
+      fgColor: style.fg_color,
+      bgColor: style.bg_color,
+      gradientColor: style.gradient_color,
+      dotStyle: style.dot_style,
+      cornerStyle: style.corner_style,
+      logoUrl: style.logo_url,
+      imageSize: style.logo_scale,
+    }),
+    [style]
+  );
 
   // Framed download: composite the frame + QR (the previewRef subtree) to an
   // image with html-to-image. Works for the no-frame case too (just the QR).
@@ -146,6 +177,74 @@ export default function Step3Customize({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   });
 
+  // Memoised so a colour/dot/logo change elsewhere doesn't re-render all 16
+  // frame thumbnails (the accordion-expand + drag freeze). Only frame-
+  // related fields invalidate it.
+  const framesGrid = useMemo(
+    () => (
+      <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+        {FRAMES.map((f) => {
+          const active = c.frame_style === f.key;
+          return (
+            <button
+              key={f.key}
+              type="button"
+              onClick={() => set("frame_style", f.key)}
+              className={`flex flex-col items-center gap-1.5 rounded-lg border p-2 transition ${
+                active
+                  ? "border-deep-teal ring-1 ring-deep-teal"
+                  : "border-charcoal/10 hover:border-deep-teal/40"
+              }`}
+            >
+              <span className="flex h-[60px] w-full items-center justify-center overflow-hidden">
+                <span className="origin-center scale-[0.4]">
+                  <FramedQr
+                    frame={f.key}
+                    frameColor={c.frame_color}
+                    textColor={c.text_color}
+                    text={c.qr_text || "SCAN ME"}
+                  >
+                    <span className="block h-20 w-20 bg-charcoal" />
+                  </FramedQr>
+                </span>
+              </span>
+              <span className="text-center text-[10px] leading-tight text-charcoal/55">
+                {f.label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    ),
+    [c.frame_style, c.frame_color, c.text_color, c.qr_text, set]
+  );
+
+  // Memoised likewise — the 12 preset icons only depend on the current
+  // selection, not on the colour/text edits happening above them.
+  const logoPresets = useMemo(
+    () => (
+      <div className="mb-4 grid grid-cols-6 gap-2">
+        {LOGO_PRESETS.map((p) => (
+          <button
+            key={p.key}
+            type="button"
+            onClick={() => set("logo_url", p.url)}
+            title={p.label}
+            className={`grid aspect-square place-items-center overflow-hidden rounded-lg border p-1 transition ${
+              c.logo_url === p.url
+                ? "border-deep-teal ring-1 ring-deep-teal"
+                : "border-charcoal/10 hover:border-deep-teal/40"
+            }`}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={p.url} alt={p.label} className="h-full w-full" />
+          </button>
+        ))}
+      </div>
+    ),
+    [c.logo_url, set]
+  );
+
   return (
     <div className="grid gap-8 lg:grid-cols-[1fr_300px]">
       <div>
@@ -162,39 +261,7 @@ export default function Step3Customize({
 
         <div className="mt-6 space-y-3">
           <Acc title="Frame around the QR code" defaultOpen={false}>
-            <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-              {FRAMES.map((f) => {
-                const active = c.frame_style === f.key;
-                return (
-                  <button
-                    key={f.key}
-                    type="button"
-                    onClick={() => set("frame_style", f.key)}
-                    className={`flex flex-col items-center gap-1.5 rounded-lg border p-2 transition ${
-                      active
-                        ? "border-deep-teal ring-1 ring-deep-teal"
-                        : "border-charcoal/10 hover:border-deep-teal/40"
-                    }`}
-                  >
-                    <span className="flex h-[60px] w-full items-center justify-center overflow-hidden">
-                      <span className="origin-center scale-[0.4]">
-                        <FramedQr
-                          frame={f.key}
-                          frameColor={c.frame_color}
-                          textColor={c.text_color}
-                          text={c.qr_text || "SCAN ME"}
-                        >
-                          <span className="block h-20 w-20 bg-charcoal" />
-                        </FramedQr>
-                      </span>
-                    </span>
-                    <span className="text-center text-[10px] leading-tight text-charcoal/55">
-                      {f.label}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
+            {framesGrid}
             {c.frame_style !== "none" && (
               <div className="mt-4 grid grid-cols-2 gap-4">
                 <ColorRow label="Frame color" value={c.frame_color} onChange={(v) => set("frame_color", v)} />
@@ -241,24 +308,7 @@ export default function Step3Customize({
 
           <Acc title="Logo" defaultOpen={false}>
             <p className="mb-2 text-sm font-medium text-charcoal/75">Quick icons</p>
-            <div className="mb-4 grid grid-cols-6 gap-2">
-              {LOGO_PRESETS.map((p) => (
-                <button
-                  key={p.key}
-                  type="button"
-                  onClick={() => set("logo_url", p.url)}
-                  title={p.label}
-                  className={`grid aspect-square place-items-center overflow-hidden rounded-lg border p-1 transition ${
-                    c.logo_url === p.url
-                      ? "border-deep-teal ring-1 ring-deep-teal"
-                      : "border-charcoal/10 hover:border-deep-teal/40"
-                  }`}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={p.url} alt={p.label} className="h-full w-full" />
-                </button>
-              ))}
-            </div>
+            {logoPresets}
             <p className="mb-2 text-sm font-medium text-charcoal/75">Or upload your own</p>
             {/* B5/Fix 21 — anon users can upload too. LogoUpload branches
                 internally based on isAuthed + draftToken. */}
@@ -339,19 +389,7 @@ export default function Step3Customize({
               textColor={style.text_color}
               text={style.qr_text}
             >
-              <QrPreview
-                hideActions
-                style={{
-                  data: style.previewData || " ",
-                  fgColor: style.fg_color,
-                  bgColor: style.bg_color,
-                  gradientColor: style.gradient_color,
-                  dotStyle: style.dot_style,
-                  cornerStyle: style.corner_style,
-                  logoUrl: style.logo_url,
-                  imageSize: style.logo_scale,
-                }}
-              />
+              <QrPreview hideActions style={previewStyle} />
             </FramedQr>
           </div>
           {showDownloads && (

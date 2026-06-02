@@ -88,10 +88,14 @@ export async function GET(
   // B7/P1-1 — an active QR renders identically for everyone, so it can
   // sit in a shared cache; an owner-only (non-active) render must never
   // land in a shared CDN cache or it could re-leak to a non-owner.
+  // active → shared-cacheable. stale-while-revalidate lets the browser/CDN
+  // serve the cached PNG INSTANTLY on repeat list loads (no blank thumbnail)
+  // while refreshing in the background, so an edit still propagates within
+  // max-age. Owner-only (non-active) stays private + short.
   const cacheControl = wantsDownload
     ? "no-store"
     : qr.status === "active"
-      ? "public, max-age=300"
+      ? "public, max-age=300, stale-while-revalidate=604800"
       : "private, max-age=60";
 
   return new Response(new Uint8Array(outBuf), {

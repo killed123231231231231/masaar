@@ -55,7 +55,8 @@ export default function StyledQr({
   useEffect(() => {
     let cancelled = false;
     setStyled(false);
-    (async () => {
+
+    const run = async () => {
       try {
         const renderSize = Math.max(160, size * 3);
         const qr = await createQr({
@@ -77,9 +78,25 @@ export default function StyledQr({
       } catch {
         /* keep the render.png fallback visible */
       }
-    })();
+    };
+
+    // Defer the heavy qr-code-styling generation to idle time so a list of
+    // thumbnails doesn't fire 5–8 synchronous generations on mount and block
+    // the cached render.png <img> from painting. The img shows first; the
+    // styled SVG upgrades a beat later when the main thread is free.
+    const w = typeof window !== "undefined" ? window : undefined;
+    let idleId: number | undefined;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    if (w?.requestIdleCallback) {
+      idleId = w.requestIdleCallback(() => void run(), { timeout: 1200 });
+    } else {
+      timeoutId = setTimeout(() => void run(), 60);
+    }
+
     return () => {
       cancelled = true;
+      if (idleId !== undefined) w?.cancelIdleCallback?.(idleId);
+      if (timeoutId !== undefined) clearTimeout(timeoutId);
     };
   }, [
     data,
