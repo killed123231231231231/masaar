@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import {
   Area, AreaChart, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
-import { ArrowDown, ArrowUp, QrCode, type LucideIcon } from "lucide-react";
+import { ArrowDown, ArrowUp, QrCode, TrendingUp, type LucideIcon } from "lucide-react";
 import { PERIODS, type Bucket, type Period } from "@/lib/analytics";
 
 // Single brand chart palette — used by donut + cells.
@@ -61,13 +61,16 @@ const TINT_BG: Record<KpiTint, string> = {
 };
 
 export function KpiCard({
-  icon: Icon, tint, label, value, delta, series,
+  icon: Icon, tint, label, value, delta, today, series,
 }: {
   icon: LucideIcon;
   tint: KpiTint;
   label: string;
   value: string;
   delta?: number | null;
+  /** Rolling last-24h count → renders a green "+N today" badge in place of
+   *  the period delta (used by the Total scans / Unique scanners KPIs). */
+  today?: number | null;
   series?: Bucket[];
 }) {
   // B5/Item 5 — bumped padding + softer 2-layer shadow so adjacent cards
@@ -84,7 +87,7 @@ export function KpiCard({
         {label}
       </p>
       <p className="mt-1.5 font-display text-2xl font-bold leading-tight">{value}</p>
-      {delta != null && <Delta pct={delta} />}
+      {today != null ? <TodayBadge count={today} /> : delta != null && <Delta pct={delta} />}
     </div>
   );
 }
@@ -96,6 +99,25 @@ export function Delta({ pct }: { pct: number }) {
     <p className={`mt-1 inline-flex items-center gap-1 text-xs font-medium ${positive ? "text-deep-teal" : "text-terracotta-dark"}`}>
       <Icon className="h-3 w-3" />
       {Math.abs(pct)}% vs previous
+    </p>
+  );
+}
+
+// "+N today" — rolling last-24h activity badge for the count KPI cards.
+// Green pill when there's fresh activity, muted line when the day's quiet.
+export function TodayBadge({ count }: { count: number }) {
+  if (count <= 0) {
+    return (
+      <p className="mt-1.5 text-xs font-medium text-charcoal/40">No new scans today</p>
+    );
+  }
+  return (
+    <p
+      className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-deep-teal/10 px-2 py-0.5 text-xs font-bold text-deep-teal"
+      title={`${count} new ${count === 1 ? "scan" : "scans"} in the last 24 hours`}
+    >
+      <TrendingUp className="h-3 w-3" />
+      +{count} today
     </p>
   );
 }

@@ -356,34 +356,39 @@ function ListRow({
         {tm.label}
       </span>
 
-      {/* Active/Inactive toggle (Glitch 3). Flipping to Inactive (suspended)
-          greys the row; a scan of a suspended QR then lands on /expired.
-          pending_payment / draft fall back to a plain status chip. */}
+      {/* Active/Inactive toggle. An animated iOS-style switch — the knob
+          slides and the track colour fades on flip (300ms). Inactive
+          (suspended) also greys the whole row; a scan of a suspended QR
+          lands on /expired. pending_payment / draft fall back to a chip. */}
       {canToggle ? (
-        <button
-          type="button"
-          onClick={toggleStatus}
-          disabled={toggling}
-          role="switch"
-          aria-checked={isActive}
-          title={
-            isActive
-              ? "Active — click to deactivate"
-              : "Inactive — click to activate"
-          }
-          className={`hidden w-[88px] shrink-0 items-center justify-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider transition disabled:cursor-not-allowed disabled:opacity-60 md:inline-flex ${
-            isActive
-              ? "bg-deep-teal/10 text-deep-teal hover:bg-deep-teal/15"
-              : "bg-charcoal/15 text-charcoal/60 hover:bg-charcoal/20"
-          }`}
-        >
-          <span
-            className={`h-1.5 w-1.5 rounded-full ${
-              isActive ? "bg-deep-teal" : "bg-charcoal/45"
+        <div className="hidden w-[88px] shrink-0 items-center justify-center md:flex">
+          <button
+            type="button"
+            onClick={toggleStatus}
+            disabled={toggling}
+            role="switch"
+            aria-checked={isActive}
+            aria-label={
+              isActive
+                ? "Active — click to deactivate"
+                : "Inactive — click to activate"
+            }
+            title={
+              isActive
+                ? "Active — click to deactivate"
+                : "Inactive — click to activate"
+            }
+            className={`relative h-6 w-11 shrink-0 rounded-full transition-colors duration-300 ease-out disabled:cursor-not-allowed disabled:opacity-60 ${
+              isActive ? "bg-deep-teal" : "bg-charcoal/25"
             }`}
-          />
-          {isActive ? "Active" : "Inactive"}
-        </button>
+          >
+            <span
+              className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-300 ease-out ${
+                isActive ? "translate-x-5" : "translate-x-0"
+              }`}
+            />
+          </button>
+        </div>
       ) : (
         <span
           className={`hidden w-[88px] shrink-0 rounded-full px-2 py-0.5 text-center text-[10px] font-bold uppercase tracking-wider md:inline-block ${statusTint}`}

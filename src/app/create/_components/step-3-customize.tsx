@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type MutableRefObject } from "react";
+import { useEffect, useRef, useState, type MutableRefObject, type ReactNode } from "react";
 import { ChevronDown, Download } from "lucide-react";
 import QrPreview from "@/components/qr-preview";
 import FramedQr from "./framed-qr";
@@ -33,6 +33,7 @@ export default function Step3Customize({
   showPassword = true,
   showDownloads = true,
   downloadRef,
+  previewFooter,
 }: {
   previewData: string;
   shortId: string;
@@ -53,6 +54,9 @@ export default function Step3Customize({
   downloadRef?: MutableRefObject<
     ((format: "png" | "svg") => Promise<void> | void) | null
   >;
+  /** Optional node rendered inside the sticky preview card, directly below
+   *  the QR + downloads (e.g. the edit page's "Save changes" button). */
+  previewFooter?: ReactNode;
 }) {
   const set = <K extends keyof Customization>(k: K, v: Customization[K]) =>
     setC({ ...c, [k]: v });
@@ -375,6 +379,7 @@ export default function Step3Customize({
             </button>
           </div>
           )}
+          {previewFooter && <div className="w-full">{previewFooter}</div>}
         </div>
       </aside>
     </div>
