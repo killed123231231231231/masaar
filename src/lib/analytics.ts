@@ -333,9 +333,9 @@ export interface AccountAnalyticsBundle {
   topCountry: string | null;
   activeQrCount: number;
   totalQrCount: number;
-  // Rolling last-24h activity (drives the "+N today" KPI badge).
-  scansLast24h: number;
-  uniqueLast24h: number;
+  // Today's activity, Riyadh calendar day (drives the "+N today" KPI badge).
+  scansToday: number;
+  uniqueToday: number;
 
   // Deltas
   totalDeltaPct: number | null;
@@ -368,7 +368,7 @@ const EMPTY_ACCOUNT = (period: Period): AccountAnalyticsBundle => ({
   period,
   total: 0, uniqueScanners: 0, mobileShare: 0, topCountry: null,
   activeQrCount: 0, totalQrCount: 0,
-  scansLast24h: 0, uniqueLast24h: 0,
+  scansToday: 0, uniqueToday: 0,
   totalDeltaPct: null, uniqueDeltaPct: null, mobileDeltaPct: null,
   timeSeries: [], byCountry: [], byCity: [], byDevice: [], byBrowser: [], byOs: [],
   byTimeOfDay: [],
@@ -657,19 +657,21 @@ export async function getAccountAnalytics(
     firstPendingQrShortId = firstPending?.short_id ?? null;
   }
 
-  // Rolling last-24h window → "+N today" KPI badge. rows is period-scoped,
-  // but every period ends at "now", so the last 24h is always a subset of
-  // the rows we already fetched (no extra query needed).
-  const cutoff24hISO = new Date(Date.now() - DAY_MS).toISOString();
-  const rows24h = rows.filter((r) => r.scanned_at >= cutoff24hISO);
-  const scansLast24h = rows24h.length;
-  const uniqueLast24h = uniq(rows24h);
+  // "+N today" KPI badge — counted on the RIYADH CALENDAR DAY (since local
+  // midnight), NOT a rolling 24h window. A rolling window wrongly counts
+  // yesterday-evening scans as "today"; bucketing by Riyadh day (same as the
+  // trend chart's dayBucket) makes "today" actually mean today. rows is
+  // period-scoped but always includes today.
+  const todayKey = dayBucket(new Date().toISOString());
+  const rowsToday = rows.filter((r) => dayBucket(r.scanned_at) === todayKey);
+  const scansToday = rowsToday.length;
+  const uniqueToday = uniq(rowsToday);
 
   return {
     period,
     total, uniqueScanners, mobileShare, topCountry,
     activeQrCount, totalQrCount,
-    scansLast24h, uniqueLast24h,
+    scansToday, uniqueToday,
     totalDeltaPct, uniqueDeltaPct, mobileDeltaPct,
     timeSeries, byCountry, byCity, byDevice, byBrowser, byOs, byTimeOfDay,
     recentScans, userQrs,
