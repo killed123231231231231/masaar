@@ -99,13 +99,23 @@ export function buildPayload(args: {
     case "wifi": {
       if (!(form.ssid || "").trim())
         return { error: "Enter the network name (SSID)." };
+      // Default to WPA — never silently emit an open network. A controlled
+      // <select> shows "WPA/WPA2" but leaves form.encryption undefined until
+      // it's touched, which encoded as T:nopass (open) AND dropped the
+      // password — so the QR scanned but couldn't join a secured network.
+      const encryption = form.encryption || "WPA";
+      if (encryption !== "nopass" && !(form.password || "").trim())
+        return {
+          error:
+            "Enter the WiFi password — or set Encryption to “None” for an open network.",
+        };
       destination = encodeWifi({
         ssid: form.ssid,
         password: form.password,
-        encryption: form.encryption,
+        encryption,
         hidden: form.hidden,
       });
-      payload_json = form;
+      payload_json = { ...form, encryption };
       break;
     }
     case "email": {
