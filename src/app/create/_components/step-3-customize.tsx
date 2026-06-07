@@ -307,6 +307,13 @@ export default function Step3Customize({
           </Acc>
 
           <Acc title="Logo" defaultOpen={false}>
+            {previewData.startsWith("WIFI:") && c.logo_url && (
+              <p className="mb-3 rounded-lg border border-amber-300 bg-amber-50 p-2.5 text-xs text-amber-700">
+                ⚠️ WiFi QR codes are small — a logo can cover too much and make
+                them <strong>unscannable</strong>. For WiFi we recommend removing
+                the logo (or keeping it very small).
+              </p>
+            )}
             <p className="mb-2 text-sm font-medium text-charcoal/75">Quick icons</p>
             {logoPresets}
             <p className="mb-2 text-sm font-medium text-charcoal/75">Or upload your own</p>

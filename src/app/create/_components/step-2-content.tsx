@@ -129,14 +129,17 @@ export default function Step2Content({
               <div className="col-span-2">
                 <Field label="Network name (SSID)" required><input value={form.ssid ?? ""} onChange={(e) => set("ssid", e.target.value)} className={inputCls} /></Field>
               </div>
-              <Field label="Password"><input value={form.password ?? ""} onChange={(e) => set("password", e.target.value)} className={inputCls} /></Field>
+              <Field label="Password" required={(form.encryption ?? "WPA") !== "nopass"}><input value={form.password ?? ""} onChange={(e) => set("password", e.target.value)} className={inputCls} /></Field>
               <Field label="Encryption">
                 <select value={form.encryption ?? "WPA"} onChange={(e) => set("encryption", e.target.value)} className={inputCls}>
                   <option value="WPA">WPA/WPA2</option>
                   <option value="WEP">WEP</option>
-                  <option value="nopass">None</option>
+                  <option value="nopass">None (open network)</option>
                 </select>
               </Field>
+              <p className="col-span-2 -mt-1 text-xs text-charcoal/50">
+                Most networks use WPA/WPA2 — the password is required so phones auto-connect. Only choose “None” for a genuinely open network.
+              </p>
               <label className="col-span-2 flex items-center gap-2 text-sm text-charcoal/70">
                 <input type="checkbox" checked={!!form.hidden} onChange={(e) => set("hidden", e.target.checked)} />
                 Hidden network
