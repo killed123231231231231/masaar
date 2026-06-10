@@ -47,6 +47,7 @@ export default function Step2Content({
   name,
   setName,
   draftToken,
+  onBackToTypes,
 }: {
   type: WizardType;
   form: Form;
@@ -55,6 +56,9 @@ export default function Step2Content({
   setName: (n: string) => void;
   /** C — passed through to the file-upload component for anon uploads. */
   draftToken: string;
+  /** Escape hatch for forms with no Next action (the Payment waitlist) —
+   *  jumps the wizard back to Step 1's type grid. */
+  onBackToTypes?: () => void;
 }) {
   const set = (k: string, v: unknown) => setForm({ ...form, [k]: v });
   const meta = typeMeta(type);
@@ -206,7 +210,7 @@ export default function Step2Content({
 
           {type === "feedback" && <FeedbackForm form={form} setForm={setForm} />}
 
-          {type === "payment" && <PaymentForm />}
+          {type === "payment" && <PaymentForm onBackToTypes={onBackToTypes} />}
 
           {(type === "pdf" || type === "image" || type === "video") && (
             <FileUpload

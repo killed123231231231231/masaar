@@ -341,6 +341,7 @@ export default function WizardClient({
             name={name}
             setName={setName}
             draftToken={draftToken.current}
+            onBackToTypes={() => goStep(1)}
           />
         </div>
       )}

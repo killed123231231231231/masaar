@@ -4,10 +4,9 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
-  Activity, Filter, Globe2, Plus, QrCode, Smartphone,
+  Activity, Globe2, Plus, QrCode, Smartphone,
   Sparkles, Users, X, Zap,
 } from "lucide-react";
-import { toast } from "sonner";
 import LogoMark from "@/components/logo-mark";
 import QrThumb from "@/components/qr-thumb";
 import Sidebar, { type SidebarMe } from "@/components/dashboard/sidebar";
@@ -128,13 +127,8 @@ function PageHeader({
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => toast("Custom filters coming in Sprint 3")}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-charcoal/15 bg-white px-3 py-1.5 text-sm font-medium text-charcoal/75 hover:bg-sand-light"
-          >
-            <Filter className="h-4 w-4" /> Filters
-          </button>
+          {/* Placeholder "Filters" button removed (went nowhere) — returns
+              with the real filtering feature. */}
           <Link
             href="/create"
             className="inline-flex items-center gap-1.5 rounded-lg bg-deep-teal px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-deep-teal-dark"

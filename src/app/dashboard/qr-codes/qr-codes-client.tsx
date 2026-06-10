@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import {
-  BarChart3, Calendar, ExternalLink, Filter, LinkIcon, Download,
+  BarChart3, Calendar, ExternalLink, LinkIcon, Download,
   Mail, MapPin, MessageSquare, MoreVertical, Pencil, Phone, Plus,
   Search, Smartphone, Text as TextIcon, UserSquare,
   Wifi, Trash2, type LucideIcon,
@@ -161,13 +161,9 @@ function ListBlock({
             className="w-full rounded-lg border border-charcoal/15 bg-white py-2 pl-9 pr-3 text-sm text-charcoal placeholder:text-charcoal/40 focus:border-deep-teal focus:outline-none focus:ring-2 focus:ring-deep-teal/15"
           />
         </label>
-        <button
-          type="button"
-          onClick={() => toast("Custom filters coming in Sprint 3")}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-charcoal/15 bg-white px-3 py-2 text-sm font-medium text-charcoal/75 hover:bg-sand-light"
-        >
-          <Filter className="h-4 w-4" /> Filters
-        </button>
+        {/* The placeholder "Filters" button (toast: coming in Sprint 3) was
+            removed — a control that goes nowhere reads as broken. It returns
+            with the real filtering feature. */}
       </div>
 
       {filtered.length === 0 ? (
@@ -493,7 +489,28 @@ function RowMenu({
       if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
     }
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") {
+        setOpen(false);
+        return;
+      }
+      // ARIA menu pattern — Arrow/Home/End cycle focus through the enabled
+      // items (Tab still works; this adds the expected keyboard behaviour).
+      if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(e.key)) return;
+      const items = Array.from(
+        rootRef.current?.querySelectorAll<HTMLElement>(
+          '[role="menuitem"]:not([aria-disabled])'
+        ) ?? []
+      );
+      if (items.length === 0) return;
+      e.preventDefault();
+      const idx = items.indexOf(document.activeElement as HTMLElement);
+      let next: number;
+      if (e.key === "Home") next = 0;
+      else if (e.key === "End") next = items.length - 1;
+      else if (idx === -1) next = e.key === "ArrowDown" ? 0 : items.length - 1;
+      else if (e.key === "ArrowDown") next = (idx + 1) % items.length;
+      else next = (idx - 1 + items.length) % items.length;
+      items[next]?.focus();
     }
     document.addEventListener("mousedown", onDown);
     document.addEventListener("keydown", onKey);
