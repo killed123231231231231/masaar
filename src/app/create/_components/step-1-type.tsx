@@ -28,10 +28,10 @@ export default function Step1Type({
     // Content wrapper — getqr `mx-auto w-full md:px-8`, min-h-full so the
     // divider + row span the full content height.
     <div className="mx-auto flex min-h-full w-full flex-col px-4 pt-8 sm:px-6 md:px-8 md:pt-12">
-      <h1 className="font-display text-[30px] font-extrabold leading-tight tracking-tight text-charcoal md:text-[34px]">
+      <h1 className="font-display text-3xl font-extrabold leading-tight tracking-tight text-charcoal md:text-4xl">
         What do you want to create?
       </h1>
-      <p className="mt-2 text-[16px] text-[#6B7280] md:text-[18px]">
+      <p className="mt-2 text-base text-charcoal/65 md:text-lg">
         Select a QR code type to get started in seconds.
       </p>
 
@@ -70,10 +70,10 @@ export default function Step1Type({
                   </span>
                 )}
                 <Icon className="h-8 w-8 text-deep-teal" strokeWidth={1.75} />
-                <h3 className="mt-3 font-display text-[17px] font-bold leading-tight text-charcoal">
+                <h3 className="mt-3 font-display text-lg font-bold leading-tight text-charcoal">
                   {c.label}
                 </h3>
-                <p className="mt-1.5 text-[14px] leading-snug text-[#6B7280]">
+                <p className="mt-1.5 text-sm leading-snug text-charcoal/65">
                   {c.desc}
                 </p>
               </button>
@@ -84,7 +84,7 @@ export default function Step1Type({
         {/* DIVIDER — 1px, full row height (getqr `w-px self-stretch`). */}
         <div
           aria-hidden
-          className="hidden w-px shrink-0 self-stretch bg-[#E5E7EB] lg:block"
+          className="hidden w-px shrink-0 self-stretch bg-charcoal/10 lg:block"
         />
 
         {/* RIGHT — fixed-width preview (getqr `w-[280px] xl:w-[360px]`). */}
@@ -100,7 +100,7 @@ export default function Step1Type({
           <h3 className="font-display text-xl font-bold text-charcoal xl:text-2xl">
             {selMeta ? `${selMeta.label} QR` : "Create Your Perfect QR Code"}
           </h3>
-          <p className="mt-2 max-w-[280px] text-sm leading-relaxed text-[#6B7280] xl:max-w-[320px] xl:text-base">
+          <p className="mt-2 max-w-[280px] text-sm leading-relaxed text-charcoal/65 xl:max-w-[320px] xl:text-base">
             {selMeta
               ? "Looking good — continue to add your content."
               : "Choose a type to see your personalized, dynamic QR code come to life."}

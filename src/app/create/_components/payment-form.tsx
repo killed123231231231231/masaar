@@ -1,12 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { Wallet, Check } from "lucide-react";
+import { ArrowLeft, Wallet, Check } from "lucide-react";
 
 // Payment is a placeholder — it captures interest into waitlist_signups
 // and never creates a QR (backend: null, ready: false). Parity with
 // getqr's payment tab, minus the legal exposure of processing payments.
-export default function PaymentForm() {
+export default function PaymentForm({
+  onBackToTypes,
+}: {
+  /** Returns the wizard to Step 1 — this form has no Next action, so the
+   *  success state needs its own way forward (was a dead-end). */
+  onBackToTypes?: () => void;
+}) {
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
@@ -55,9 +61,20 @@ export default function PaymentForm() {
       </p>
 
       {done ? (
-        <p className="mt-6 inline-flex items-center gap-2 rounded-lg bg-deep-teal/10 px-4 py-2.5 text-sm font-semibold text-deep-teal">
-          <Check className="h-4 w-4" /> We’ll let you know!
-        </p>
+        <div className="mt-6 flex flex-col items-center gap-3">
+          <p className="inline-flex items-center gap-2 rounded-lg bg-deep-teal/10 px-4 py-2.5 text-sm font-semibold text-deep-teal">
+            <Check className="h-4 w-4" /> We’ll let you know!
+          </p>
+          {onBackToTypes && (
+            <button
+              type="button"
+              onClick={onBackToTypes}
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-deep-teal hover:underline"
+            >
+              <ArrowLeft className="h-4 w-4" /> Choose another QR type
+            </button>
+          )}
+        </div>
       ) : (
         <div className="mx-auto mt-6 flex max-w-sm flex-col gap-2 sm:flex-row">
           <input

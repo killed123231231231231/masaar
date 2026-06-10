@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import Sidebar from "@/components/dashboard/sidebar";
 import MobileDashboardNav from "@/components/dashboard/mobile-dashboard-nav";
 import { createClient } from "@/lib/supabase/server";
@@ -27,6 +28,15 @@ export default async function SettingsPage() {
         <Sidebar me={me} current="settings" />
         <main className="min-w-0 flex-1 space-y-7 px-4 py-5 sm:px-5 sm:py-6 lg:px-8">
           <MobileDashboardNav me={me} current="settings" />
+
+          {/* Same escape-hatch pattern as the Edit-QR page (B5/Fix 18) — every
+              dashboard subpage gets a clear way back without the sidebar. */}
+          <Link
+            href="/dashboard"
+            className="inline-flex w-fit items-center gap-1.5 rounded-lg border border-charcoal/15 bg-white px-3 py-1.5 text-sm font-medium text-charcoal/75 hover:bg-sand-light hover:text-deep-teal"
+          >
+            <ArrowLeft className="h-4 w-4" /> Back to dashboard
+          </Link>
 
           <div>
             <h1 className="font-display text-2xl font-bold tracking-tight">
