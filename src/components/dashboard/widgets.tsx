@@ -85,7 +85,9 @@ export function KpiCard({
         </span>
         {series && series.length > 0 && <Sparkline series={series} />}
       </div>
-      <p className="mt-4 text-[11px] font-semibold uppercase tracking-wider text-charcoal/45">
+      {/* /60 (not /45) — 45% charcoal on white is ~2.9:1 contrast, under the
+          WCAG AA 4.5:1 floor for meaningful labels; 60% clears it. */}
+      <p className="mt-4 text-[11px] font-semibold uppercase tracking-wider text-charcoal/60">
         {label}
       </p>
       <p className="mt-1.5 font-display text-2xl font-bold leading-tight">{value}</p>
@@ -116,7 +118,7 @@ export function Delta({ pct }: { pct: number }) {
 export function TodayBadge({ count }: { count: number }) {
   if (count <= 0) {
     return (
-      <p className="mt-1.5 text-xs font-medium text-charcoal/40">No new scans today</p>
+      <p className="mt-1.5 text-xs font-medium text-charcoal/60">No new scans today</p>
     );
   }
   return (
@@ -170,7 +172,7 @@ export function TrendCard({ period, series }: { period: Period; series: Bucket[]
         <h2 className="font-display text-sm font-bold uppercase tracking-wider text-charcoal/75">
           Scan trend over time
         </h2>
-        <span className="text-xs text-charcoal/45">
+        <span className="text-xs text-charcoal/60">
           {PERIODS.find((p) => p.id === period)?.label}
         </span>
       </div>
@@ -224,7 +226,7 @@ function TrendTooltip({
   const count = Number(payload[0]?.value ?? 0);
   return (
     <div className="rounded-lg border border-charcoal/10 bg-white px-3 py-2 shadow-[0_4px_16px_rgba(0,0,0,0.08)]">
-      <p className="text-[10px] uppercase tracking-wider text-charcoal/45">{label}</p>
+      <p className="text-[10px] uppercase tracking-wider text-charcoal/60">{label}</p>
       <p className="mt-0.5 text-xs">
         <span className="text-charcoal/65">Total scans:</span>{" "}
         <span className="font-display text-sm font-bold text-deep-teal">
@@ -271,7 +273,7 @@ export function DonutCard({
           <div className="pointer-events-none absolute inset-0 grid place-items-center">
             <div className="text-center">
               <p className="font-display text-lg font-bold leading-none">{total}</p>
-              <p className="mt-0.5 text-[10px] uppercase tracking-wider text-charcoal/45">{centerLabel}</p>
+              <p className="mt-0.5 text-[10px] uppercase tracking-wider text-charcoal/60">{centerLabel}</p>
             </div>
           </div>
         </div>

@@ -159,7 +159,7 @@ export default function FileUpload({
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={assetUrl}
-              alt=""
+              alt={`Preview of ${filename}`}
               className="h-20 w-20 rounded-lg object-cover"
             />
           ) : kind === "video" ? (
@@ -195,7 +195,7 @@ export default function FileUpload({
             type="button"
             onClick={clear}
             aria-label="Remove file"
-            className="text-charcoal/40 transition-colors hover:text-terracotta"
+            className="grid h-8 w-8 shrink-0 place-items-center rounded-md text-charcoal/40 transition-colors hover:bg-terracotta/10 hover:text-terracotta focus:outline-none focus-visible:ring-2 focus-visible:ring-deep-teal/40"
           >
             <X className="h-4 w-4" />
           </button>

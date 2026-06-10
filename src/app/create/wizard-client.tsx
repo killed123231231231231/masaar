@@ -218,7 +218,7 @@ export default function WizardClient({
       });
       setSaving(false);
       if (!res.ok) {
-        const { error: e } = await res.json().catch(() => ({ error: "Failed" }));
+        const { error: e } = await res.json().catch(() => ({ error: null }));
         toast.error(e || "Couldn’t create the QR.");
         return;
       }
@@ -252,7 +252,7 @@ export default function WizardClient({
     });
     setSaving(false);
     if (!res.ok) {
-      const { error: e } = await res.json().catch(() => ({ error: "Failed" }));
+      const { error: e } = await res.json().catch(() => ({ error: null }));
       toast.error(e || "Couldn’t create the QR.");
       return;
     }
@@ -364,7 +364,7 @@ export default function WizardClient({
   // Fixed footer inside the shell (not a page-sticky bar). Cancel/Back
   // left, Next/Download right; Next disabled until a type is picked.
   const footer = (
-    <div className="shrink-0 border-t border-[#E5E7EB] bg-white">
+    <div className="shrink-0 border-t border-charcoal/10 bg-white">
       <div className="flex h-[86px] items-center justify-between px-4 sm:px-6 md:px-8">
         {step === 1 ? (
           <button
@@ -422,7 +422,7 @@ export default function WizardClient({
   );
 
   const shell = (
-    <div className="m-[18px] flex h-[calc(100vh-36px)] flex-col overflow-hidden rounded-[20px] border border-[#E5E7EB] bg-white">
+    <div className="m-[18px] flex h-[calc(100vh-36px)] flex-col overflow-hidden rounded-[20px] border border-charcoal/10 bg-white">
       <ProgressBar current={step} maxStep={maxStep} onJump={(n) => goStep(n)} />
       {/* The ONLY scroll area in the wizard (getqr: overscroll-contain
           so scroll never chains to the page). */}

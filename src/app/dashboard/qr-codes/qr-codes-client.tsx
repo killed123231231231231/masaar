@@ -236,7 +236,7 @@ function ListRow({
       toast.error("Couldn’t update status. Try again.");
       return;
     }
-    toast.success(next === "active" ? "QR activated" : "QR deactivated");
+    toast.success(next === "active" ? "QR is now active" : "QR is now inactive");
     router.refresh();
   }
 
@@ -265,9 +265,13 @@ function ListRow({
 
   return (
     <li
-      className={`flex items-center gap-3 px-4 py-3 transition first:rounded-t-2xl last:rounded-b-2xl hover:bg-sand-light/40 sm:gap-4 sm:px-5 ${
+      className={`flex items-center gap-3 px-4 py-3 transition first:rounded-t-2xl last:rounded-b-2xl sm:gap-4 sm:px-5 ${
         !isLast ? "border-b border-charcoal/5" : ""
-      } ${status === "suspended" ? "opacity-55" : ""}`}
+      } ${
+        // Suspended rows are locked — no hover tint either, so the row
+        // doesn't pretend to be interactive while its actions are disabled.
+        status === "suspended" ? "opacity-55" : "hover:bg-sand-light/40"
+      }`}
     >
       {/* Thumbnail — the row's visual anchor. A generous, clickable preview
           (same destination as the name) in a clean rounded frame, so a QR is
@@ -316,12 +320,14 @@ function ListRow({
             {q.name}
           </Link>
           {!locked && (
+            // A real-sized touch target (36px) — the old bare 12px icon was
+            // nearly impossible to hit on touch screens.
             <Link
               href={`/dashboard/qr/${q.id}`}
-              aria-label="Edit name"
-              className="shrink-0 text-charcoal/35 hover:text-deep-teal"
+              aria-label="Edit QR name"
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-md text-charcoal/45 hover:bg-sand-light hover:text-deep-teal focus:outline-none focus-visible:ring-2 focus-visible:ring-deep-teal/40"
             >
-              <Pencil className="h-3 w-3" />
+              <Pencil className="h-3.5 w-3.5" />
             </Link>
           )}
         </div>
@@ -434,23 +440,33 @@ function ListRow({
         <Download className="h-4 w-4" />
       </button>
 
-      <RowMenu id={q.id} locked={locked} />
+      <RowMenu id={q.id} locked={locked} name={q.name} />
     </li>
   );
 }
 
 /* ───────────────────────── ROW 3-DOT MENU ───────────────────────── */
 
-function RowMenu({ id, locked = false }: { id: string; locked?: boolean }) {
+function RowMenu({
+  id,
+  locked = false,
+  name,
+}: {
+  id: string;
+  locked?: boolean;
+  name: string;
+}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const rootRef = useRef<HTMLDivElement | null>(null);
 
   async function handleDelete() {
+    // Name the QR in the confirm — "Delete this QR code?" gave no clue WHICH
+    // one was about to vanish for users juggling several codes.
     if (
       !window.confirm(
-        "Delete this QR code? This can't be undone — the QR stops working and its scans are removed."
+        `Delete “${name}”? This can't be undone — the QR stops working and its scans are removed.`
       )
     ) {
       return;
