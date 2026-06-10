@@ -1,8 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { generateShortId, isValidShortId } from "@/lib/shortid";
 import bcrypt from "bcryptjs";
 import { parseHttpUrl } from "@/lib/url";
+import { qrCacheSet, qrCacheDelete, toCachedQr } from "@/lib/qr-edge-cache";
 import type { QrCode } from "@/types/database";
 
 // Boundary limits. A QR at error-correction level H can't encode much
@@ -134,6 +135,13 @@ export async function POST(request: Request) {
       { status: collided ? 409 : 400 }
     );
   }
+  // Seed the /r edge cache off the response path (outage armor — see
+  // lib/qr-edge-cache). Static QRs have no short_id and never hit /r.
+  const created = data as QrCode | null;
+  if (created?.short_id) {
+    const sid = created.short_id;
+    after(async () => qrCacheSet(sid, toCachedQr(created)));
+  }
   return NextResponse.json(data);
 }
 
@@ -206,6 +214,14 @@ export async function PATCH(request: Request) {
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  // Keep the /r edge cache truthful the moment an edit/toggle lands — a
+  // destination change or Active⇄Inactive flip must not wait for the
+  // next scan's revalidate to take effect.
+  const updated = data as QrCode | null;
+  if (updated?.short_id) {
+    const sid = updated.short_id;
+    after(async () => qrCacheSet(sid, toCachedQr(updated)));
+  }
   return NextResponse.json(data);
 }
 
