@@ -170,7 +170,9 @@ export default function Step2Content({
 
           {type === "whatsapp" && (
             <div className="space-y-4">
-              <div className="grid grid-cols-[110px_1fr] gap-3">
+              {/* Stack on phones — the fixed 110px code column squeezed the
+                  number input below comfortable width on narrow screens. */}
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-[110px_1fr]">
                 <Field label="Code">
                   <select value={form.countryCode ?? "+966"} onChange={(e) => set("countryCode", e.target.value)} className={inputCls}>
                     {["+966", "+971", "+974", "+973", "+965", "+968"].map((c) => (

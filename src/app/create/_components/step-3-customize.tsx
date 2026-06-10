@@ -182,7 +182,9 @@ export default function Step3Customize({
   // related fields invalidate it.
   const framesGrid = useMemo(
     () => (
-      <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
+        {/* 2-up on phones so each frame thumb stays a comfortable tap
+            target; 3/4-up as width allows. */}
         {FRAMES.map((f) => {
           const active = c.frame_style === f.key;
           return (
@@ -223,7 +225,8 @@ export default function Step3Customize({
   // selection, not on the colour/text edits happening above them.
   const logoPresets = useMemo(
     () => (
-      <div className="mb-4 grid grid-cols-6 gap-2">
+      <div className="mb-4 grid grid-cols-4 gap-2 sm:grid-cols-6">
+        {/* 4-up on phones (≥70px buttons) instead of 6-up (~50px taps). */}
         {LOGO_PRESETS.map((p) => (
           <button
             key={p.key}

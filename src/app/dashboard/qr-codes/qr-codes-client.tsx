@@ -265,7 +265,7 @@ function ListRow({
 
   return (
     <li
-      className={`flex items-center gap-3 px-4 py-3 transition first:rounded-t-2xl last:rounded-b-2xl sm:gap-4 sm:px-5 ${
+      className={`flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3 transition first:rounded-t-2xl last:rounded-b-2xl sm:flex-nowrap sm:gap-4 sm:px-5 ${
         !isLast ? "border-b border-charcoal/5" : ""
       } ${
         // Suspended rows are locked — no hover tint either, so the row
