@@ -3,7 +3,7 @@
 // log, but don't send — honest over fake-send (spec §4).
 
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
-const PROD = "https://masaar-zeta.vercel.app";
+const PROD = "https://quickqrcode.live";
 
 export function buildWelcomeEmailHtml(args: {
   email: string;
@@ -89,7 +89,7 @@ export async function sendContactNotification(args: {
 <h3 style="margin-top:24px;">Message</h3>
 <p style="white-space:pre-wrap;background:#F4F2EE;padding:14px;border-radius:8px;">${escapeHtml(args.message)}</p>
 <hr />
-<p style="color:#999;font-size:12px;">Submitted from masaar-zeta.vercel.app — reply directly to the email above.</p>`.trim();
+<p style="color:#999;font-size:12px;">Submitted from quickqrcode.live — reply directly to the email above.</p>`.trim();
 
   if (!key || !key.startsWith("re_")) {
     console.log(

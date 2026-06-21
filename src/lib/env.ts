@@ -37,8 +37,10 @@ export function supabaseAnonKey(): string {
   );
 }
 
-// Canonical production origin until a custom domain is wired.
-const CANONICAL_PROD_URL = "https://masaar-zeta.vercel.app";
+// Canonical production origin. The custom domain quickqrcode.live is the
+// primary; masaar-zeta.vercel.app stays alive as a Vercel fallback. The
+// NEXT_PUBLIC_APP_URL env var (set in Vercel Production) overrides this.
+const CANONICAL_PROD_URL = "https://quickqrcode.live";
 
 export function appUrl(): string {
   // A real configured value wins — but the Preview scope deliberately
