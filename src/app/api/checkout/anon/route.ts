@@ -12,7 +12,7 @@ export const runtime = "nodejs";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PLANS = ["starter", "pro", "menu_pro"];
-const PROD = "https://masaar-zeta.vercel.app";
+const PROD = "https://quickqrcode.live";
 
 async function sha256_16(s: string): Promise<string> {
   const d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
