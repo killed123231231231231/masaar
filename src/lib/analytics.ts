@@ -679,16 +679,32 @@ export async function getAccountAnalytics(
   };
 }
 
+/** Today's Riyadh calendar day (YYYY-MM-DD). Passed into the analytics cache
+ *  as a key discriminator so a new day busts it immediately — the first load
+ *  of a new day recomputes today's date range instead of serving yesterday's
+ *  stale buckets. Same Riyadh-day basis as the trend chart's dayBucket. */
+export function riyadhDayKey(): string {
+  return dayBucket(new Date().toISOString());
+}
+
 // Perf — cached Overview analytics. getAccountAnalytics scopes every query by
 // userId and never touches cookies/auth, so it's safe to run with the stateless
 // admin client inside unstable_cache (same rationale as getMe in lib/me.ts).
-// 30s TTL keyed by (userId, period, filterQrId): repeat navigations and period
-// toggles within the window return instantly, and ≤30s-stale analytics is
-// harmless. The QR list (qr-codes page) is deliberately NOT cached so a freshly
-// created/edited QR shows immediately.
+// 30s TTL keyed by (userId, period, filterQrId, dayKey): repeat navigations and
+// period toggles within the window return instantly, and ≤30s-stale analytics
+// is harmless. The QR list (qr-codes page) is deliberately NOT cached so a
+// freshly created/edited QR shows immediately.
 export const getAccountAnalyticsCached = unstable_cache(
-  async (userId: string, period: Period, filterQrId: string | null) =>
-    getAccountAnalytics(createAdminClient(), userId, period, filterQrId),
+  // dayKey (Riyadh calendar day) is part of the args ON PURPOSE: unstable_cache
+  // folds the function arguments into the cache key, so a new day → new key →
+  // fresh compute. Without it the entry computed just before midnight was
+  // served past midnight, showing yesterday's date range until it revalidated
+  // (the "chart sits on yesterday, then jumps to today after a few seconds"
+  // bug). It is otherwise unused in the body.
+  async (userId: string, period: Period, filterQrId: string | null, dayKey: string) => {
+    void dayKey;
+    return getAccountAnalytics(createAdminClient(), userId, period, filterQrId);
+  },
   ["account-analytics"],
   { revalidate: 30, tags: ["analytics"] }
 );

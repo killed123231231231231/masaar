@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getAccountAnalyticsCached, parsePeriod } from "@/lib/analytics";
+import { getAccountAnalyticsCached, parsePeriod, riyadhDayKey } from "@/lib/analytics";
 import { getMe } from "@/lib/me";
 import OverviewClient from "./overview-client";
 
@@ -35,7 +35,10 @@ export default async function DashboardPage({
   if (!user) redirect("/?login=1&redirectTo=/dashboard");
 
   const [bundle, me] = await Promise.all([
-    getAccountAnalyticsCached(user.id, period, filterQrId),
+    // riyadhDayKey() joins the cache key so the cache busts at the Riyadh
+    // midnight boundary — no more stale yesterday-range on the first load
+    // of a new day.
+    getAccountAnalyticsCached(user.id, period, filterQrId, riyadhDayKey()),
     getMe(user.id, user.email ?? ""),
   ]);
 
