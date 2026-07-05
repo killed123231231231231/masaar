@@ -3,6 +3,14 @@ import { createServerClient } from "@supabase/ssr";
 import { UAParser } from "ua-parser-js";
 import { qrTarget } from "@/lib/qr-target";
 import { supabaseUrl, supabaseAnonKey } from "@/lib/env";
+import {
+  qrCacheGet,
+  qrCacheSet,
+  qrCacheDelete,
+  qrCacheEnabled,
+  toCachedQr,
+  type CachedQr,
+} from "@/lib/qr-edge-cache";
 
 // Edge runtime is fast and exposes Vercel geo headers
 export const runtime = "edge";
@@ -62,16 +70,30 @@ export async function GET(
     }
   );
 
-  // Resolve via a SECURITY DEFINER function (migration 004): qr_codes has
-  // no public read policy, so anon cannot select password_hash /
-  // payload_json. resolve_qr_v2 returns (id, destination, status,
-  // content_type) for *any* row (status branching happens here, not in SQL).
-  const { data, error } = await supabase.rpc("resolve_qr_v2", {
-    p_short_id: shortId,
-  });
-  const qr = Array.isArray(data) ? data[0] : null;
+  // OUTAGE ARMOR — cache-first resolve. The Upstash edge cache holds a
+  // copy of each QR's routing fields, so a printed QR keeps redirecting
+  // even when Supabase can't answer (the June-2026 free-tier 402 outage
+  // 404'd every printed QR for hours). Source of truth stays the DB:
+  // a hit is revalidated against resolve_qr_v2 in after() below, so an
+  // owner toggle/edit corrects the cache within one scan. With no cache
+  // env configured this returns null instantly and the flow is identical
+  // to the pre-cache behaviour.
+  const cached = await qrCacheGet(shortId);
+  const cacheState = !qrCacheEnabled() ? "off" : cached ? "hit" : "miss";
+  let qr: CachedQr | null = cached;
 
-  if (error || !qr) return notFound();
+  if (!qr) {
+    // Resolve via a SECURITY DEFINER function (migration 004): qr_codes has
+    // no public read policy, so anon cannot select password_hash /
+    // payload_json. resolve_qr_v2 returns (id, destination, status,
+    // content_type) for *any* row (status branching happens here, not in SQL).
+    const { data, error } = await supabase.rpc("resolve_qr_v2", {
+      p_short_id: shortId,
+    });
+    const row = Array.isArray(data) ? data[0] : null;
+    if (error || !row) return notFound();
+    qr = toCachedQr(row);
+  }
 
   // Fail CLOSED: the real destination is reachable on EXACTLY one
   // status ('active'). Every other value — pending_payment, suspended,
@@ -131,30 +153,59 @@ export async function GET(
       ua
     );
 
-  // Log the scan AFTER the redirect is sent, so the bounce is instant. `after`
-  // (stable since Next 15.1 — we're on 15.5) keeps the function alive until the
-  // RPC resolves, so scans still log reliably — unlike a bare fire-and-forget
-  // promise, which the edge runtime tears down with the response. This takes
-  // the log_scan round-trip OFF the critical path, which is what made the
-  // /r/<id> "Masaar link" flash for ~2s before redirecting.
-  if (!isBot) {
-    after(async () => {
-      await supabase.rpc("log_scan", {
-        p_qr_code_id: qr.id,
-        p_country: country,
-        p_region: region,
-        p_city: city,
-        p_device_type: parsed.device.type ?? "desktop",
-        p_os: parsed.os.name ?? null,
-        p_browser: parsed.browser.name ?? null,
-        p_user_agent: ua,
-        p_ip_hash: ipHash,
-      });
-    });
-  }
+  // Everything below runs AFTER the redirect is sent, so the bounce is
+  // instant. `after` (stable since Next 15.1 — we're on 15.5) keeps the
+  // function alive until the work resolves — unlike a bare fire-and-forget
+  // promise, which the edge runtime tears down with the response.
+  //
+  // 1. Cache maintenance runs for EVERY request (bots included — the
+  //    warm-up curl is how a fresh deploy seeds the cache):
+  //    miss → seed from the row we just resolved; hit → revalidate
+  //    against the DB so toggles/edits/deletes correct themselves within
+  //    one scan (if the DB is down the cached copy simply survives —
+  //    that's the armor); row gone → purge.
+  // 2. Scan logging stays human-only and is wrapped so a logging failure
+  //    (e.g. DB outage while serving from cache) can never break a scan.
+  const resolvedQr = qr;
+  after(async () => {
+    try {
+      if (cacheState === "hit") {
+        const { data, error } = await supabase.rpc("resolve_qr_v2", {
+          p_short_id: shortId,
+        });
+        const row = Array.isArray(data) ? data[0] : null;
+        if (row) await qrCacheSet(shortId, toCachedQr(row));
+        else if (!error) await qrCacheDelete(shortId);
+      } else if (cacheState === "miss") {
+        await qrCacheSet(shortId, resolvedQr);
+      }
+    } catch {
+      /* cache upkeep must never break a scan */
+    }
+    if (!isBot) {
+      try {
+        await supabase.rpc("log_scan", {
+          p_qr_code_id: resolvedQr.id,
+          p_country: country,
+          p_region: region,
+          p_city: city,
+          p_device_type: parsed.device.type ?? "desktop",
+          p_os: parsed.os.name ?? null,
+          p_browser: parsed.browser.name ?? null,
+          p_user_agent: ua,
+          p_ip_hash: ipHash,
+        });
+      } catch {
+        /* logging must never break a scan */
+      }
+    }
+  });
 
   const res = NextResponse.redirect(redirectTo, 302);
   for (const [k, v] of Object.entries(NO_STORE)) res.headers.set(k, v);
+  // Observability + deploy verification: off = no cache env configured,
+  // miss = served from DB (cache seeded in after), hit = served from cache.
+  res.headers.set("x-masaar-rcache", cacheState);
   return res;
 }
 
