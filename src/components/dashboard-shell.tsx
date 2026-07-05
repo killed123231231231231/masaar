@@ -17,8 +17,8 @@ export default async function DashboardShell({
   if (!user) redirect("/?login=1&redirectTo=/dashboard");
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="border-b border-gray-100 bg-white">
+    <div className="min-h-screen bg-[#F6F4EE]">
+      <header className="border-b border-charcoal/10 bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
           <Link href="/dashboard" className="flex items-center gap-2">
             <LogoMark className="h-8 w-8" />
@@ -30,7 +30,7 @@ export default async function DashboardShell({
           <nav className="flex items-center gap-2 text-sm">
             <Link
               href="/dashboard"
-              className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-gray-700 hover:bg-gray-100"
+              className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-charcoal/75 hover:bg-sand-light"
             >
               <LayoutDashboard className="h-4 w-4" />
               Dashboard
@@ -45,7 +45,7 @@ export default async function DashboardShell({
             <form action="/auth/signout" method="post">
               <button
                 type="submit"
-                className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-gray-700 hover:bg-gray-100"
+                className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-charcoal/75 hover:bg-sand-light"
                 title="Log out"
               >
                 <LogOut className="h-4 w-4" />
