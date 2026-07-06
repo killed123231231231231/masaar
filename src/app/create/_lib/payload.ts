@@ -9,6 +9,12 @@ import {
 } from "@/lib/content-types";
 import { normalizeUrl } from "@/lib/url";
 import { appUrl } from "@/lib/utils";
+import {
+  cleanHexArray,
+  DOT_PALETTE_MIN,
+  DOT_PALETTE_MAX,
+  CORNER_COUNT,
+} from "@/lib/palette";
 import type { ContentKind, QrKind } from "@/types/database";
 import {
   typeMeta,
@@ -256,14 +262,10 @@ export function buildPayload(args: {
       frame_style: c.frame_style && c.frame_style !== "none" ? c.frame_style : null,
       frame_color: c.frame_color || null,
       text_color: c.text_color || null,
-      dot_palette:
-        Array.isArray(c.dot_palette) && c.dot_palette.length >= 2
-          ? c.dot_palette
-          : null,
-      corner_colors:
-        Array.isArray(c.corner_colors) && c.corner_colors.length === 3
-          ? c.corner_colors
-          : null,
+      // Same strict hex validation as the API/preview — so what we send is
+      // exactly what persists (invalid free-typed hex → null → single-color).
+      dot_palette: cleanHexArray(c.dot_palette, DOT_PALETTE_MIN, DOT_PALETTE_MAX),
+      corner_colors: cleanHexArray(c.corner_colors, CORNER_COUNT, CORNER_COUNT),
       asset_url,
       asset_size,
       asset_mime,

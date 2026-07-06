@@ -95,7 +95,13 @@ export async function POST(request: Request) {
   // Migration 029 — multi-color dots + per-corner colors. Strict hex-array
   // validation; anything malformed is dropped (renders single-color).
   const dotPalette = cleanHexArray(body.dot_palette, DOT_PALETTE_MIN, DOT_PALETTE_MAX);
-  if (dotPalette) insert.dot_palette = dotPalette;
+  if (dotPalette) {
+    insert.dot_palette = dotPalette;
+    // Palette and gradient are mutually exclusive (the renderer lets the
+    // palette win); enforce it server-side so a row never persists both and
+    // the edit UI can't seed a contradictory gradient+multicolor state.
+    insert.gradient_color = null;
+  }
   const cornerColors = cleanHexArray(body.corner_colors, CORNER_COUNT, CORNER_COUNT);
   if (cornerColors) insert.corner_colors = cornerColors;
 
@@ -211,7 +217,12 @@ export async function PATCH(request: Request) {
   if (body.dot_palette === null) patch.dot_palette = null;
   else {
     const dp = cleanHexArray(body.dot_palette, DOT_PALETTE_MIN, DOT_PALETTE_MAX);
-    if (dp) patch.dot_palette = dp;
+    if (dp) {
+      patch.dot_palette = dp;
+      // Mutually exclusive with gradient (renderer: palette wins) — clear any
+      // gradient so the row never holds a contradictory both-on state.
+      patch.gradient_color = null;
+    }
   }
   if (body.corner_colors === null) patch.corner_colors = null;
   else {

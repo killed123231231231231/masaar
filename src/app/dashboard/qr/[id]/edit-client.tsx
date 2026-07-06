@@ -7,6 +7,12 @@ import Step3Customize from "@/app/create/_components/step-3-customize";
 import { DEFAULT_CUSTOMIZATION, type Customization } from "@/app/create/_lib/types";
 import type { QrCode } from "@/types/database";
 import { appUrl } from "@/lib/utils";
+import {
+  cleanHexArray,
+  DOT_PALETTE_MIN,
+  DOT_PALETTE_MAX,
+  CORNER_COUNT,
+} from "@/lib/palette";
 
 export default function EditQrClient({ initial }: { initial: QrCode }) {
   const router = useRouter();
@@ -22,7 +28,10 @@ export default function EditQrClient({ initial }: { initial: QrCode }) {
     ...DEFAULT_CUSTOMIZATION,
     fg_color: initial.fg_color,
     bg_color: initial.bg_color,
-    gradient_color: initial.gradient_color,
+    // If a row somehow carries both a palette and a gradient (legacy/direct
+    // API), the renderer lets the palette win — reflect that in the seed so
+    // the UI never shows a contradictory gradient+multicolor state.
+    gradient_color: initial.dot_palette ? null : initial.gradient_color,
     dot_style: initial.dot_style,
     corner_style: initial.corner_style,
     logo_url: initial.logo_url,
@@ -63,9 +72,11 @@ export default function EditQrClient({ initial }: { initial: QrCode }) {
         frame_style: cust.frame_style,
         frame_color: cust.frame_color,
         text_color: cust.text_color,
-        // null explicitly clears these on the server (PATCH allow-list).
-        dot_palette: cust.dot_palette,
-        corner_colors: cust.corner_colors,
+        // Validate with the same rule as preview/server so what we send is
+        // exactly what persists — invalid → null → explicitly clears (never a
+        // silent divergence between the preview and the saved row).
+        dot_palette: cleanHexArray(cust.dot_palette, DOT_PALETTE_MIN, DOT_PALETTE_MAX),
+        corner_colors: cleanHexArray(cust.corner_colors, CORNER_COUNT, CORNER_COUNT),
       }),
     });
     setSaving(false);

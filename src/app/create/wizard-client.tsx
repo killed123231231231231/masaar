@@ -95,7 +95,13 @@ export default function WizardClient({
           if (s.content_type) setType(s.content_type);
           if (s.form_data) setForm(s.form_data);
           if (s.name) setName(s.name);
-          if (s.customization) setCustom(s.customization);
+          // Merge over DEFAULT_CUSTOMIZATION so a draft saved by an older
+          // build (before a field like dot_palette/corner_colors existed) gets
+          // the default for any missing key — otherwise those keys restore as
+          // `undefined`, which reads as "on" in `!== null` checks and shows
+          // controls in a false state.
+          if (s.customization)
+            setCustom({ ...DEFAULT_CUSTOMIZATION, ...s.customization });
           if (s.max_step) setMaxStep(s.max_step);
           if (s.draft_token) draftToken.current = s.draft_token;
           if (s.short_id) shortId.current = s.short_id;

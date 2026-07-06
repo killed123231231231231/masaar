@@ -15,6 +15,12 @@ import {
   CORNER_STYLES,
   type Customization,
 } from "../_lib/types";
+import {
+  cleanHexArray,
+  DOT_PALETTE_MIN,
+  DOT_PALETTE_MAX,
+  CORNER_COUNT,
+} from "@/lib/palette";
 
 function useDebounced<T>(v: T, ms: number): T {
   const [d, setD] = useState(v);
@@ -94,10 +100,12 @@ export default function Step3Customize({
       cornerStyle: style.corner_style,
       logoUrl: style.logo_url,
       imageSize: style.logo_scale,
-      // `?? null` also covers wizard states restored from localStorage that
-      // predate these fields (their keys are simply absent after JSON.parse).
-      dotPalette: style.dot_palette ?? null,
-      cornerColors: style.corner_colors ?? null,
+      // Gate through the SAME validator the server uses, so the preview (and
+      // the DOM-snapshot download) only render palettes/corners that will
+      // actually persist — an invalid free-typed hex reverts to single-color
+      // here exactly as it does in the saved row. No more preview≠persisted.
+      dotPalette: cleanHexArray(style.dot_palette, DOT_PALETTE_MIN, DOT_PALETTE_MAX),
+      cornerColors: cleanHexArray(style.corner_colors, CORNER_COUNT, CORNER_COUNT),
     }),
     [style]
   );
@@ -303,107 +311,127 @@ export default function Step3Customize({
                 <ColorRow label="Gradient end" value={c.gradient_color} onChange={(v) => set("gradient_color", v)} />
               </div>
             )}
-            <label className="mt-3 flex items-center gap-2 text-sm text-charcoal/70">
-              <input
-                type="checkbox"
-                checked={c.dot_palette !== null}
-                onChange={(e) =>
-                  setC((prev) => ({
-                    ...prev,
-                    dot_palette: e.target.checked
-                      ? [prev.fg_color, "#E07A5F"]
-                      : null,
-                    gradient_color: e.target.checked ? null : prev.gradient_color,
-                  }))
-                }
-              />
-              Multi-color dots (solid colors)
-            </label>
-            {c.dot_palette && (
-              <div className="mt-2 space-y-2">
-                <div className="grid grid-cols-2 gap-4">
-                  {c.dot_palette.map((col, i) => (
-                    <div key={i} className="relative">
-                      <ColorRow
-                        label={`Color ${i + 1}`}
-                        value={col}
-                        onChange={(v) => {
-                          const next = [...c.dot_palette!];
-                          next[i] = v;
-                          set("dot_palette", next);
-                        }}
-                      />
-                      {c.dot_palette!.length > 2 && (
-                        <button
-                          type="button"
-                          aria-label={`Remove color ${i + 1}`}
-                          onClick={() =>
-                            set(
-                              "dot_palette",
-                              c.dot_palette!.filter((_, j) => j !== i)
-                            )
-                          }
-                          className="absolute right-0 top-0 text-xs text-charcoal/45 hover:text-terracotta"
-                        >
-                          Remove
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-                {c.dot_palette.length < 4 && (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      set("dot_palette", [...c.dot_palette!, "#0F5B55"])
+            {/* Multi-color + per-corner colors persist only for authed users
+                (anon create → create_anon_qr RPC drops them, same as frames /
+                password). Gating avoids showing a preview the paid/claimed QR
+                can't reproduce. `!!` (not `!== null`) so a pre-feature draft
+                restored with these keys absent reads as OFF, not checked. */}
+            {isAuthed && (
+              <>
+                <label className="mt-3 flex items-center gap-2 text-sm text-charcoal/70">
+                  <input
+                    type="checkbox"
+                    checked={!!c.dot_palette}
+                    onChange={(e) =>
+                      setC((prev) => ({
+                        ...prev,
+                        dot_palette: e.target.checked
+                          ? [prev.fg_color, "#E07A5F"]
+                          : null,
+                        gradient_color: e.target.checked ? null : prev.gradient_color,
+                      }))
                     }
-                    className="rounded-lg border border-charcoal/15 px-3 py-1.5 text-xs font-medium text-charcoal/75 hover:bg-sand-light"
-                  >
-                    + Add color (up to 4)
-                  </button>
+                  />
+                  Multi-color dots (solid colors)
+                </label>
+                {c.dot_palette && (
+                  <div className="mt-2 space-y-2">
+                    <div className="grid grid-cols-2 gap-4">
+                      {c.dot_palette.map((col, i) => (
+                        <div key={i} className="relative">
+                          <ColorRow
+                            label={`Color ${i + 1}`}
+                            value={col}
+                            onChange={(v) => {
+                              const next = [...c.dot_palette!];
+                              next[i] = v;
+                              set("dot_palette", next);
+                            }}
+                          />
+                          {c.dot_palette!.length > 2 && (
+                            <button
+                              type="button"
+                              aria-label={`Remove color ${i + 1}`}
+                              onClick={() =>
+                                set(
+                                  "dot_palette",
+                                  c.dot_palette!.filter((_, j) => j !== i)
+                                )
+                              }
+                              className="absolute right-0 top-0 text-xs text-charcoal/45 hover:text-terracotta"
+                            >
+                              Remove
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    {c.dot_palette.length < 4 && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          set("dot_palette", [...c.dot_palette!, "#0F5B55"])
+                        }
+                        className="rounded-lg border border-charcoal/15 px-3 py-1.5 text-xs font-medium text-charcoal/75 hover:bg-sand-light"
+                      >
+                        + Add color (up to 4)
+                      </button>
+                    )}
+                    <p className="text-xs text-charcoal/45">
+                      Each color must be a 6-digit hex (e.g. #FFC107) — use the
+                      swatch to be sure. Dots are colored in a fixed scattered
+                      pattern, so your download always matches the preview.
+                    </p>
+                  </div>
                 )}
-                <p className="text-xs text-charcoal/45">
-                  Dots are colored in a fixed scattered pattern — your download
-                  always matches the preview, scan after scan.
-                </p>
-              </div>
+              </>
             )}
             <div className="mt-4 grid grid-cols-2 gap-4">
               <SelectRow label="QR shape" value={c.dot_style} options={DOT_STYLES} onChange={(v) => set("dot_style", v)} />
               <SelectRow label="Corner shape" value={c.corner_style} options={CORNER_STYLES} onChange={(v) => set("corner_style", v)} />
             </div>
-            <label className="mt-3 flex items-center gap-2 text-sm text-charcoal/70">
-              <input
-                type="checkbox"
-                checked={c.corner_colors !== null}
-                onChange={(e) =>
-                  set(
-                    "corner_colors",
-                    e.target.checked
-                      ? [c.fg_color, c.fg_color, c.fg_color]
-                      : null
-                  )
-                }
-              />
-              Custom corner colors
-            </label>
-            {c.corner_colors && (
-              <div className="mt-2 grid grid-cols-3 gap-3">
-                {(["Top left", "Top right", "Bottom left"] as const).map(
-                  (label, i) => (
-                    <ColorRow
-                      key={label}
-                      label={label}
-                      value={c.corner_colors![i]}
-                      onChange={(v) => {
-                        const next = [...c.corner_colors!];
-                        next[i] = v;
-                        set("corner_colors", next);
-                      }}
-                    />
-                  )
+            {isAuthed ? (
+              <>
+                <label className="mt-3 flex items-center gap-2 text-sm text-charcoal/70">
+                  <input
+                    type="checkbox"
+                    checked={!!c.corner_colors}
+                    onChange={(e) =>
+                      set(
+                        "corner_colors",
+                        e.target.checked
+                          ? [c.fg_color, c.fg_color, c.fg_color]
+                          : null
+                      )
+                    }
+                  />
+                  Custom corner colors
+                </label>
+                {c.corner_colors && (
+                  <div className="mt-2 grid grid-cols-3 gap-3">
+                    {(["Top left", "Top right", "Bottom left"] as const).map(
+                      (label, i) => (
+                        <ColorRow
+                          key={label}
+                          label={label}
+                          value={c.corner_colors![i]}
+                          onChange={(v) => {
+                            const next = [...c.corner_colors!];
+                            next[i] = v;
+                            set("corner_colors", next);
+                          }}
+                        />
+                      )
+                    )}
+                  </div>
                 )}
-              </div>
+              </>
+            ) : (
+              <p className="mt-3 rounded-lg bg-sand-light/60 p-2.5 text-xs text-charcoal/55">
+                Multi-color dots &amp; custom corner colors are available once you
+                have an account — create this QR, then style it from your
+                dashboard.
+              </p>
             )}
             <label className="mt-4 block">
               <span className="mb-1 block text-sm font-medium text-charcoal/75">QR text label</span>
