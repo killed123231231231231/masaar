@@ -125,18 +125,41 @@ export default function Step3Customize({
     return Math.min(12, Math.max(3, Math.ceil(EXPORT_TARGET_PX / w)));
   }
 
+  /** Exports must contain JUST the QR — not the on-screen preview card.
+   *  Strips the card chrome (border / rounded corners / shadow) from the
+   *  .qr-live wrapper for the duration of the snapshot and restores it
+   *  after, so the screen keeps its card look while the downloaded file is
+   *  a clean QR on plain white. The white padding is kept deliberately —
+   *  that's the quiet zone scanners rely on. */
+  async function withBareQrChrome<T>(
+    node: HTMLElement,
+    run: () => Promise<T>
+  ): Promise<T> {
+    const card = node.querySelector<HTMLElement>(".qr-live");
+    const saved = card ? card.style.cssText : "";
+    if (card) {
+      card.style.cssText = `${saved}; border: none; border-radius: 0; box-shadow: none;`;
+    }
+    try {
+      return await run();
+    } finally {
+      if (card) card.style.cssText = saved;
+    }
+  }
+
   async function downloadFramed(format: "png" | "svg") {
     const node = previewRef.current;
     if (!node) return;
     const lib = await import("html-to-image");
-    const dataUrl =
+    const dataUrl = await withBareQrChrome(node, async () =>
       format === "png"
-        ? await lib.toPng(node, {
+        ? lib.toPng(node, {
             pixelRatio: exportPixelRatio(node),
             cacheBust: true,
             backgroundColor: "#ffffff",
           })
-        : await lib.toSvg(node, { cacheBust: true });
+        : lib.toSvg(node, { cacheBust: true })
+    );
     const a = document.createElement("a");
     a.href = dataUrl;
     a.download = `masaar-qr.${format}`;
@@ -153,11 +176,13 @@ export default function Step3Customize({
       import("pdf-lib"),
     ]);
     const { PDFDocument, rgb, StandardFonts } = pdfLib;
-    const pngUrl = await toPng(node, {
-      pixelRatio: exportPixelRatio(node),
-      backgroundColor: "#ffffff",
-      cacheBust: true,
-    });
+    const pngUrl = await withBareQrChrome(node, () =>
+      toPng(node, {
+        pixelRatio: exportPixelRatio(node),
+        backgroundColor: "#ffffff",
+        cacheBust: true,
+      })
+    );
     const pngBytes = await (await fetch(pngUrl)).arrayBuffer();
     const pdf = await PDFDocument.create();
     const A4 = { w: 595.28, h: 841.89 };
