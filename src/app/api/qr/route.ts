@@ -4,6 +4,12 @@ import { generateShortId, isValidShortId } from "@/lib/shortid";
 import bcrypt from "bcryptjs";
 import { parseHttpUrl } from "@/lib/url";
 import { qrCacheSet, qrCacheDelete, toCachedQr } from "@/lib/qr-edge-cache";
+import {
+  cleanHexArray,
+  DOT_PALETTE_MIN,
+  DOT_PALETTE_MAX,
+  CORNER_COUNT,
+} from "@/lib/palette";
 import type { QrCode } from "@/types/database";
 
 // Boundary limits. A QR at error-correction level H can't encode much
@@ -85,6 +91,19 @@ export async function POST(request: Request) {
     insert.frame_style = body.frame_style;
   if (typeof body.frame_color === "string") insert.frame_color = body.frame_color;
   if (typeof body.text_color === "string") insert.text_color = body.text_color;
+
+  // Migration 029 — multi-color dots + per-corner colors. Strict hex-array
+  // validation; anything malformed is dropped (renders single-color).
+  const dotPalette = cleanHexArray(body.dot_palette, DOT_PALETTE_MIN, DOT_PALETTE_MAX);
+  if (dotPalette) {
+    insert.dot_palette = dotPalette;
+    // Palette and gradient are mutually exclusive (the renderer lets the
+    // palette win); enforce it server-side so a row never persists both and
+    // the edit UI can't seed a contradictory gradient+multicolor state.
+    insert.gradient_color = null;
+  }
+  const cornerColors = cleanHexArray(body.corner_colors, CORNER_COUNT, CORNER_COUNT);
+  if (cornerColors) insert.corner_colors = cornerColors;
 
   // A dynamic QR's printed code points at /r/<shortId>, which 302s to
   // `destination`. Reject anything that isn't a valid http(s) URL up front
@@ -192,6 +211,24 @@ export async function PATCH(request: Request) {
     patch.frame_style = body.frame_style !== "none" ? body.frame_style : null;
   if (typeof body.frame_color === "string") patch.frame_color = body.frame_color;
   if (typeof body.text_color === "string") patch.text_color = body.text_color;
+
+  // Migration 029 — multi-color dots + per-corner colors. Explicit null
+  // clears the feature; a valid hex array sets it; anything else is ignored.
+  if (body.dot_palette === null) patch.dot_palette = null;
+  else {
+    const dp = cleanHexArray(body.dot_palette, DOT_PALETTE_MIN, DOT_PALETTE_MAX);
+    if (dp) {
+      patch.dot_palette = dp;
+      // Mutually exclusive with gradient (renderer: palette wins) — clear any
+      // gradient so the row never holds a contradictory both-on state.
+      patch.gradient_color = null;
+    }
+  }
+  if (body.corner_colors === null) patch.corner_colors = null;
+  else {
+    const cc = cleanHexArray(body.corner_colors, CORNER_COUNT, CORNER_COUNT);
+    if (cc) patch.corner_colors = cc;
+  }
 
   // Owner-facing Active/Inactive toggle: accept ONLY the literal values
   // "active" or "suspended" (draft/pending_payment are workflow-gated and must
