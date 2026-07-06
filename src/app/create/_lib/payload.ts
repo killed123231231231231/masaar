@@ -43,6 +43,10 @@ export interface QrSavePayload {
   frame_style: string | null;
   frame_color: string | null;
   text_color: string | null;
+  // Multi-color solid dots (2–4 hexes) + per-corner finder colors
+  // ([TL, TR, BL]) — validated server-side in /api/qr.
+  dot_palette: string[] | null;
+  corner_colors: string[] | null;
   // C — file content types. destination carries the asset URL (so the
   // existing save routes persist it unchanged); these mirror it for
   // forward-compat with a future asset-column-aware edit flow.
@@ -252,6 +256,14 @@ export function buildPayload(args: {
       frame_style: c.frame_style && c.frame_style !== "none" ? c.frame_style : null,
       frame_color: c.frame_color || null,
       text_color: c.text_color || null,
+      dot_palette:
+        Array.isArray(c.dot_palette) && c.dot_palette.length >= 2
+          ? c.dot_palette
+          : null,
+      corner_colors:
+        Array.isArray(c.corner_colors) && c.corner_colors.length === 3
+          ? c.corner_colors
+          : null,
       asset_url,
       asset_size,
       asset_mime,

@@ -54,6 +54,10 @@ export interface QrCode {
   corner_dot_shape: string | null;
   logo_scale: number | null;
   password_set_at: string | null;
+  // Migration 029 — multi-color solid dots (2–4 hexes) + per-corner finder
+  // colors ([TL, TR, BL]). Both nullable; null = classic single-color.
+  dot_palette: string[] | null;
+  corner_colors: string[] | null;
   // C — file-hosted content types (pdf/image/video). Nullable; populated
   // for file QRs. asset_url falls back to `destination` in resolve_asset_qr.
   asset_url: string | null;

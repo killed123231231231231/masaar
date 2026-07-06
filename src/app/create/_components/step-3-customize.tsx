@@ -94,6 +94,10 @@ export default function Step3Customize({
       cornerStyle: style.corner_style,
       logoUrl: style.logo_url,
       imageSize: style.logo_scale,
+      // `?? null` also covers wizard states restored from localStorage that
+      // predate these fields (their keys are simply absent after JSON.parse).
+      dotPalette: style.dot_palette ?? null,
+      cornerColors: style.corner_colors ?? null,
     }),
     [style]
   );
@@ -282,7 +286,15 @@ export default function Step3Customize({
               <input
                 type="checkbox"
                 checked={c.gradient_color !== null}
-                onChange={(e) => set("gradient_color", e.target.checked ? c.fg_color : null)}
+                onChange={(e) =>
+                  // Gradient and multi-color are mutually exclusive — turning
+                  // one on switches the other off.
+                  setC((prev) => ({
+                    ...prev,
+                    gradient_color: e.target.checked ? prev.fg_color : null,
+                    dot_palette: e.target.checked ? null : prev.dot_palette,
+                  }))
+                }
               />
               Gradient
             </label>
@@ -291,10 +303,108 @@ export default function Step3Customize({
                 <ColorRow label="Gradient end" value={c.gradient_color} onChange={(v) => set("gradient_color", v)} />
               </div>
             )}
+            <label className="mt-3 flex items-center gap-2 text-sm text-charcoal/70">
+              <input
+                type="checkbox"
+                checked={c.dot_palette !== null}
+                onChange={(e) =>
+                  setC((prev) => ({
+                    ...prev,
+                    dot_palette: e.target.checked
+                      ? [prev.fg_color, "#E07A5F"]
+                      : null,
+                    gradient_color: e.target.checked ? null : prev.gradient_color,
+                  }))
+                }
+              />
+              Multi-color dots (solid colors)
+            </label>
+            {c.dot_palette && (
+              <div className="mt-2 space-y-2">
+                <div className="grid grid-cols-2 gap-4">
+                  {c.dot_palette.map((col, i) => (
+                    <div key={i} className="relative">
+                      <ColorRow
+                        label={`Color ${i + 1}`}
+                        value={col}
+                        onChange={(v) => {
+                          const next = [...c.dot_palette!];
+                          next[i] = v;
+                          set("dot_palette", next);
+                        }}
+                      />
+                      {c.dot_palette!.length > 2 && (
+                        <button
+                          type="button"
+                          aria-label={`Remove color ${i + 1}`}
+                          onClick={() =>
+                            set(
+                              "dot_palette",
+                              c.dot_palette!.filter((_, j) => j !== i)
+                            )
+                          }
+                          className="absolute right-0 top-0 text-xs text-charcoal/45 hover:text-terracotta"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                {c.dot_palette.length < 4 && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      set("dot_palette", [...c.dot_palette!, "#0F5B55"])
+                    }
+                    className="rounded-lg border border-charcoal/15 px-3 py-1.5 text-xs font-medium text-charcoal/75 hover:bg-sand-light"
+                  >
+                    + Add color (up to 4)
+                  </button>
+                )}
+                <p className="text-xs text-charcoal/45">
+                  Dots are colored in a fixed scattered pattern — your download
+                  always matches the preview, scan after scan.
+                </p>
+              </div>
+            )}
             <div className="mt-4 grid grid-cols-2 gap-4">
               <SelectRow label="QR shape" value={c.dot_style} options={DOT_STYLES} onChange={(v) => set("dot_style", v)} />
               <SelectRow label="Corner shape" value={c.corner_style} options={CORNER_STYLES} onChange={(v) => set("corner_style", v)} />
             </div>
+            <label className="mt-3 flex items-center gap-2 text-sm text-charcoal/70">
+              <input
+                type="checkbox"
+                checked={c.corner_colors !== null}
+                onChange={(e) =>
+                  set(
+                    "corner_colors",
+                    e.target.checked
+                      ? [c.fg_color, c.fg_color, c.fg_color]
+                      : null
+                  )
+                }
+              />
+              Custom corner colors
+            </label>
+            {c.corner_colors && (
+              <div className="mt-2 grid grid-cols-3 gap-3">
+                {(["Top left", "Top right", "Bottom left"] as const).map(
+                  (label, i) => (
+                    <ColorRow
+                      key={label}
+                      label={label}
+                      value={c.corner_colors![i]}
+                      onChange={(v) => {
+                        const next = [...c.corner_colors!];
+                        next[i] = v;
+                        set("corner_colors", next);
+                      }}
+                    />
+                  )
+                )}
+              </div>
+            )}
             <label className="mt-4 block">
               <span className="mb-1 block text-sm font-medium text-charcoal/75">QR text label</span>
               <input

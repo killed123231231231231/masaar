@@ -15,6 +15,10 @@ export interface StyledQrProps {
   cornerStyle?: string;
   logoUrl?: string | null;
   imageSize?: number;
+  /** Multi-color solid dots (2–4 hexes) — see lib/qr QrStyle. */
+  dotPalette?: string[] | null;
+  /** Per-corner finder colors [TL, TR, BL] — see lib/qr QrStyle. */
+  cornerColors?: string[] | null;
   /** Display size in CSS px (square). Also drives the internal render
    *  resolution. When `fill` is set this is only the resolution hint. */
   size?: number;
@@ -45,12 +49,20 @@ export default function StyledQr({
   cornerStyle,
   logoUrl,
   imageSize,
+  dotPalette,
+  cornerColors,
   size = 56,
   fill = false,
   className = "",
 }: StyledQrProps) {
   const ref = useRef<HTMLDivElement | null>(null);
   const [styled, setStyled] = useState(false);
+
+  // Stable dep keys — the arrays arrive as fresh references on every parent
+  // render; keying on their JSON keeps the effect from re-firing needlessly
+  // (the C4 thumbnail-perf concern).
+  const paletteKey = JSON.stringify(dotPalette ?? null);
+  const cornersKey = JSON.stringify(cornerColors ?? null);
 
   useEffect(() => {
     let cancelled = false;
@@ -70,6 +82,8 @@ export default function StyledQr({
           cornerStyle,
           logoUrl,
           imageSize,
+          dotPalette,
+          cornerColors,
         });
         if (cancelled || !ref.current) return;
         ref.current.innerHTML = "";
@@ -98,6 +112,10 @@ export default function StyledQr({
       if (idleId !== undefined) w?.cancelIdleCallback?.(idleId);
       if (timeoutId !== undefined) clearTimeout(timeoutId);
     };
+    // paletteKey/cornersKey stand in for the dotPalette/cornerColors arrays
+    // (value-stable keys; fresh array identities every render would refire
+    // the effect each parent render).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     data,
     fgColor,
@@ -107,6 +125,8 @@ export default function StyledQr({
     cornerStyle,
     logoUrl,
     imageSize,
+    paletteKey,
+    cornersKey,
     size,
   ]);
 

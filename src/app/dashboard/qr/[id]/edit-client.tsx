@@ -32,6 +32,8 @@ export default function EditQrClient({ initial }: { initial: QrCode }) {
     frame_color: initial.frame_color ?? DEFAULT_CUSTOMIZATION.frame_color,
     text_color: initial.text_color ?? DEFAULT_CUSTOMIZATION.text_color,
     password: "",
+    dot_palette: initial.dot_palette ?? null,
+    corner_colors: initial.corner_colors ?? null,
   });
 
   // Dynamic QRs always encode /r/<short_id> (so the destination stays
@@ -61,6 +63,9 @@ export default function EditQrClient({ initial }: { initial: QrCode }) {
         frame_style: cust.frame_style,
         frame_color: cust.frame_color,
         text_color: cust.text_color,
+        // null explicitly clears these on the server (PATCH allow-list).
+        dot_palette: cust.dot_palette,
+        corner_colors: cust.corner_colors,
       }),
     });
     setSaving(false);

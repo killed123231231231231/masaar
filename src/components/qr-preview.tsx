@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { createQr, type QrStyle } from "@/lib/qr";
+import { createQr, setQrExtras, type QrStyle } from "@/lib/qr";
 
 export default function QrPreview({
   style,
@@ -32,6 +32,12 @@ export default function QrPreview({
   // Update when style changes
   useEffect(() => {
     if (!qrRef.current) return;
+    // Refresh the multi-color/corner extras BEFORE update() — the render
+    // extension re-reads them after the redraw.
+    setQrExtras(qrRef.current, {
+      dotPalette: style.dotPalette ?? null,
+      cornerColors: style.cornerColors ?? null,
+    });
     qrRef.current.update({
       data: style.data,
       image: style.logoUrl || style.logoDataUrl || undefined,

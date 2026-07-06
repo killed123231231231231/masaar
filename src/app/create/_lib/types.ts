@@ -102,6 +102,12 @@ export interface Customization {
   frame_style: string;
   frame_color: string;
   text_color: string;
+  /** Multi-color solid dots: 2–4 hexes scattered deterministically across
+   *  the data dots. Mutually exclusive with gradient_color. null = off. */
+  dot_palette: string[] | null;
+  /** Per-corner finder colors, exactly 3: [top-left, top-right,
+   *  bottom-left]. null = all corners follow fg_color. */
+  corner_colors: string[] | null;
 }
 
 export const DEFAULT_CUSTOMIZATION: Customization = {
@@ -117,6 +123,8 @@ export const DEFAULT_CUSTOMIZATION: Customization = {
   frame_style: "none",
   frame_color: "#0F5B55",
   text_color: "#FFFFFF",
+  dot_palette: null,
+  corner_colors: null,
 };
 
 export const DOT_STYLES = [
