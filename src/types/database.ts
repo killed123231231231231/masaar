@@ -62,8 +62,10 @@ export interface QrCode {
   // sprinkle). Nullable; null = plain scattered multi-color.
   palette_options: {
     mode?: string;
+    weights?: number[] | null;
     accent_color?: string | null;
     accent_share?: number;
+    accent_style?: string;
     cluster_size?: number;
   } | null;
   // C — file-hosted content types (pdf/image/video). Nullable; populated

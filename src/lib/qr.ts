@@ -2,12 +2,7 @@
 // renderer, so this module must be imported in client components only.
 
 import type { Options as QrOptions } from "qr-code-styling";
-import {
-  pickPaletteColor,
-  pickClusterColor,
-  isAccentDot,
-  type PaletteOptions,
-} from "@/lib/palette";
+import { pickPaletteColor, resolveDotColor, type PaletteOptions } from "@/lib/palette";
 
 export interface QrStyle {
   data: string;
@@ -130,7 +125,8 @@ function applyMasaarSvgStyle(svg: SVGElement, extras: QrExtras): void {
     });
 
     const opts = extras.paletteOptions;
-    if (opts && (opts.mode === "cluster" || opts.accent_color)) {
+    const needsPositions = !!opts && (opts.mode !== "scatter" || !!opts.accent_color);
+    if (opts && needsPositions) {
       // Position-based coloring: measure each dot's bbox, reconstruct its
       // (col,row) on the module grid, and hash on POSITION instead of index.
       // Positions are ratios of the module size, so the 320px preview and the
@@ -150,25 +146,13 @@ function applyMasaarSvgStyle(svg: SVGElement, extras: QrExtras): void {
       const unit = sizes[Math.floor(sizes.length / 2)] || 1; // median = module size
       clones.forEach((clone, i) => {
         const b = boxes[i];
-        let fill: string;
-        if (!b) {
-          fill = pickPaletteColor(palette, i); // measurement failed → scatter
-        } else {
-          const col = Math.round((b.x - minX) / unit);
-          const row = Math.round((b.y - minY) / unit);
-          if (opts.accent_color && isAccentDot(col, row, opts.accent_share)) {
-            fill = opts.accent_color;
-          } else if (opts.mode === "cluster") {
-            fill = pickClusterColor(palette, col, row, opts.cluster_size);
-          } else {
-            fill = pickPaletteColor(palette, i);
-          }
-        }
-        clone.setAttribute("fill", fill);
+        const col = b ? Math.round((b.x - minX) / unit) : null;
+        const row = b ? Math.round((b.y - minY) / unit) : null;
+        clone.setAttribute("fill", resolveDotColor(palette, opts, col, row, i));
       });
     } else {
       clones.forEach((clone, i) =>
-        clone.setAttribute("fill", pickPaletteColor(palette, i))
+        clone.setAttribute("fill", resolveDotColor(palette, opts ?? null, null, null, i))
       );
     }
   } else if (paintRect) {
