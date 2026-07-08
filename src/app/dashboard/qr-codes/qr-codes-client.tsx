@@ -34,6 +34,7 @@ export interface QrCardData {
   logo_url: string | null;
   dot_palette: string[] | null;
   corner_colors: string[] | null;
+  palette_options: import("@/lib/palette").PaletteOptions | null;
 }
 
 const STATUS_TINT: Record<string, string> = {
@@ -259,6 +260,7 @@ function ListRow({
       logoUrl: q.logo_url,
       dotPalette: q.dot_palette,
       cornerColors: q.corner_colors,
+      paletteOptions: q.palette_options,
     });
     await qr.download({ name: q.name || "masaar-qr", extension: "png" });
   }
@@ -300,6 +302,7 @@ function ListRow({
             logoUrl={q.logo_url}
             dotPalette={q.dot_palette}
             cornerColors={q.corner_colors}
+            paletteOptions={q.palette_options}
             size={84}
             fill
           />

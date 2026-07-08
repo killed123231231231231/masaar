@@ -1,4 +1,5 @@
 import type { ContentKind, QrKind } from "@/types/database";
+import type { PaletteOptions } from "@/lib/palette";
 
 // Wizard-level content type. Superset of backend ContentKind — the
 // extra ones (pdf/image/video/location/feedback/menu/payment) are
@@ -108,6 +109,9 @@ export interface Customization {
   /** Per-corner finder colors, exactly 3: [top-left, top-right,
    *  bottom-left]. null = all corners follow fg_color. */
   corner_colors: string[] | null;
+  /** Distribution options for dot_palette: cluster mode (blobby regions)
+   *  and/or a rare accent sprinkle color. null = plain scatter. */
+  palette_options: PaletteOptions | null;
 }
 
 export const DEFAULT_CUSTOMIZATION: Customization = {
@@ -125,6 +129,7 @@ export const DEFAULT_CUSTOMIZATION: Customization = {
   text_color: "#FFFFFF",
   dot_palette: null,
   corner_colors: null,
+  palette_options: null,
 };
 
 export const DOT_STYLES = [

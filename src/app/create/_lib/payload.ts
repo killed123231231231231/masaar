@@ -11,9 +11,11 @@ import { normalizeUrl } from "@/lib/url";
 import { appUrl } from "@/lib/utils";
 import {
   cleanHexArray,
+  cleanPaletteOptions,
   DOT_PALETTE_MIN,
   DOT_PALETTE_MAX,
   CORNER_COUNT,
+  type PaletteOptions,
 } from "@/lib/palette";
 import type { ContentKind, QrKind } from "@/types/database";
 import {
@@ -50,9 +52,10 @@ export interface QrSavePayload {
   frame_color: string | null;
   text_color: string | null;
   // Multi-color solid dots (2–4 hexes) + per-corner finder colors
-  // ([TL, TR, BL]) — validated server-side in /api/qr.
+  // ([TL, TR, BL]) + distribution options — validated server-side in /api/qr.
   dot_palette: string[] | null;
   corner_colors: string[] | null;
+  palette_options: PaletteOptions | null;
   // C — file content types. destination carries the asset URL (so the
   // existing save routes persist it unchanged); these mirror it for
   // forward-compat with a future asset-column-aware edit flow.
@@ -266,6 +269,7 @@ export function buildPayload(args: {
       // exactly what persists (invalid free-typed hex → null → single-color).
       dot_palette: cleanHexArray(c.dot_palette, DOT_PALETTE_MIN, DOT_PALETTE_MAX),
       corner_colors: cleanHexArray(c.corner_colors, CORNER_COUNT, CORNER_COUNT),
+      palette_options: cleanPaletteOptions(c.palette_options),
       asset_url,
       asset_size,
       asset_mime,

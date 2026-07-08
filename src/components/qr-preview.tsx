@@ -37,6 +37,7 @@ export default function QrPreview({
     setQrExtras(qrRef.current, {
       dotPalette: style.dotPalette ?? null,
       cornerColors: style.cornerColors ?? null,
+      paletteOptions: style.paletteOptions ?? null,
     });
     qrRef.current.update({
       data: style.data,

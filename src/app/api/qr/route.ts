@@ -6,6 +6,7 @@ import { parseHttpUrl } from "@/lib/url";
 import { qrCacheSet, qrCacheDelete, toCachedQr } from "@/lib/qr-edge-cache";
 import {
   cleanHexArray,
+  cleanPaletteOptions,
   DOT_PALETTE_MIN,
   DOT_PALETTE_MAX,
   CORNER_COUNT,
@@ -104,6 +105,9 @@ export async function POST(request: Request) {
   }
   const cornerColors = cleanHexArray(body.corner_colors, CORNER_COUNT, CORNER_COUNT);
   if (cornerColors) insert.corner_colors = cornerColors;
+  // Migration 030 — distribution options only make sense with a palette.
+  const paletteOptions = dotPalette ? cleanPaletteOptions(body.palette_options) : null;
+  if (paletteOptions) insert.palette_options = paletteOptions;
 
   // A dynamic QR's printed code points at /r/<shortId>, which 302s to
   // `destination`. Reject anything that isn't a valid http(s) URL up front
@@ -228,6 +232,14 @@ export async function PATCH(request: Request) {
   else {
     const cc = cleanHexArray(body.corner_colors, CORNER_COUNT, CORNER_COUNT);
     if (cc) patch.corner_colors = cc;
+  }
+  // Migration 030 — same explicit-null-clears semantics as the arrays. If the
+  // palette itself is being cleared, the options go with it.
+  if (body.palette_options === null || patch.dot_palette === null) {
+    patch.palette_options = null;
+  } else {
+    const po = cleanPaletteOptions(body.palette_options);
+    if (po) patch.palette_options = po;
   }
 
   // Owner-facing Active/Inactive toggle: accept ONLY the literal values

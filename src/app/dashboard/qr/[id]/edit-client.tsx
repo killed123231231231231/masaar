@@ -9,6 +9,7 @@ import type { QrCode } from "@/types/database";
 import { appUrl } from "@/lib/utils";
 import {
   cleanHexArray,
+  cleanPaletteOptions,
   DOT_PALETTE_MIN,
   DOT_PALETTE_MAX,
   CORNER_COUNT,
@@ -43,6 +44,7 @@ export default function EditQrClient({ initial }: { initial: QrCode }) {
     password: "",
     dot_palette: initial.dot_palette ?? null,
     corner_colors: initial.corner_colors ?? null,
+    palette_options: cleanPaletteOptions(initial.palette_options),
   });
 
   // Dynamic QRs always encode /r/<short_id> (so the destination stays
@@ -77,6 +79,7 @@ export default function EditQrClient({ initial }: { initial: QrCode }) {
         // silent divergence between the preview and the saved row).
         dot_palette: cleanHexArray(cust.dot_palette, DOT_PALETTE_MIN, DOT_PALETTE_MAX),
         corner_colors: cleanHexArray(cust.corner_colors, CORNER_COUNT, CORNER_COUNT),
+        palette_options: cleanPaletteOptions(cust.palette_options),
       }),
     });
     setSaving(false);

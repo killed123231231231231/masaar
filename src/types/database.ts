@@ -58,6 +58,14 @@ export interface QrCode {
   // colors ([TL, TR, BL]). Both nullable; null = classic single-color.
   dot_palette: string[] | null;
   corner_colors: string[] | null;
+  // Migration 030 — palette distribution options (cluster mode + accent
+  // sprinkle). Nullable; null = plain scattered multi-color.
+  palette_options: {
+    mode?: string;
+    accent_color?: string | null;
+    accent_share?: number;
+    cluster_size?: number;
+  } | null;
   // C — file-hosted content types (pdf/image/video). Nullable; populated
   // for file QRs. asset_url falls back to `destination` in resolve_asset_qr.
   asset_url: string | null;
