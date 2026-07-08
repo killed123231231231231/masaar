@@ -314,6 +314,7 @@ export default function Step3Customize({
           </Acc>
 
           <Acc title="Customization" defaultOpen>
+            {isAuthed && <StylePresets c={c} setC={setC} />}
             <div className="grid grid-cols-2 gap-4">
               <ColorRow label="QR color" value={c.fg_color} onChange={(v) => set("fg_color", v)} />
               <ColorRow label="Background" value={c.bg_color} onChange={(v) => set("bg_color", v)} />
@@ -376,15 +377,56 @@ export default function Step3Customize({
                               set("dot_palette", next);
                             }}
                           />
+                          <label className="mt-1 flex items-center gap-1.5 text-xs text-charcoal/55">
+                            Weight
+                            <input
+                              type="number"
+                              min={1}
+                              max={100}
+                              value={
+                                c.palette_options?.weights?.length === c.dot_palette!.length
+                                  ? c.palette_options.weights[i]
+                                  : Math.round(100 / c.dot_palette!.length)
+                              }
+                              onChange={(e) => {
+                                const n = c.dot_palette!.length;
+                                const w =
+                                  c.palette_options?.weights?.length === n
+                                    ? [...c.palette_options.weights]
+                                    : Array(n).fill(Math.round(100 / n));
+                                w[i] = Math.max(1, Math.min(100, Math.round(Number(e.target.value) || 1)));
+                                setC((prev) => ({
+                                  ...prev,
+                                  palette_options: cleanPaletteOptions({
+                                    ...(prev.palette_options ?? {}),
+                                    weights: w,
+                                  }),
+                                }));
+                              }}
+                              className="h-7 w-16 rounded border border-charcoal/15 px-1.5 text-xs"
+                            />
+                            %
+                          </label>
                           {c.dot_palette!.length > 2 && (
                             <button
                               type="button"
                               aria-label={`Remove color ${i + 1}`}
                               onClick={() =>
-                                set(
-                                  "dot_palette",
-                                  c.dot_palette!.filter((_, j) => j !== i)
-                                )
+                                setC((prev) => {
+                                  const nextPal = prev.dot_palette!.filter((_, j) => j !== i);
+                                  const w = prev.palette_options?.weights;
+                                  return {
+                                    ...prev,
+                                    dot_palette: nextPal,
+                                    palette_options:
+                                      w && w.length === prev.dot_palette!.length
+                                        ? cleanPaletteOptions({
+                                            ...prev.palette_options,
+                                            weights: w.filter((_, j) => j !== i),
+                                          })
+                                        : prev.palette_options,
+                                  };
+                                })
                               }
                               className="absolute right-0 top-0 text-xs text-charcoal/45 hover:text-terracotta"
                             >
@@ -398,7 +440,20 @@ export default function Step3Customize({
                       <button
                         type="button"
                         onClick={() =>
-                          set("dot_palette", [...c.dot_palette!, "#0F5B55"])
+                          setC((prev) => {
+                            const w = prev.palette_options?.weights;
+                            return {
+                              ...prev,
+                              dot_palette: [...prev.dot_palette!, "#0F5B55"],
+                              palette_options:
+                                w && w.length === prev.dot_palette!.length
+                                  ? cleanPaletteOptions({
+                                      ...prev.palette_options,
+                                      weights: [...w, 10],
+                                    })
+                                  : prev.palette_options,
+                            };
+                          })
                         }
                         className="rounded-lg border border-charcoal/15 px-3 py-1.5 text-xs font-medium text-charcoal/75 hover:bg-sand-light"
                       >
@@ -644,8 +699,15 @@ function PaletteOptionsControls({
   onChange: (v: PaletteOptions | null) => void;
 }) {
   const po: PaletteOptions =
-    value ?? { mode: "scatter", accent_color: null, accent_share: 0.06, cluster_size: 3 };
-  // Normalize through the shared validator: plain scatter + no accent → null.
+    value ?? {
+      mode: "scatter",
+      weights: null,
+      accent_color: null,
+      accent_share: 0.06,
+      accent_style: "dots",
+      cluster_size: 3,
+    };
+  // Normalize through the shared validator: all-defaults → null.
   const emit = (next: PaletteOptions) => onChange(cleanPaletteOptions(next));
 
   return (
@@ -657,15 +719,24 @@ function PaletteOptionsControls({
         <select
           value={po.mode}
           onChange={(e) =>
-            emit({ ...po, mode: e.target.value === "cluster" ? "cluster" : "scatter" })
+            emit({
+              ...po,
+              mode:
+                e.target.value === "cluster"
+                  ? "cluster"
+                  : e.target.value === "organic"
+                    ? "organic"
+                    : "scatter",
+            })
           }
           className="h-9 w-full rounded-lg border border-charcoal/15 bg-white px-2 text-sm"
         >
           <option value="scatter">Scattered (confetti mix)</option>
           <option value="cluster">Clustered (blobby regions)</option>
+          <option value="organic">Organic blobs (ragged edges)</option>
         </select>
       </label>
-      {po.mode === "cluster" && (
+      {(po.mode === "cluster" || po.mode === "organic") && (
         <label className="block">
           <span className="mb-1 flex items-center justify-between text-sm font-medium text-charcoal/75">
             <span>Region size</span>
@@ -716,8 +787,165 @@ function PaletteOptionsControls({
               className="w-full accent-deep-teal"
             />
           </label>
+          <label className="block">
+            <span className="mb-1 block text-sm font-medium text-charcoal/75">
+              Sprinkle style
+            </span>
+            <select
+              value={po.accent_style}
+              onChange={(e) =>
+                emit({ ...po, accent_style: e.target.value === "mini" ? "mini" : "dots" })
+              }
+              className="h-9 w-full rounded-lg border border-charcoal/15 bg-white px-2 text-sm"
+            >
+              <option value="dots">Small rare dots</option>
+              <option value="mini">Mini clusters</option>
+            </select>
+          </label>
         </>
       )}
+    </div>
+  );
+}
+
+/* ────────────── style presets ──────────────
+ * A built-in "Pizza Campaign" preset (the client-spec look) + user presets
+ * saved to localStorage. A preset only touches STYLE fields — logo image,
+ * frame text, and password are never clobbered. */
+
+const PRESET_KEY = "masaar.style_presets";
+
+type StylePreset = Partial<
+  Pick<
+    Customization,
+    | "fg_color"
+    | "bg_color"
+    | "gradient_color"
+    | "dot_style"
+    | "corner_style"
+    | "dot_palette"
+    | "corner_colors"
+    | "palette_options"
+    | "logo_scale"
+  >
+>;
+
+const PIZZA_CAMPAIGN: StylePreset = {
+  fg_color: "#A81705",
+  bg_color: "#FCFADB",
+  gradient_color: null,
+  dot_style: "rounded",
+  corner_style: "extra-rounded",
+  dot_palette: ["#A81705", "#CE8618", "#36A317", "#6F3C22"],
+  corner_colors: ["#9E1205", "#9E1205", "#9E1205"],
+  palette_options: {
+    mode: "organic",
+    weights: [52, 38, 6, 4],
+    accent_color: null,
+    accent_share: 0.06,
+    accent_style: "dots",
+    cluster_size: 5,
+  },
+  logo_scale: 0.16,
+};
+
+function loadPresets(): Record<string, StylePreset> {
+  try {
+    return JSON.parse(localStorage.getItem(PRESET_KEY) || "{}");
+  } catch {
+    return {};
+  }
+}
+
+function StylePresets({
+  c,
+  setC,
+}: {
+  c: Customization;
+  setC: Dispatch<SetStateAction<Customization>>;
+}) {
+  const [saved, setSaved] = useState<Record<string, StylePreset>>({});
+  useEffect(() => setSaved(loadPresets()), []);
+
+  const apply = (p: StylePreset) =>
+    setC((prev) => ({
+      ...prev,
+      ...p,
+      // Re-validate persisted/preset options through the shared cleaner.
+      palette_options: cleanPaletteOptions(p.palette_options ?? null),
+    }));
+
+  function saveCurrent() {
+    const name = window.prompt("Preset name:", "My style");
+    if (!name?.trim()) return;
+    const preset: StylePreset = {
+      fg_color: c.fg_color,
+      bg_color: c.bg_color,
+      gradient_color: c.gradient_color,
+      dot_style: c.dot_style,
+      corner_style: c.corner_style,
+      dot_palette: c.dot_palette,
+      corner_colors: c.corner_colors,
+      palette_options: c.palette_options,
+      logo_scale: c.logo_scale,
+    };
+    const next = { ...loadPresets(), [name.trim()]: preset };
+    try {
+      localStorage.setItem(PRESET_KEY, JSON.stringify(next));
+      setSaved(next);
+    } catch {
+      /* storage full/private mode — non-fatal */
+    }
+  }
+
+  function remove(name: string) {
+    const next = { ...loadPresets() };
+    delete next[name];
+    try {
+      localStorage.setItem(PRESET_KEY, JSON.stringify(next));
+    } catch {
+      /* non-fatal */
+    }
+    setSaved(next);
+  }
+
+  return (
+    <div className="mb-4">
+      <p className="mb-2 text-sm font-medium text-charcoal/75">Style presets</p>
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          onClick={() => apply(PIZZA_CAMPAIGN)}
+          className="rounded-full border border-terracotta/40 bg-terracotta/10 px-3 py-1.5 text-xs font-semibold text-terracotta-dark hover:bg-terracotta/20"
+        >
+          🍕 Pizza Campaign
+        </button>
+        {Object.entries(saved).map(([name, p]) => (
+          <span
+            key={name}
+            className="inline-flex items-center gap-1 rounded-full border border-charcoal/15 bg-white px-3 py-1.5 text-xs font-medium text-charcoal/75"
+          >
+            <button type="button" onClick={() => apply(p)} className="hover:text-deep-teal">
+              {name}
+            </button>
+            <button
+              type="button"
+              aria-label={`Delete preset ${name}`}
+              onClick={() => remove(name)}
+              className="text-charcoal/35 hover:text-terracotta"
+            >
+              ✕
+            </button>
+          </span>
+        ))}
+        <button
+          type="button"
+          onClick={saveCurrent}
+          className="rounded-full border border-dashed border-charcoal/25 px-3 py-1.5 text-xs font-medium text-charcoal/55 hover:border-deep-teal/40 hover:text-deep-teal"
+        >
+          + Save current
+        </button>
+      </div>
     </div>
   );
 }

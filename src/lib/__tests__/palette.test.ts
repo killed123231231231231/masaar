@@ -4,11 +4,14 @@ import {
   cleanPaletteOptions,
   pickPaletteColor,
   pickClusterColor,
+  pickOrganicColor,
   isAccentDot,
+  resolveDotColor,
   HEX_COLOR,
   DOT_PALETTE_MIN,
   DOT_PALETTE_MAX,
   CORNER_COUNT,
+  type PaletteOptions,
 } from "../palette";
 
 describe("cleanHexArray", () => {
@@ -111,8 +114,10 @@ describe("cleanPaletteOptions", () => {
   it("accepts cluster mode with defaults filled in", () => {
     expect(cleanPaletteOptions({ mode: "cluster" })).toEqual({
       mode: "cluster",
+      weights: null,
       accent_color: null,
       accent_share: 0.06,
+      accent_style: "dots",
       cluster_size: 3,
     });
   });
@@ -123,11 +128,14 @@ describe("cleanPaletteOptions", () => {
         accent_color: "#5B8C2A",
         accent_share: 0.9,
         cluster_size: 99,
+        accent_style: "mini",
       })
     ).toEqual({
       mode: "scatter",
+      weights: null,
       accent_color: "#5B8C2A",
       accent_share: 0.25,
+      accent_style: "mini",
       cluster_size: 6,
     });
   });
@@ -138,10 +146,88 @@ describe("cleanPaletteOptions", () => {
       cleanPaletteOptions({ mode: "cluster", accent_color: "green" })
     ).toEqual({
       mode: "cluster",
+      weights: null,
       accent_color: null,
       accent_share: 0.06,
+      accent_style: "dots",
       cluster_size: 3,
     });
+  });
+
+  it("accepts organic mode and valid weights; scatter+weights is meaningful", () => {
+    expect(cleanPaletteOptions({ mode: "organic" })?.mode).toBe("organic");
+    const w = cleanPaletteOptions({ weights: [52, 38, 6, 4] });
+    expect(w).not.toBeNull();
+    expect(w?.weights).toEqual([52, 38, 6, 4]);
+  });
+
+  it("rejects malformed weights (never partially accepted)", () => {
+    expect(cleanPaletteOptions({ weights: [52, -1] })).toBeNull();
+    expect(cleanPaletteOptions({ weights: [52] })).toBeNull(); // under min
+    expect(cleanPaletteOptions({ weights: [1, 2, 3, 4, 5] })).toBeNull(); // over max
+    expect(cleanPaletteOptions({ weights: [10, "x"] })).toBeNull();
+    expect(cleanPaletteOptions({ mode: "cluster", weights: [0, 5] })?.weights).toBeNull();
+  });
+});
+
+describe("weighted distribution + organic + mini accents", () => {
+  const palette = ["#A81705", "#CE8618", "#36A317", "#6F3C22"];
+  const weights = [52, 38, 6, 4];
+  const opts = (over: Partial<PaletteOptions>): PaletteOptions => ({
+    mode: "scatter",
+    weights: null,
+    accent_color: null,
+    accent_share: 0.06,
+    accent_style: "dots",
+    cluster_size: 3,
+    ...over,
+  });
+
+  it("resolveDotColor with null options matches legacy per-index scatter exactly", () => {
+    for (let i = 0; i < 300; i++) {
+      expect(resolveDotColor(palette, null, i % 30, Math.floor(i / 30), i)).toBe(
+        pickPaletteColor(palette, i)
+      );
+    }
+  });
+
+  it("weights steer frequencies near their shares (scatter mode)", () => {
+    const o = opts({ weights });
+    const counts = new Map<string, number>();
+    const N = 20000;
+    for (let i = 0; i < N; i++) {
+      const c = resolveDotColor(palette, o, null, null, i);
+      counts.set(c, (counts.get(c) ?? 0) + 1);
+    }
+    expect((counts.get("#A81705") ?? 0) / N).toBeGreaterThan(0.45);
+    expect((counts.get("#A81705") ?? 0) / N).toBeLessThan(0.6);
+    expect((counts.get("#36A317") ?? 0) / N).toBeGreaterThan(0.03);
+    expect((counts.get("#36A317") ?? 0) / N).toBeLessThan(0.1);
+    expect((counts.get("#6F3C22") ?? 0) / N).toBeGreaterThan(0.02);
+    expect((counts.get("#6F3C22") ?? 0) / N).toBeLessThan(0.08);
+  });
+
+  it("organic mode is deterministic and differs from square clusters somewhere", () => {
+    let differs = false;
+    for (let col = 0; col < 30; col++) {
+      for (let row = 0; row < 30; row++) {
+        const a = pickOrganicColor(palette, col, row, 5);
+        expect(pickOrganicColor(palette, col, row, 5)).toBe(a); // deterministic
+        if (a !== pickClusterColor(palette, col, row, 5)) differs = true;
+      }
+    }
+    expect(differs).toBe(true); // ragged edges actually happen
+  });
+
+  it("mini accent style clumps: a 2×2 block answers uniformly", () => {
+    for (let bc = 0; bc < 15; bc++) {
+      for (let br = 0; br < 15; br++) {
+        const base = isAccentDot(bc * 2, br * 2, 0.1, "mini");
+        expect(isAccentDot(bc * 2 + 1, br * 2, 0.1, "mini")).toBe(base);
+        expect(isAccentDot(bc * 2, br * 2 + 1, 0.1, "mini")).toBe(base);
+        expect(isAccentDot(bc * 2 + 1, br * 2 + 1, 0.1, "mini")).toBe(base);
+      }
+    }
   });
 });
 
