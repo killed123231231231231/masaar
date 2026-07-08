@@ -2,7 +2,12 @@
 // renderer, so this module must be imported in client components only.
 
 import type { Options as QrOptions } from "qr-code-styling";
-import { pickPaletteColor } from "@/lib/palette";
+import {
+  pickPaletteColor,
+  pickClusterColor,
+  isAccentDot,
+  type PaletteOptions,
+} from "@/lib/palette";
 
 export interface QrStyle {
   data: string;
@@ -23,6 +28,9 @@ export interface QrStyle {
   /** Exactly 3 colors for the finder squares: [top-left, top-right,
    *  bottom-left]. null → all corners follow fgColor as before. */
   cornerColors?: string[] | null;
+  /** Distribution options for dotPalette: cluster mode (blobby same-color
+   *  regions) and/or a rare accent sprinkle color. null → plain scatter. */
+  paletteOptions?: PaletteOptions | null;
 }
 
 export function buildQrOptions(s: QrStyle): QrOptions {
@@ -87,6 +95,7 @@ export function buildQrOptions(s: QrStyle): QrOptions {
 export interface QrExtras {
   dotPalette: string[] | null;
   cornerColors: string[] | null;
+  paletteOptions: PaletteOptions | null;
 }
 
 type QrWithExtras = { __masaarExtras?: { current: QrExtras } };
@@ -111,12 +120,57 @@ function applyMasaarSvgStyle(svg: SVGElement, extras: QrExtras): void {
     extras.dotPalette && extras.dotPalette.length >= 2 ? extras.dotPalette : null;
   if (palette && paintRect && dotClip) {
     paintRect.setAttribute("display", "none");
-    Array.from(dotClip.children).forEach((shape, i) => {
-      const clone = shape.cloneNode(true) as SVGElement;
-      clone.setAttribute("fill", pickPaletteColor(palette, i));
+    // Clone every dot shape out of the clipPath first (clones are rendered,
+    // so getBBox works on them), then color.
+    const clones = Array.from(dotClip.children).map((shape) => {
+      const clone = shape.cloneNode(true) as SVGGraphicsElement;
       clone.setAttribute("data-masaar-dot", "1");
       svg.appendChild(clone);
+      return clone;
     });
+
+    const opts = extras.paletteOptions;
+    if (opts && (opts.mode === "cluster" || opts.accent_color)) {
+      // Position-based coloring: measure each dot's bbox, reconstruct its
+      // (col,row) on the module grid, and hash on POSITION instead of index.
+      // Positions are ratios of the module size, so the 320px preview and the
+      // 2048px export color the same dot identically.
+      const boxes = clones.map((c) => {
+        try {
+          const b = c.getBBox();
+          return b && b.width > 0 ? b : null;
+        } catch {
+          return null;
+        }
+      });
+      const valid = boxes.filter((b): b is DOMRect => b !== null);
+      const minX = Math.min(...valid.map((b) => b.x));
+      const minY = Math.min(...valid.map((b) => b.y));
+      const sizes = valid.map((b) => b.width).sort((a, b) => a - b);
+      const unit = sizes[Math.floor(sizes.length / 2)] || 1; // median = module size
+      clones.forEach((clone, i) => {
+        const b = boxes[i];
+        let fill: string;
+        if (!b) {
+          fill = pickPaletteColor(palette, i); // measurement failed → scatter
+        } else {
+          const col = Math.round((b.x - minX) / unit);
+          const row = Math.round((b.y - minY) / unit);
+          if (opts.accent_color && isAccentDot(col, row, opts.accent_share)) {
+            fill = opts.accent_color;
+          } else if (opts.mode === "cluster") {
+            fill = pickClusterColor(palette, col, row, opts.cluster_size);
+          } else {
+            fill = pickPaletteColor(palette, i);
+          }
+        }
+        clone.setAttribute("fill", fill);
+      });
+    } else {
+      clones.forEach((clone, i) =>
+        clone.setAttribute("fill", pickPaletteColor(palette, i))
+      );
+    }
   } else if (paintRect) {
     paintRect.removeAttribute("display");
   }
@@ -148,6 +202,7 @@ export function setQrExtras(qr: unknown, extras: Partial<QrExtras>): void {
     slot.current = {
       dotPalette: extras.dotPalette ?? null,
       cornerColors: extras.cornerColors ?? null,
+      paletteOptions: extras.paletteOptions ?? null,
     };
   }
 }
@@ -165,6 +220,7 @@ export async function createQr(style: QrStyle) {
     current: {
       dotPalette: style.dotPalette ?? null,
       cornerColors: style.cornerColors ?? null,
+      paletteOptions: style.paletteOptions ?? null,
     },
   };
   (qr as unknown as QrWithExtras).__masaarExtras = slot;

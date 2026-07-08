@@ -19,6 +19,8 @@ export interface StyledQrProps {
   dotPalette?: string[] | null;
   /** Per-corner finder colors [TL, TR, BL] — see lib/qr QrStyle. */
   cornerColors?: string[] | null;
+  /** Palette distribution options (cluster/accent) — see lib/qr QrStyle. */
+  paletteOptions?: import("@/lib/palette").PaletteOptions | null;
   /** Display size in CSS px (square). Also drives the internal render
    *  resolution. When `fill` is set this is only the resolution hint. */
   size?: number;
@@ -51,6 +53,7 @@ export default function StyledQr({
   imageSize,
   dotPalette,
   cornerColors,
+  paletteOptions,
   size = 56,
   fill = false,
   className = "",
@@ -58,11 +61,12 @@ export default function StyledQr({
   const ref = useRef<HTMLDivElement | null>(null);
   const [styled, setStyled] = useState(false);
 
-  // Stable dep keys — the arrays arrive as fresh references on every parent
-  // render; keying on their JSON keeps the effect from re-firing needlessly
-  // (the C4 thumbnail-perf concern).
+  // Stable dep keys — the arrays/objects arrive as fresh references on every
+  // parent render; keying on their JSON keeps the effect from re-firing
+  // needlessly (the C4 thumbnail-perf concern).
   const paletteKey = JSON.stringify(dotPalette ?? null);
   const cornersKey = JSON.stringify(cornerColors ?? null);
+  const optionsKey = JSON.stringify(paletteOptions ?? null);
 
   useEffect(() => {
     let cancelled = false;
@@ -84,6 +88,7 @@ export default function StyledQr({
           imageSize,
           dotPalette,
           cornerColors,
+          paletteOptions,
         });
         if (cancelled || !ref.current) return;
         ref.current.innerHTML = "";
@@ -127,6 +132,7 @@ export default function StyledQr({
     imageSize,
     paletteKey,
     cornersKey,
+    optionsKey,
     size,
   ]);
 

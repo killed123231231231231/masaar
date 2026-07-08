@@ -17,9 +17,11 @@ import {
 } from "../_lib/types";
 import {
   cleanHexArray,
+  cleanPaletteOptions,
   DOT_PALETTE_MIN,
   DOT_PALETTE_MAX,
   CORNER_COUNT,
+  type PaletteOptions,
 } from "@/lib/palette";
 
 function useDebounced<T>(v: T, ms: number): T {
@@ -106,6 +108,7 @@ export default function Step3Customize({
       // here exactly as it does in the saved row. No more preview≠persisted.
       dotPalette: cleanHexArray(style.dot_palette, DOT_PALETTE_MIN, DOT_PALETTE_MAX),
       cornerColors: cleanHexArray(style.corner_colors, CORNER_COUNT, CORNER_COUNT),
+      paletteOptions: cleanPaletteOptions(style.palette_options),
     }),
     [style]
   );
@@ -402,10 +405,15 @@ export default function Step3Customize({
                         + Add color (up to 4)
                       </button>
                     )}
+                    <PaletteOptionsControls
+                      value={c.palette_options}
+                      fallbackAccent="#5B8C2A"
+                      onChange={(po) => set("palette_options", po)}
+                    />
                     <p className="text-xs text-charcoal/45">
                       Each color must be a 6-digit hex (e.g. #FFC107) — use the
-                      swatch to be sure. Dots are colored in a fixed scattered
-                      pattern, so your download always matches the preview.
+                      swatch to be sure. Colors follow a fixed pattern, so your
+                      download always matches the preview.
                     </p>
                   </div>
                 )}
@@ -618,6 +626,98 @@ function Acc({
         <ChevronDown className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
       {open && <div className="border-t border-charcoal/10 p-4">{children}</div>}
+    </div>
+  );
+}
+
+/** Distribution controls for the multi-color palette: spread mode
+ *  (scattered confetti vs clustered blobby regions) + a rare accent
+ *  sprinkle color (the "herbs on the pizza" look). Emits null when
+ *  everything is back at defaults so the row persists NULL. */
+function PaletteOptionsControls({
+  value,
+  fallbackAccent,
+  onChange,
+}: {
+  value: PaletteOptions | null;
+  fallbackAccent: string;
+  onChange: (v: PaletteOptions | null) => void;
+}) {
+  const po: PaletteOptions =
+    value ?? { mode: "scatter", accent_color: null, accent_share: 0.06, cluster_size: 3 };
+  // Normalize through the shared validator: plain scatter + no accent → null.
+  const emit = (next: PaletteOptions) => onChange(cleanPaletteOptions(next));
+
+  return (
+    <div className="space-y-3 rounded-lg bg-sand-light/40 p-3">
+      <label className="block">
+        <span className="mb-1 block text-sm font-medium text-charcoal/75">
+          Color spread
+        </span>
+        <select
+          value={po.mode}
+          onChange={(e) =>
+            emit({ ...po, mode: e.target.value === "cluster" ? "cluster" : "scatter" })
+          }
+          className="h-9 w-full rounded-lg border border-charcoal/15 bg-white px-2 text-sm"
+        >
+          <option value="scatter">Scattered (confetti mix)</option>
+          <option value="cluster">Clustered (blobby regions)</option>
+        </select>
+      </label>
+      {po.mode === "cluster" && (
+        <label className="block">
+          <span className="mb-1 flex items-center justify-between text-sm font-medium text-charcoal/75">
+            <span>Region size</span>
+            <span className="text-xs text-charcoal/45">{po.cluster_size}×{po.cluster_size} dots</span>
+          </span>
+          <input
+            type="range"
+            min={2}
+            max={6}
+            step={1}
+            value={po.cluster_size}
+            onChange={(e) => emit({ ...po, cluster_size: Number(e.target.value) })}
+            className="w-full accent-deep-teal"
+          />
+        </label>
+      )}
+      <label className="flex items-center gap-2 text-sm text-charcoal/70">
+        <input
+          type="checkbox"
+          checked={!!po.accent_color}
+          onChange={(e) =>
+            emit({ ...po, accent_color: e.target.checked ? fallbackAccent : null })
+          }
+        />
+        Accent sprinkle (rare extra color)
+      </label>
+      {po.accent_color && (
+        <>
+          <ColorRow
+            label="Accent color"
+            value={po.accent_color}
+            onChange={(v) => emit({ ...po, accent_color: v })}
+          />
+          <label className="block">
+            <span className="mb-1 flex items-center justify-between text-sm font-medium text-charcoal/75">
+              <span>Sprinkle amount</span>
+              <span className="text-xs text-charcoal/45">
+                ~{Math.round(po.accent_share * 100)}% of dots
+              </span>
+            </span>
+            <input
+              type="range"
+              min={0.02}
+              max={0.2}
+              step={0.01}
+              value={po.accent_share}
+              onChange={(e) => emit({ ...po, accent_share: Number(e.target.value) })}
+              className="w-full accent-deep-teal"
+            />
+          </label>
+        </>
+      )}
     </div>
   );
 }

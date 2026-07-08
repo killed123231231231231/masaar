@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   cleanHexArray,
+  cleanPaletteOptions,
   pickPaletteColor,
+  pickClusterColor,
+  isAccentDot,
   HEX_COLOR,
   DOT_PALETTE_MIN,
   DOT_PALETTE_MAX,
@@ -92,5 +95,122 @@ describe("HEX_COLOR", () => {
     expect(HEX_COLOR.test("0F5B55")).toBe(false);
     expect(HEX_COLOR.test("#0F5")).toBe(false);
     expect(HEX_COLOR.test("#0F5B55AA")).toBe(false);
+  });
+});
+
+describe("cleanPaletteOptions", () => {
+  it("returns null for defaults-only (plain scatter, no accent)", () => {
+    expect(cleanPaletteOptions(null)).toBeNull();
+    expect(cleanPaletteOptions(undefined)).toBeNull();
+    expect(cleanPaletteOptions({})).toBeNull();
+    expect(cleanPaletteOptions({ mode: "scatter" })).toBeNull();
+    expect(cleanPaletteOptions([])).toBeNull();
+    expect(cleanPaletteOptions("cluster")).toBeNull();
+  });
+
+  it("accepts cluster mode with defaults filled in", () => {
+    expect(cleanPaletteOptions({ mode: "cluster" })).toEqual({
+      mode: "cluster",
+      accent_color: null,
+      accent_share: 0.06,
+      cluster_size: 3,
+    });
+  });
+
+  it("accepts an accent with clamped share/size", () => {
+    expect(
+      cleanPaletteOptions({
+        accent_color: "#5B8C2A",
+        accent_share: 0.9,
+        cluster_size: 99,
+      })
+    ).toEqual({
+      mode: "scatter",
+      accent_color: "#5B8C2A",
+      accent_share: 0.25,
+      cluster_size: 6,
+    });
+  });
+
+  it("drops malformed accent colors (whole option unaffected)", () => {
+    expect(cleanPaletteOptions({ accent_color: "green" })).toBeNull();
+    expect(
+      cleanPaletteOptions({ mode: "cluster", accent_color: "green" })
+    ).toEqual({
+      mode: "cluster",
+      accent_color: null,
+      accent_share: 0.06,
+      cluster_size: 3,
+    });
+  });
+});
+
+describe("pickClusterColor", () => {
+  const palette = ["#A8291D", "#C9862B", "#D4831F"];
+
+  it("is deterministic per position", () => {
+    for (let col = 0; col < 20; col++) {
+      for (let row = 0; row < 20; row++) {
+        expect(pickClusterColor(palette, col, row, 3)).toBe(
+          pickClusterColor(palette, col, row, 3)
+        );
+      }
+    }
+  });
+
+  it("gives every dot inside one cluster block the same color", () => {
+    // Block (0..2, 0..2) with cluster_size 3 must be uniform.
+    const base = pickClusterColor(palette, 0, 0, 3);
+    for (let col = 0; col < 3; col++) {
+      for (let row = 0; row < 3; row++) {
+        expect(pickClusterColor(palette, col, row, 3)).toBe(base);
+      }
+    }
+  });
+
+  it("uses multiple colors across many blocks (not one giant region)", () => {
+    const seen = new Set<string>();
+    for (let bx = 0; bx < 10; bx++) {
+      for (let by = 0; by < 10; by++) {
+        seen.add(pickClusterColor(palette, bx * 3, by * 3, 3));
+      }
+    }
+    expect(seen.size).toBe(palette.length);
+  });
+});
+
+describe("isAccentDot", () => {
+  it("is deterministic per position", () => {
+    for (let col = 0; col < 30; col++) {
+      for (let row = 0; row < 30; row++) {
+        expect(isAccentDot(col, row, 0.06)).toBe(isAccentDot(col, row, 0.06));
+      }
+    }
+  });
+
+  it("hits roughly the requested share across a grid", () => {
+    let hits = 0;
+    const N = 100;
+    for (let col = 0; col < N; col++) {
+      for (let row = 0; row < N; row++) {
+        if (isAccentDot(col, row, 0.06)) hits++;
+      }
+    }
+    const share = hits / (N * N);
+    expect(share).toBeGreaterThan(0.03);
+    expect(share).toBeLessThan(0.09);
+  });
+
+  it("share 0 never marks, share ~max marks noticeably more", () => {
+    let zero = 0;
+    let heavy = 0;
+    for (let col = 0; col < 50; col++) {
+      for (let row = 0; row < 50; row++) {
+        if (isAccentDot(col, row, 0)) zero++;
+        if (isAccentDot(col, row, 0.25)) heavy++;
+      }
+    }
+    expect(zero).toBe(0);
+    expect(heavy).toBeGreaterThan(400); // ≥ ~16% of 2500
   });
 });
