@@ -242,6 +242,42 @@ export async function PATCH(request: Request) {
     if (po) patch.palette_options = po;
   }
 
+  // Type conversion — DYNAMIC → "url" only. content_kind is otherwise
+  // immutable: changing a STATIC QR's type would desync its printed payload
+  // (the code encodes the payload directly), and every other target type
+  // (pdf/image/video/social/location/feedback/whatsapp/…) needs its own
+  // content/asset flow. This single path is safe because a DYNAMIC QR's
+  // printed code is /r/<shortId> — unchanged by the conversion; only where
+  // /r resolves changes. Guarded on the LIVE row's kind (never the client's
+  // claim) and requires a valid http(s) destination.
+  if (body.content_kind === "url") {
+    const { data: cur } = await supabase
+      .from("qr_codes")
+      .select("kind, content_kind")
+      .eq("id", body.id)
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (cur && cur.kind === "dynamic" && cur.content_kind !== "url") {
+      const u = parseHttpUrl(
+        typeof body.destination === "string" ? body.destination : ""
+      );
+      if (!u) {
+        return NextResponse.json(
+          { error: "Enter a valid website URL (https://…) to convert this QR." },
+          { status: 400 }
+        );
+      }
+      patch.content_kind = "url";
+      patch.destination = u.toString();
+      // A url QR resolves via its destination, never a hosted asset — clear
+      // any old asset so no asset-aware path can still route it to /v.
+      patch.asset_url = null;
+      patch.asset_mime = null;
+      patch.asset_size = null;
+      patch.asset_filename = null;
+    }
+  }
+
   // Owner-facing Active/Inactive toggle: accept ONLY the literal values
   // "active" or "suspended" (draft/pending_payment are workflow-gated and must
   // never be set here). The existing owner scope (.eq("user_id") + RLS) keeps
