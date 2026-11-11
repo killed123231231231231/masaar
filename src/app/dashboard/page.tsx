@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getAccountAnalyticsCached, parsePeriod, riyadhDayKey } from "@/lib/analytics";
 import { getMe } from "@/lib/me";
+import { latestScanVersion } from "@/lib/scan-version";
 import OverviewClient from "./overview-client";
 
 export const dynamic = "force-dynamic";
@@ -34,11 +35,15 @@ export default async function DashboardPage({
   } = await supabase.auth.getUser();
   if (!user) redirect("/?login=1&redirectTo=/dashboard");
 
+  // Latest-scan fingerprint joins the cache key so a new scan shows on the
+  // next render (the client polls /api/scans/latest and refreshes on change).
+  const scanVersion = await latestScanVersion(supabase);
+
   const [bundle, me] = await Promise.all([
     // riyadhDayKey() joins the cache key so the cache busts at the Riyadh
     // midnight boundary — no more stale yesterday-range on the first load
     // of a new day.
-    getAccountAnalyticsCached(user.id, period, filterQrId, riyadhDayKey()),
+    getAccountAnalyticsCached(user.id, period, filterQrId, riyadhDayKey(), scanVersion),
     getMe(user.id, user.email ?? ""),
   ]);
 
