@@ -1,6 +1,9 @@
 # Masaar — Backlog
 
-Pending work, grouped by urgency. Snapshot: 2026-05-18.
+Pending work, grouped by urgency. Snapshot: 2026-05-18 (the items below
+remain valid, mostly Sprint-3 candidates). **For the current 2026-06-01
+state + the live open items, read `NEXT_SESSION.md` first** — Sessions
+A–D + I plus a post-sprint QA/polish pass have shipped since this snapshot.
 
 **See also:** `SPRINT2.md` (active sprint plan) and `STRATEGY.md`
 (long-form market thesis and product strategy). Items below that are
@@ -186,8 +189,13 @@ prompts). One per session; deploy + smoke-test after each.
     for Insert/Update; resolved by the deps regen above.
 11. **Unsafe `as` style casts** — `qr.ts` / `qr-preview.tsx` cast
     arbitrary strings to qr-code-styling unions.
-12. **vercel.json regions don't pin the edge route (PR2-adjacent)** —
-    `/r/[shortId]` edge route would need `export const preferredRegion`.
+12. **vercel.json regions don't pin the edge route (PR2-adjacent) —
+    RESOLVED 2026-06-01.** `/r/[shortId]` now sets
+    `export const preferredRegion = "bom1"` (Mumbai = Supabase region) so the
+    resolve is intra-region (~10ms) not a cross-region hop. Shipped with the
+    scan-redirect speed-up (`log_scan` also moved to `next/server` `after()`).
+    Remaining "truly-instant via edge cache" option: see `NEXT_SESSION.md`
+    open-items #4.
 13. **next.config deprecated key (PR3)** — `experimental.
     serverComponentsExternalPackages` → top-level
     `serverExternalPackages` in Next 15 (warns each build; the
