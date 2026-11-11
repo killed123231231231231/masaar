@@ -701,8 +701,18 @@ export const getAccountAnalyticsCached = unstable_cache(
   // served past midnight, showing yesterday's date range until it revalidated
   // (the "chart sits on yesterday, then jumps to today after a few seconds"
   // bug). It is otherwise unused in the body.
-  async (userId: string, period: Period, filterQrId: string | null, dayKey: string) => {
+  // scanVersion (id of the owner's latest scan) is a key discriminator for
+  // the same reason: a new scan → new key → the Overview recomputes on the
+  // very next render instead of serving ≤30s-stale numbers.
+  async (
+    userId: string,
+    period: Period,
+    filterQrId: string | null,
+    dayKey: string,
+    scanVersion: string
+  ) => {
     void dayKey;
+    void scanVersion;
     return getAccountAnalytics(createAdminClient(), userId, period, filterQrId);
   },
   ["account-analytics"],

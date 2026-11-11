@@ -4,30 +4,63 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 /**
- * C2 — keep a server-rendered dashboard surface fresh without a manual
- * page reload. Calls router.refresh() (re-fetches the RSC payload) when:
- *   - the tab regains focus / becomes visible (e.g. you scanned on a phone
- *     then switched back to the dashboard), and
- *   - on a gentle interval while the tab is visible (so a scan shows up
- *     within ~intervalMs even while you're staring at the screen).
- * Cheap: only fires while visible; no client data layer needed.
+ * Keep server-rendered dashboard surfaces fresh without a manual reload.
+ *
+ * Fast path (new scans): every `pollMs` while the tab is visible, ask the
+ * tiny /api/scans/latest endpoint for the owner's latest-scan fingerprint.
+ * Only when it CHANGES do we router.refresh() — so a new scan appears within
+ * ~pollMs, while the heavy analytics queries still run once per new scan,
+ * not on every tick.
+ *
+ * Slow path (everything else — new/edited QRs, status changes): a full
+ * refresh on tab focus/visibility and every `fullMs`.
  */
-export function useLiveRefresh(intervalMs = 20000) {
+export function useLiveRefresh(pollMs = 2500, fullMs = 60000) {
   const router = useRouter();
   useEffect(() => {
+    let last: string | null = null;
+    let inFlight = false;
+    let stopped = false;
+
     const refresh = () => router.refresh();
-    const onVisible = () => {
-      if (document.visibilityState === "visible") refresh();
+
+    const check = async () => {
+      if (inFlight || document.visibilityState !== "visible") return;
+      inFlight = true;
+      try {
+        const res = await fetch("/api/scans/latest", { cache: "no-store" });
+        if (!res.ok) return; // signed out / transient — try again next tick
+        const { v } = (await res.json()) as { v?: string };
+        if (stopped || typeof v !== "string") return;
+        if (last !== null && v !== last) refresh();
+        last = v;
+      } catch {
+        /* network blip — next tick retries */
+      } finally {
+        inFlight = false;
+      }
     };
+
+    const onVisible = () => {
+      if (document.visibilityState === "visible") {
+        refresh();
+        void check();
+      }
+    };
+
+    void check(); // seed the baseline
     document.addEventListener("visibilitychange", onVisible);
     window.addEventListener("focus", refresh);
-    const id = setInterval(() => {
+    const fast = setInterval(check, pollMs);
+    const slow = setInterval(() => {
       if (document.visibilityState === "visible") refresh();
-    }, intervalMs);
+    }, fullMs);
     return () => {
+      stopped = true;
       document.removeEventListener("visibilitychange", onVisible);
       window.removeEventListener("focus", refresh);
-      clearInterval(id);
+      clearInterval(fast);
+      clearInterval(slow);
     };
-  }, [router, intervalMs]);
+  }, [router, pollMs, fullMs]);
 }
