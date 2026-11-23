@@ -1,42 +1,84 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useId, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
-  Area, AreaChart, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
+  Area, AreaChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
-import { ArrowDown, ArrowUp, QrCode, TrendingUp, type LucideIcon } from "lucide-react";
+import {
+  ArrowDownRight, ArrowUpRight, CalendarDays, ChevronDown, ScanLine, TrendingUp,
+  type LucideIcon,
+} from "lucide-react";
 import { PERIODS, type Bucket, type Period } from "@/lib/analytics";
+import { Card, CardHeader, FOCUS, IconWell } from "@/components/dashboard/ui";
 
-// Single brand chart palette — used by donut + cells.
-export const PALETTE = ["#0F5B55", "#E07A5F", "#3FA39A", "#073d3a", "#B85F47", "#D6D1C6"];
+// Chart palette for the 2026-11 redesign: ink, lime, lilac, sky, mint, blush.
+export const PALETTE = ["#1A1A1A", "#DBFC74", "#E3B8FF", "#A9CCFF", "#8EF0B9", "#FFC2E2"];
+const INK = "#1A1A1A";
+const MUTED = "#71717A";
 
-export function fmtTime(iso: string): string {
-  return new Date(iso).toLocaleString("en-GB", { dateStyle: "short", timeStyle: "short" });
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+/** Riyadh time, 12-hour clock: "Nov 23, 10:24 PM" (optionally with year). */
+export function fmtTime(iso: string, opts: { year?: boolean } = {}): string {
+  return new Date(iso).toLocaleString("en-US", {
+    timeZone: "Asia/Riyadh",
+    month: "short",
+    day: "numeric",
+    ...(opts.year ? { year: "numeric" } : {}),
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
 }
 
-/* ────────────────────────── PERIOD PILLS ────────────────────────── */
+/** "2026-11-23" -> "Nov 23" without a Date (no timezone shift). */
+export function shortDay(key: string): string {
+  const [, m, d] = key.split("-");
+  const mi = Number(m) - 1;
+  if (!MONTHS[mi] || !d) return key;
+  return `${MONTHS[mi]} ${Number(d)}`;
+}
 
-export function PeriodPills({ current }: { current: Period }) {
+export function periodLabel(p: Period): string {
+  return PERIODS.find((x) => x.id === p)?.label ?? "";
+}
+
+/** "previous 30 days" style comparison label, or null for all-time. */
+export function previousLabel(p: Period): string | null {
+  return p === "7d" ? "previous 7 days" : p === "30d" ? "previous 30 days" : p === "90d" ? "previous 90 days" : null;
+}
+
+export function useSetParam() {
   const router = useRouter();
+  const pathname = usePathname();
   const params = useSearchParams();
-  function set(p: Period) {
+  return (key: string, value: string | null) => {
     const sp = new URLSearchParams(Array.from(params.entries()));
-    sp.set("period", p);
-    router.replace(`?${sp.toString()}`, { scroll: false });
-  }
+    if (value === null) sp.delete(key);
+    else sp.set(key, value);
+    const qs = sp.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  };
+}
+
+/* ────────────────────────── PERIOD CONTROLS ────────────────────────── */
+
+/** Segmented pills (stone track, white active). Keeps every other param. */
+export function PeriodPills({ current }: { current: Period }) {
+  const setParam = useSetParam();
   return (
-    <div className="flex flex-wrap gap-2">
+    <div role="group" aria-label="Period" className="inline-flex max-w-full flex-wrap gap-1 rounded-full bg-stone p-1">
       {PERIODS.map((p) => {
         const active = p.id === current;
         return (
           <button
             key={p.id}
             type="button"
-            onClick={() => set(p.id)}
-            className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${
-              active
-                ? "bg-deep-teal text-white"
-                : "border border-charcoal/15 text-charcoal/65 hover:bg-sand-light"
+            aria-pressed={active}
+            onClick={() => setParam("period", p.id)}
+            className={`h-8 rounded-full px-3.5 font-body text-[13px] font-medium transition-colors ${FOCUS} ${
+              active ? "bg-white text-ink shadow-card" : "text-muted-2 hover:text-ink"
             }`}
           >
             {p.label}
@@ -47,172 +89,186 @@ export function PeriodPills({ current }: { current: Period }) {
   );
 }
 
-/* ────────────────────────── KPI ────────────────────────── */
-
-export type KpiTint =
-  | "deep-teal" | "terracotta" | "sea-teal" | "deep-teal-dark" | "terracotta-dark";
-
-const TINT_BG: Record<KpiTint, string> = {
-  "deep-teal": "bg-deep-teal/10 text-deep-teal",
-  "terracotta": "bg-terracotta/15 text-terracotta-dark",
-  "sea-teal": "bg-[#3FA39A]/15 text-[#3FA39A]",
-  "deep-teal-dark": "bg-deep-teal-dark/10 text-deep-teal-dark",
-  "terracotta-dark": "bg-terracotta-dark/15 text-terracotta-dark",
-};
-
-export function KpiCard({
-  icon: Icon, tint, label, value, delta, today, activeInactive, series,
-}: {
-  icon: LucideIcon;
-  tint: KpiTint;
-  label: string;
-  value: string;
-  delta?: number | null;
-  /** Rolling last-24h count → renders a green "+N today" badge in place of
-   *  the period delta (used by the Total scans / Unique scanners KPIs). */
-  today?: number | null;
-  /** Active/inactive split → renders a two-stat sub-row (Active QR codes). */
-  activeInactive?: { active: number; inactive: number };
-  series?: Bucket[];
-}) {
-  // B5/Item 5 — bumped padding + softer 2-layer shadow so adjacent cards
-  // feel clearly distinct on the cream page background instead of merging.
+/** Calendar pill with a native select (accessible, works on touch). */
+export function PeriodSelect({ current }: { current: Period }) {
+  const setParam = useSetParam();
+  const id = useId();
   return (
-    <div className="rounded-2xl border border-charcoal/10 bg-white p-5 shadow-[0_1px_2px_rgba(15,91,85,0.06),0_2px_8px_-2px_rgba(15,91,85,0.08)]">
-      <div className="flex items-start justify-between">
-        <span className={`grid h-9 w-9 place-items-center rounded-lg ${TINT_BG[tint]}`}>
-          <Icon className="h-4 w-4" strokeWidth={1.75} />
-        </span>
-        {series && series.length > 0 && <Sparkline series={series} />}
-      </div>
-      {/* /60 (not /45) — 45% charcoal on white is ~2.9:1 contrast, under the
-          WCAG AA 4.5:1 floor for meaningful labels; 60% clears it. */}
-      <p className="mt-4 text-[11px] font-semibold uppercase tracking-wider text-charcoal/60">
-        {label}
-      </p>
-      <p className="mt-1.5 font-display text-2xl font-bold leading-tight">{value}</p>
-      {activeInactive ? (
-        <ActiveInactiveRow active={activeInactive.active} inactive={activeInactive.inactive} />
-      ) : today != null ? (
-        <TodayBadge count={today} />
-      ) : (
-        delta != null && <Delta pct={delta} />
-      )}
+    <div className="relative">
+      <label htmlFor={id} className="sr-only">Period</label>
+      <CalendarDays className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink" aria-hidden />
+      <select
+        id={id}
+        value={current}
+        onChange={(e) => setParam("period", e.target.value)}
+        className={`h-10 cursor-pointer appearance-none rounded-full border border-stone-dark bg-white pl-10 pr-9 font-body text-sm font-medium text-ink transition-colors hover:bg-cream ${FOCUS}`}
+      >
+        {PERIODS.map((p) => (
+          <option key={p.id} value={p.id}>{p.label}</option>
+        ))}
+      </select>
+      <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-3" aria-hidden />
     </div>
   );
 }
 
-export function Delta({ pct }: { pct: number }) {
-  const positive = pct >= 0;
-  const Icon = positive ? ArrowUp : ArrowDown;
+/* ────────────────────────── KPI ────────────────────────── */
+
+export function KpiCard({
+  icon,
+  tone = "stone",
+  label,
+  value,
+  valueTitle,
+  delta,
+  deltaLabel,
+  today,
+  sub,
+}: {
+  icon: LucideIcon;
+  tone?: "stone" | "lime" | "lilac" | "sky" | "mint" | "blush";
+  label: string;
+  value: string;
+  /** Full value for the tooltip when the visible one may truncate. */
+  valueTitle?: string;
+  delta?: number | null;
+  deltaLabel?: string | null;
+  /** Riyadh-day count → "+N today" line (Total / Unique scans). */
+  today?: number | null;
+  sub?: React.ReactNode;
+}) {
   return (
-    <p className={`mt-1 inline-flex items-center gap-1 text-xs font-medium ${positive ? "text-deep-teal" : "text-terracotta-dark"}`}>
-      <Icon className="h-3 w-3" />
-      {Math.abs(pct)}% vs previous
+    <Card as="div" className="flex flex-col p-4 sm:p-5">
+      <div className="flex items-center gap-3">
+        <IconWell icon={icon} tone={tone} />
+        <p className="min-w-0 font-body text-[13px] leading-tight text-muted-2">{label}</p>
+      </div>
+      <p
+        className="mt-4 truncate font-heading text-[26px] font-semibold leading-none tracking-[-0.02em] text-ink"
+        title={valueTitle ?? value}
+      >
+        {value}
+      </p>
+      <div className="mt-2.5 space-y-1">
+        {delta != null && <Delta pct={delta} label={deltaLabel ?? null} />}
+        {today != null && <TodayBadge count={today} />}
+        {sub && <div className="font-body text-xs text-muted-3">{sub}</div>}
+      </div>
+    </Card>
+  );
+}
+
+export function Delta({ pct, label }: { pct: number; label?: string | null }) {
+  const up = pct >= 0;
+  const Icon = up ? ArrowUpRight : ArrowDownRight;
+  return (
+    <p className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 font-body text-xs text-muted-3">
+      <span
+        className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 font-medium ${
+          up ? "bg-lime text-ink" : "bg-stone text-ink"
+        }`}
+      >
+        <Icon className="h-3 w-3" aria-hidden />
+        <span className="sr-only">{up ? "Up" : "Down"}</span>
+        {Math.abs(pct)}%
+      </span>
+      {label && <span>vs {label}</span>}
     </p>
   );
 }
 
-// "+N today" — rolling last-24h activity badge for the count KPI cards.
-// Green pill when there's fresh activity, muted line when the day's quiet.
+// "+N today" — Riyadh calendar-day activity line for the count KPIs.
 export function TodayBadge({ count }: { count: number }) {
   if (count <= 0) {
-    return (
-      <p className="mt-1.5 text-xs font-medium text-charcoal/60">No new scans today</p>
-    );
+    return <p className="font-body text-xs text-muted-3">No scans yet today</p>;
   }
   return (
     <p
-      className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-deep-teal/10 px-2 py-0.5 text-xs font-bold text-deep-teal"
-      title={`${count} new ${count === 1 ? "scan" : "scans"} in the last 24 hours`}
+      className="inline-flex items-center gap-1 font-body text-xs font-medium text-ink"
+      title={`${count} ${count === 1 ? "scan" : "scans"} today (Riyadh time)`}
     >
-      <TrendingUp className="h-3 w-3" />
-      +{count} today
+      <TrendingUp className="h-3 w-3" aria-hidden />+{count.toLocaleString()} today
     </p>
   );
 }
 
-// Two-stat sub-row for the "Active QR codes" KPI — active (teal) vs inactive
-// (muted) counts side by side, so a single card shows both at a glance.
-export function ActiveInactiveRow({ active, inactive }: { active: number; inactive: number }) {
-  return (
-    <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-semibold">
-      <span className="inline-flex items-center gap-1.5 text-deep-teal">
-        <span className="h-1.5 w-1.5 rounded-full bg-deep-teal" />
-        {active} active
-      </span>
-      <span className="inline-flex items-center gap-1.5 text-charcoal/45">
-        <span className="h-1.5 w-1.5 rounded-full bg-charcoal/35" />
-        {inactive} inactive
-      </span>
-    </div>
-  );
-}
+/* ────────────────────────── TREND ────────────────────────── */
 
-export function Sparkline({ series }: { series: Bucket[] }) {
-  const max = Math.max(1, ...series.map((s) => s.count));
-  const w = 70, h = 24;
-  const stepX = series.length > 1 ? w / (series.length - 1) : w;
-  const points = series.map((s, i) => `${i * stepX},${h - (s.count / max) * h}`).join(" ");
-  return (
-    <svg viewBox={`0 0 ${w} ${h}`} className="h-6 w-[70px]" aria-hidden>
-      <polyline points={points} fill="none" stroke="#0F5B55" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-/* ────────────────────────── CHARTS ────────────────────────── */
-
-export function TrendCard({ period, series }: { period: Period; series: Bucket[] }) {
-  const data = series.map((b) => ({ date: b.label.slice(5), count: b.count }));
+export function TrendCard({
+  period,
+  series,
+  title = "Scan trend over time",
+}: {
+  period: Period;
+  series: Bucket[];
+  title?: string;
+}) {
+  const gid = useId().replace(/:/g, "");
+  const data = series.map((b) => ({ date: shortDay(b.label), count: b.count }));
   const hasData = data.some((d) => d.count > 0);
+  const showDots = data.length <= 31;
   return (
-    <div className="rounded-2xl border border-charcoal/10 bg-white p-5 shadow-[0_1px_2px_rgba(15,91,85,0.06),0_2px_8px_-2px_rgba(15,91,85,0.08)]">
-      <div className="flex items-center justify-between">
-        <h2 className="font-display text-sm font-bold uppercase tracking-wider text-charcoal/75">
-          Scan trend over time
-        </h2>
-        <span className="text-xs text-charcoal/60">
-          {PERIODS.find((p) => p.id === period)?.label}
-        </span>
-      </div>
-      <div className="mt-4 h-72 w-full">
+    <Card className="p-5 sm:p-6">
+      <CardHeader
+        title={title}
+        note={
+          <span className="inline-flex items-center gap-1.5">
+            <span className="h-2 w-2 rounded-full bg-ink" aria-hidden /> Scans · {periodLabel(period)}
+          </span>
+        }
+        right={
+          <span className="inline-flex h-8 items-center rounded-full bg-stone px-3 font-body text-xs font-medium text-ink">
+            Daily
+          </span>
+        }
+      />
+      <div className="mt-5 h-64 w-full sm:h-72">
         {hasData ? (
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={data} margin={{ top: 5, right: 8, left: -8, bottom: 0 }}>
+            <AreaChart data={data} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
               <defs>
-                <linearGradient id="trendG" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#0F5B55" stopOpacity={0.4} />
-                  <stop offset="100%" stopColor="#0F5B55" stopOpacity={0} />
+                <linearGradient id={`trend-${gid}`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#DBFC74" stopOpacity={0.9} />
+                  <stop offset="100%" stopColor="#DBFC74" stopOpacity={0.05} />
                 </linearGradient>
               </defs>
-              <XAxis dataKey="date" tick={{ fontSize: 11, fill: "#1B1B1D88" }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
-              {/* B5/Item 8 — Y-axis with integer ticks so scan counts are
-                  legible. allowDecimals=false keeps "0/1/2/3..." instead
-                  of "0.5". Width=32 reserves the gutter; left margin
-                  pulled in to compensate. */}
+              <CartesianGrid vertical={false} stroke="#F0EEEB" />
+              <XAxis
+                dataKey="date"
+                tick={{ fontSize: 11, fill: MUTED }}
+                axisLine={false}
+                tickLine={false}
+                interval="preserveStartEnd"
+                minTickGap={24}
+              />
+              {/* Integer ticks so scan counts stay legible. */}
               <YAxis
-                tick={{ fontSize: 11, fill: "#1B1B1D88" }}
+                tick={{ fontSize: 11, fill: MUTED }}
                 axisLine={false}
                 tickLine={false}
                 allowDecimals={false}
-                width={32}
+                width={36}
               />
-              <Tooltip cursor={{ stroke: "#0F5B55", strokeDasharray: "3 3" }} content={<TrendTooltip />} />
-              <Area type="monotone" dataKey="count" stroke="#0F5B55" strokeWidth={2.5} fill="url(#trendG)" dot={{ r: 2, fill: "#0F5B55" }} activeDot={{ r: 4 }} />
+              <Tooltip cursor={{ stroke: INK, strokeDasharray: "3 3" }} content={<TrendTooltip />} />
+              <Area
+                type="monotone"
+                dataKey="count"
+                stroke={INK}
+                strokeWidth={2}
+                fill={`url(#trend-${gid})`}
+                dot={showDots ? { r: 3, fill: INK, stroke: "#fff", strokeWidth: 1.5 } : false}
+                activeDot={{ r: 5, fill: INK, stroke: "#DBFC74", strokeWidth: 2 }}
+              />
             </AreaChart>
           </ResponsiveContainer>
         ) : (
           <EmptyChart />
         )}
       </div>
-    </div>
+    </Card>
   );
 }
 
-// B5/Item 8 — branded trend-chart tooltip. Recharts hands us
-// (label, payload[]) for AreaChart hover; we render the day label and
-// "Total scans: N" with the deep-teal accent.
 function TrendTooltip({
   active,
   label,
@@ -225,101 +281,250 @@ function TrendTooltip({
   if (!active || !payload?.length) return null;
   const count = Number(payload[0]?.value ?? 0);
   return (
-    <div className="rounded-lg border border-charcoal/10 bg-white px-3 py-2 shadow-[0_4px_16px_rgba(0,0,0,0.08)]">
-      <p className="text-[10px] uppercase tracking-wider text-charcoal/60">{label}</p>
-      <p className="mt-0.5 text-xs">
-        <span className="text-charcoal/65">Total scans:</span>{" "}
-        <span className="font-display text-sm font-bold text-deep-teal">
-          {count.toLocaleString()}
-        </span>
+    <div className="rounded-2xl border border-stone-dark bg-white px-3 py-2 font-body shadow-float">
+      <p className="text-[11px] text-muted-3">{label}</p>
+      <p className="mt-0.5 text-xs text-muted-2">
+        Scans <span className="ml-1 font-heading text-sm font-semibold text-ink">{count.toLocaleString()}</span>
       </p>
     </div>
   );
 }
 
-export function EmptyChart() {
+export function EmptyChart({
+  title = "No scans in this period",
+  body = "When someone scans one of your QR codes, it shows up here.",
+}: {
+  title?: string;
+  body?: string;
+}) {
   return (
-    <div className="grid h-full place-items-center text-center text-sm text-charcoal/45">
+    <div className="grid h-full place-items-center rounded-2xl bg-cream px-4 text-center">
       <div>
-        <QrCode className="mx-auto h-10 w-10 text-charcoal/20" />
-        <p className="mt-2 font-semibold text-charcoal/55">No scans yet</p>
-        <p className="mt-1 text-xs">Once someone scans this QR, you’ll see real-time analytics here.</p>
+        <IconWell icon={ScanLine} tone="stone" className="mx-auto" />
+        <p className="mt-3 font-heading text-[15px] font-semibold text-ink">{title}</p>
+        <p className="mx-auto mt-1 max-w-xs font-body text-xs text-muted-2">{body}</p>
       </div>
     </div>
   );
 }
 
+/* ────────────────────────── DONUT ────────────────────────── */
+
 export function DonutCard({
-  title, series, centerLabel,
-}: { title: string; series: Bucket[]; centerLabel: string }) {
+  title,
+  series,
+  centerLabel,
+  note,
+  className = "",
+}: {
+  title: string;
+  series: Bucket[];
+  centerLabel: string;
+  note?: React.ReactNode;
+  className?: string;
+}) {
   const total = series.reduce((s, b) => s + b.count, 0);
-  const data = series.length ? series : [{ label: "No data", count: 1 }];
+  const has = total > 0;
+  const data = has ? series : [{ label: "No data", count: 1 }];
   return (
-    <div className="rounded-2xl border border-charcoal/10 bg-white p-5 shadow-[0_1px_2px_rgba(15,91,85,0.06),0_2px_8px_-2px_rgba(15,91,85,0.08)]">
-      <h2 className="font-display text-sm font-bold uppercase tracking-wider text-charcoal/75">{title}</h2>
-      <div className="mt-3 grid grid-cols-[140px_1fr] items-center gap-4">
-        {/* outline-none on focus kills the ugly square focus box recharts'
-            Pie sectors show when clicked/focused (applies to both donuts). */}
-        <div className="relative h-[140px] w-[140px] [&_:focus]:outline-none [&_:focus-visible]:outline-none [&_svg]:outline-none">
+    <Card className={`p-5 ${className}`}>
+      <CardHeader title={title} note={note} />
+      <div className="mt-4 flex flex-wrap items-center gap-5 sm:flex-nowrap">
+        {/* outline-none kills the square focus box recharts' Pie sectors show. */}
+        <div className="relative mx-auto h-[132px] w-[132px] shrink-0 [&_:focus]:outline-none [&_svg]:outline-none">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
-              <Pie data={data} dataKey="count" nameKey="label" cx="50%" cy="50%" innerRadius={45} outerRadius={65} strokeWidth={0} rootTabIndex={-1}>
+              <Pie
+                data={data}
+                dataKey="count"
+                nameKey="label"
+                cx="50%"
+                cy="50%"
+                innerRadius={44}
+                outerRadius={64}
+                paddingAngle={has && series.length > 1 ? 2 : 0}
+                strokeWidth={0}
+                rootTabIndex={-1}
+                isAnimationActive={false}
+              >
                 {data.map((_, i) => (
-                  <Cell key={i} fill={series.length ? PALETTE[i % PALETTE.length] : "#E9E6DF"} />
+                  <Cell key={i} fill={has ? PALETTE[i % PALETTE.length] : "#F0EEEB"} />
                 ))}
               </Pie>
             </PieChart>
           </ResponsiveContainer>
           <div className="pointer-events-none absolute inset-0 grid place-items-center">
             <div className="text-center">
-              <p className="font-display text-lg font-bold leading-none">{total}</p>
-              <p className="mt-0.5 text-[10px] uppercase tracking-wider text-charcoal/60">{centerLabel}</p>
+              <p className="font-heading text-xl font-semibold leading-none text-ink">{total.toLocaleString()}</p>
+              <p className="mt-1 font-body text-[11px] text-muted-3">{centerLabel}</p>
             </div>
           </div>
         </div>
-        <ul className="space-y-1.5 text-xs">
-          {(series.length ? series : []).map((b, i) => (
-            <li key={b.label} className="flex items-center justify-between gap-2">
-              <span className="flex items-center gap-2 min-w-0">
-                <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: PALETTE[i % PALETTE.length] }} />
-                <span className="truncate capitalize text-charcoal/70">{b.label}</span>
-              </span>
-              <span className="shrink-0 font-semibold text-charcoal">
-                {b.count} · {Math.round((b.count / Math.max(total, 1)) * 100)}%
-              </span>
-            </li>
-          ))}
-          {!series.length && <li className="text-charcoal/45">No data</li>}
+        <ul className="w-full min-w-0 flex-1 space-y-2.5 font-body text-[13px]">
+          {has ? (
+            series.map((b, i) => (
+              <li key={b.label} className="flex items-center justify-between gap-3">
+                <span className="flex min-w-0 items-center gap-2">
+                  <span
+                    className="h-2.5 w-2.5 shrink-0 rounded-full ring-1 ring-inset ring-ink/10"
+                    style={{ background: PALETTE[i % PALETTE.length] }}
+                    aria-hidden
+                  />
+                  <span className="truncate capitalize text-muted-2">{b.label}</span>
+                </span>
+                <span className="shrink-0 tabular-nums font-medium text-ink">{pct(b.count, total)}%</span>
+              </li>
+            ))
+          ) : (
+            <li className="text-muted-3">No scans yet</li>
+          )}
         </ul>
       </div>
-    </div>
+    </Card>
   );
 }
 
-export function BarCard({ title, series }: { title: string; series: Bucket[] }) {
-  const max = Math.max(1, ...series.map((b) => b.count));
+export function pct(n: number, total: number): number {
+  return total > 0 ? Math.round((n / total) * 100) : 0;
+}
+
+/* ────────────────────────── BARS ────────────────────────── */
+
+/** Horizontal share bars (label · bar · %). `total` is the share base. */
+export function ShareBars({
+  series,
+  total,
+  max = 5,
+  icon,
+}: {
+  series: Bucket[];
+  total: number;
+  max?: number;
+  /** Optional per-row icon resolver (e.g. browser / OS / time icons). */
+  icon?: (label: string) => LucideIcon | null;
+}) {
+  const rows = series.slice(0, max);
+  if (!rows.length || total <= 0) {
+    return <p className="py-6 text-center font-body text-[13px] text-muted-3">No scans yet</p>;
+  }
+  const top = Math.max(1, ...rows.map((r) => r.count));
   return (
-    <div className="rounded-2xl border border-charcoal/10 bg-white p-5 shadow-[0_1px_2px_rgba(15,91,85,0.06),0_2px_8px_-2px_rgba(15,91,85,0.08)]">
-      <h2 className="font-display text-sm font-bold uppercase tracking-wider text-charcoal/75">{title}</h2>
-      {series.length ? (
-        <ul className="mt-3 space-y-2.5">
-          {series.map((b) => (
-            <li key={b.label}>
-              <div className="mb-1 flex items-center justify-between text-xs">
-                <span className="truncate text-charcoal/70" title={b.label}>
-                  {b.label.length > 18 ? b.label.slice(0, 18) + "…" : b.label}
-                </span>
-                <span className="font-semibold text-charcoal">{b.count}</span>
-              </div>
-              <div className="h-1.5 overflow-hidden rounded-full bg-sand-light">
-                <div className="h-full rounded-full bg-deep-teal" style={{ width: `${(b.count / max) * 100}%` }} />
-              </div>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="mt-4 text-xs text-charcoal/45">No data</p>
-      )}
-    </div>
+    <ul className="space-y-3.5 font-body text-[13px]">
+      {rows.map((b, i) => {
+        const Icon = icon?.(b.label) ?? null;
+        return (
+          <li key={b.label}>
+            <div className="flex items-center justify-between gap-3">
+              <span className="flex min-w-0 items-center gap-2 text-muted-2" title={`${b.label}: ${b.count.toLocaleString()} scans`}>
+                {Icon && (
+                  <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-stone text-ink">
+                    <Icon className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden />
+                  </span>
+                )}
+                <span className="truncate">{b.label}</span>
+              </span>
+              <span className="shrink-0 tabular-nums font-medium text-ink">
+                {pct(b.count, total)}%
+              </span>
+            </div>
+            <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-stone" aria-hidden>
+              <div
+                className={`h-full rounded-full ${i === 0 ? "bg-ink" : "bg-ink/60"}`}
+                style={{ width: `${Math.max(3, (b.count / top) * 100)}%` }}
+              />
+            </div>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+export function BarCard({
+  title,
+  series,
+  total,
+  note,
+}: {
+  title: string;
+  series: Bucket[];
+  total?: number;
+  note?: React.ReactNode;
+}) {
+  const base = total ?? series.reduce((s, b) => s + b.count, 0);
+  return (
+    <Card className="p-5">
+      <CardHeader title={title} note={note} />
+      <div className="mt-4">
+        <ShareBars series={series} total={base} />
+      </div>
+    </Card>
+  );
+}
+
+/* ────────────────────────── TABS ────────────────────────── */
+
+/** Card with a small segmented tab switcher (ARIA tabs). */
+export function TabbedCard({
+  title,
+  tabs,
+  className = "",
+}: {
+  title: string;
+  tabs: { id: string; label: string; content: React.ReactNode }[];
+  className?: string;
+}) {
+  const [active, setActive] = useState(tabs[0]?.id);
+  const base = useId().replace(/:/g, "");
+  return (
+    <Card className={`p-5 ${className}`}>
+      <CardHeader
+        title={title}
+        right={
+          <div role="tablist" aria-label={title} className="inline-flex gap-0.5 rounded-full bg-stone p-0.5">
+            {tabs.map((t) => {
+              const on = t.id === active;
+              return (
+                <button
+                  key={t.id}
+                  id={`${base}-tab-${t.id}`}
+                  role="tab"
+                  type="button"
+                  aria-selected={on}
+                  aria-controls={`${base}-panel-${t.id}`}
+                  tabIndex={on ? 0 : -1}
+                  onClick={() => setActive(t.id)}
+                  onKeyDown={(e) => {
+                    if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+                    e.preventDefault();
+                    const idx = tabs.findIndex((x) => x.id === t.id);
+                    const next = tabs[(idx + (e.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length];
+                    setActive(next.id);
+                    document.getElementById(`${base}-tab-${next.id}`)?.focus();
+                  }}
+                  className={`h-7 rounded-full px-2.5 font-body text-xs font-medium transition-colors ${FOCUS} ${
+                    on ? "bg-white text-ink shadow-card" : "text-muted-2 hover:text-ink"
+                  }`}
+                >
+                  {t.label}
+                </button>
+              );
+            })}
+          </div>
+        }
+      />
+      {tabs.map((t) => (
+        <div
+          key={t.id}
+          id={`${base}-panel-${t.id}`}
+          role="tabpanel"
+          aria-labelledby={`${base}-tab-${t.id}`}
+          hidden={t.id !== active}
+          className="mt-4"
+        >
+          {t.content}
+        </div>
+      ))}
+    </Card>
   );
 }
