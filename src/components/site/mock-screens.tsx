@@ -358,24 +358,6 @@ export function EditDestinationScreen() {
   );
 }
 
-/** Floating toast snippet used on cards and frames. */
-export function UpdatedToast({ className = "" }: { className?: string }) {
-  return (
-    <div
-      aria-hidden
-      className={`flex items-center gap-2.5 rounded-2xl border border-ink/[0.06] bg-white py-2.5 pl-2.5 pr-4 font-sans shadow-float ${className}`}
-    >
-      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-lime">
-        <Check className="h-3.5 w-3.5 text-ink" strokeWidth={3} />
-      </span>
-      <div>
-        <div className="whitespace-nowrap text-[13px] font-semibold text-ink">Destination updated</div>
-        <div className="whitespace-nowrap text-[11px] text-muted-3">Printed code now opens the new link</div>
-      </div>
-    </div>
-  );
-}
-
 /* ───────────────────────────── Design studio ───────────────────────────── */
 
 export function DesignStudioScreen() {
