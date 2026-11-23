@@ -232,7 +232,8 @@ function ListRow({
     setToggling(false);
     if (!res.ok) {
       setStatus(prev);
-      toast.error("Couldn’t update status. Try again.");
+      const data = await res.json().catch(() => null);
+      toast.error(data?.message || "Couldn’t update status. Try again.");
       return;
     }
     toast.success(next === "active" ? "QR is now active" : "QR is now inactive");

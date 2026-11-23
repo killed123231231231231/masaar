@@ -53,6 +53,26 @@ function sizeError(body: {
   return null;
 }
 
+const LOCKED_MESSAGE =
+  "This QR code was disabled by an administrator. Contact support.";
+
+function lockedResponse() {
+  return NextResponse.json({ error: "locked", message: LOCKED_MESSAGE }, { status: 403 });
+}
+
+// Map the migration-031 guard_qr_update() exceptions to clean 403s.
+function guardErrorResponse(err: { message?: string } | null) {
+  const m = err?.message ?? "";
+  if (m.includes("qr_locked_by_admin")) return lockedResponse();
+  if (m.includes("immutable_field") || m.includes("admin_only_field")) {
+    return NextResponse.json(
+      { error: "forbidden_field", message: "That field can't be changed." },
+      { status: 403 }
+    );
+  }
+  return null;
+}
+
 type ServerClient = Awaited<ReturnType<typeof createClient>>;
 
 // Pre-check the free-plan cap so the user gets a clean message even before
@@ -256,6 +276,9 @@ export async function PATCH(request: Request) {
     .maybeSingle();
   const cur = curRow as (QrCode & { admin_locked?: boolean | null }) | null;
   if (!cur) return NextResponse.json({ error: "not_found" }, { status: 404 });
+  // Abuse takedown: an admin-locked QR can't be edited or re-activated by
+  // its owner. admin_locked is undefined until migration 031 → not locked.
+  if (cur.admin_locked === true) return lockedResponse();
 
   // Explicit allow-list. Spreading the request body let a client set any
   // column (kind, is_active, password_hash, payload_json, created_at, ...).
@@ -382,7 +405,9 @@ export async function PATCH(request: Request) {
     .select()
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  if (error) {
+    return guardErrorResponse(error) ?? NextResponse.json({ error: error.message }, { status: 400 });
+  }
   // Keep the /r edge cache truthful the moment an edit/toggle lands — a
   // destination change or Active⇄Inactive flip must not wait for the
   // next scan's revalidate to take effect.
