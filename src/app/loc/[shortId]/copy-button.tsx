@@ -17,11 +17,11 @@ export default function CopyButton({ text }: { text: string }) {
           /* clipboard blocked — no-op */
         }
       }}
-      className="flex w-full items-center justify-center gap-2 rounded-xl border border-charcoal/15 bg-white px-4 py-3 text-sm font-semibold text-charcoal transition hover:bg-sand-light"
+      className="flex w-full items-center justify-center gap-2 rounded-full bg-stone px-4 py-3.5 text-sm font-medium text-ink transition-colors hover:bg-stone-dark"
     >
       {done ? (
         <>
-          <Check className="h-4 w-4 text-deep-teal" /> Copied
+          <Check className="h-4 w-4 text-ink" /> Copied
         </>
       ) : (
         <>

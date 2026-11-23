@@ -84,7 +84,7 @@ export default async function SocialPage({
     .filter((l): l is { platform: string; url: string; safe: string } => !!l.safe);
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-sand-light to-white">
+    <main className="min-h-screen bg-paper font-body text-ink">
       <div className="mx-auto flex w-full max-w-md flex-col items-center px-6 pb-12 pt-16 text-center">
         {p.avatar_url ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -94,18 +94,18 @@ export default async function SocialPage({
             className="h-24 w-24 rounded-full border-4 border-white object-cover shadow-md"
           />
         ) : (
-          <div className="grid h-24 w-24 place-items-center rounded-full bg-deep-teal font-display text-2xl font-bold text-white shadow-md">
+          <div className="grid h-24 w-24 place-items-center rounded-full bg-ink font-heading text-[28px] font-medium tracking-[-0.02em] text-white shadow-md">
             {initials}
           </div>
         )}
 
         {name && (
-          <h1 className="mt-4 font-display text-2xl font-bold tracking-tight text-charcoal">
+          <h1 className="mt-4 font-heading text-[28px] font-medium tracking-[-0.02em] text-ink">
             {name}
           </h1>
         )}
         {p.bio && (
-          <p className="mt-2 max-w-sm text-sm leading-relaxed text-charcoal/60">{p.bio}</p>
+          <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted-2">{p.bio}</p>
         )}
 
         {links.length > 0 && (
@@ -118,16 +118,16 @@ export default async function SocialPage({
                   href={l.safe}
                   target="_blank"
                   rel="noopener noreferrer nofollow"
-                  className="flex items-center gap-3 rounded-xl border border-charcoal/10 bg-white px-4 py-3.5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                  className="flex items-center gap-3 rounded-card border border-stone-dark bg-white px-4 py-3.5 transition hover:-translate-y-0.5 hover:shadow-card"
                 >
                   <span
-                    className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-[10px] font-bold uppercase text-white"
+                    className="grid h-9 w-9 shrink-0 place-items-center rounded-xl text-[10px] font-bold uppercase text-white"
                     style={{ background: m.color }}
                   >
                     {m.label.slice(0, 2)}
                   </span>
-                  <span className="flex-1 text-left font-semibold text-charcoal">{m.label}</span>
-                  <ChevronRight className="h-4 w-4 shrink-0 text-charcoal/30" />
+                  <span className="flex-1 text-left font-semibold text-ink">{m.label}</span>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-muted-4" />
                 </a>
               );
             })}
@@ -137,14 +137,14 @@ export default async function SocialPage({
         <footer className="mt-12">
           <Link
             href="/"
-            className="text-xs font-medium text-charcoal/40 transition-colors hover:text-deep-teal"
+            className="text-xs font-medium text-muted-3 transition-colors hover:text-ink"
           >
             Made with <span className="font-semibold">Vertexa QR</span>
           </Link>
-          <span aria-hidden className="mx-2 text-xs text-charcoal/25">·</span>
+          <span aria-hidden className="mx-2 text-xs text-muted-4">·</span>
           <Link
             href={`/contact?topic=abuse&qr=${encodeURIComponent(shortId)}`}
-            className="text-xs text-charcoal/55 transition-colors hover:text-terracotta-dark"
+            className="text-xs text-muted-3 transition-colors hover:text-ink"
           >
             Report abuse
           </Link>

@@ -74,20 +74,20 @@ export default function FeedbackWidget({
   if (done) {
     return (
       <div className="text-center">
-        <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-deep-teal/10 text-deep-teal">
+        <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-lime text-ink">
           <Check className="h-8 w-8" strokeWidth={2.5} />
         </span>
-        <h1 className="mt-5 font-display text-2xl font-bold text-charcoal">
+        <h1 className="mt-5 font-heading text-[28px] font-medium tracking-[-0.02em] text-ink">
           Thanks for your feedback!
         </h1>
-        <p className="mt-2 text-sm text-charcoal/55">We really appreciate it.</p>
+        <p className="mt-2 text-sm text-muted-3">We really appreciate it.</p>
       </div>
     );
   }
 
   return (
     <div>
-      <h1 className="text-center font-display text-2xl font-bold tracking-tight text-charcoal">
+      <h1 className="text-center font-heading text-[28px] font-medium tracking-[-0.02em] text-ink">
         {headline}
       </h1>
 
@@ -106,7 +106,7 @@ export default function FeedbackWidget({
               className="p-1 transition-transform hover:scale-110"
             >
               <Star
-                className={`h-10 w-10 ${filled ? "fill-amber-400 text-amber-400" : "text-charcoal/20"}`}
+                className={`h-10 w-10 ${filled ? "fill-amber-400 text-amber-400" : "text-muted-4"}`}
                 strokeWidth={1.5}
               />
             </button>
@@ -121,7 +121,7 @@ export default function FeedbackWidget({
           rows={3}
           maxLength={2000}
           placeholder={prompt}
-          className="block w-full rounded-lg border border-charcoal/15 bg-white px-4 py-3 text-sm text-charcoal outline-none transition-colors placeholder:text-charcoal/40 focus:border-deep-teal focus:ring-2 focus:ring-deep-teal/15"
+          className="block w-full min-h-[44px] rounded-xl border border-stone-dark bg-white px-4 py-3 hover:border-ink/25 text-sm text-ink outline-none transition-colors placeholder:text-muted-3 focus:border-ink focus:ring-2 focus:ring-ink/20"
         />
         {askEmail && (
           <input
@@ -129,18 +129,18 @@ export default function FeedbackWidget({
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Your email (optional)"
-            className="block w-full rounded-lg border border-charcoal/15 bg-white px-4 py-3 text-sm text-charcoal outline-none transition-colors placeholder:text-charcoal/40 focus:border-deep-teal focus:ring-2 focus:ring-deep-teal/15"
+            className="block w-full min-h-[44px] rounded-xl border border-stone-dark bg-white px-4 py-3 hover:border-ink/25 text-sm text-ink outline-none transition-colors placeholder:text-muted-3 focus:border-ink focus:ring-2 focus:ring-ink/20"
           />
         )}
       </div>
 
-      {err && <p className="mt-3 text-center text-sm font-medium text-terracotta-dark">{err}</p>}
+      {err && <p className="mt-3 text-center text-sm font-medium text-red-700">{err}</p>}
 
       <button
         type="button"
         onClick={submit}
         disabled={submitting}
-        className="mt-6 w-full rounded-xl bg-deep-teal px-4 py-3.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-deep-teal-dark disabled:opacity-60"
+        className="mt-6 w-full rounded-full bg-ink px-4 py-3.5 text-[15px] font-medium text-white shadow-card transition-colors hover:bg-ink-soft focus:outline-none focus-visible:ring-2 focus-visible:ring-ink/30 focus-visible:ring-offset-2 disabled:opacity-60"
       >
         {submitting ? "Sending…" : "Submit feedback"}
       </button>
