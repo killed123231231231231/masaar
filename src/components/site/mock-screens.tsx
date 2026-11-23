@@ -260,10 +260,10 @@ export function AnalyticsScreen({ id = "an" }: { id?: string }) {
           <div className="truncate text-[15px] font-semibold tracking-[-0.01em]">Analytics</div>
         </div>
         <div className="flex gap-1.5">
-          <ChipMock tone="white">Last 30 days</ChipMock>
           <span className="hidden sm:inline-flex">
-            <ChipMock>Sample data</ChipMock>
+            <ChipMock tone="white">Last 30 days</ChipMock>
           </span>
+          <ChipMock>Sample data</ChipMock>
         </div>
       </div>
 

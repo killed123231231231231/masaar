@@ -86,7 +86,16 @@ const PANELS: Panel[] = [
   },
 ];
 
-const STICKY_TOP = ["lg:top-[100px]", "lg:top-[120px]", "lg:top-[140px]"];
+/**
+ * Stick only on large screens that are also tall enough to show a whole
+ * panel (top offset + 540px min height + CTA). On short laptops (e.g.
+ * 1280x600 inner height) the panels scroll normally so no CTA is hidden.
+ */
+const STICKY_TOP = [
+  "[@media(min-width:1024px)_and_(min-height:780px)]:sticky [@media(min-width:1024px)_and_(min-height:780px)]:top-[100px]",
+  "[@media(min-width:1024px)_and_(min-height:780px)]:sticky [@media(min-width:1024px)_and_(min-height:780px)]:top-[120px]",
+  "[@media(min-width:1024px)_and_(min-height:780px)]:sticky [@media(min-width:1024px)_and_(min-height:780px)]:top-[140px]",
+];
 
 /** Three big stone panels that stack as you scroll (sticky on desktop). */
 export default function StackedPanels() {
@@ -99,7 +108,7 @@ export default function StackedPanels() {
 
         <div className="mt-10 space-y-6 md:mt-14 lg:space-y-10">
           {PANELS.map((p, i) => (
-            <Reveal key={p.key} className={`lg:sticky ${STICKY_TOP[i]}`}>
+            <Reveal key={p.key} className={STICKY_TOP[i]}>
               <article
                 aria-labelledby={`panel-${p.key}`}
                 className="grid gap-8 rounded-panel bg-stone p-5 shadow-[0_-12px_32px_-24px_rgba(26,26,26,0.25)] sm:p-8 lg:min-h-[540px] lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)] lg:gap-10 lg:p-10"
