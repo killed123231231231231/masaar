@@ -19,7 +19,7 @@ import {
 import LogoMark from "@/components/logo-mark";
 import type { SidebarCurrent, SidebarMe } from "@/components/dashboard/sidebar";
 
-const PLAN_LIMITS: Record<string, number> = { Free: 5, Pro: 5000 };
+const PLAN_LIMITS: Record<string, number> = { Free: 25, Pro: 5000 };
 
 /**
  * C2 — mobile dashboard nav. The desktop Sidebar is `hidden lg:flex`, so
@@ -54,7 +54,7 @@ export default function MobileDashboardNav({
     };
   }, [open]);
 
-  const limit = PLAN_LIMITS[me.plan] ?? 5;
+  const limit = PLAN_LIMITS[me.plan] ?? 25;
   const used = Math.min(me.qrCount, limit);
   const usagePct = Math.round((used / limit) * 100);
 

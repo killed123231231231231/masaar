@@ -28,12 +28,12 @@ export interface SidebarMe {
   qrCount: number;
 }
 
-const PLAN_LIMITS: Record<string, number> = { Free: 5, Pro: 5000 };
+const PLAN_LIMITS: Record<string, number> = { Free: 25, Pro: 5000 };
 
 interface Props {
   me: SidebarMe;
   current: SidebarCurrent;
-  /** Where the "Upgrade to Pro" CTA in the Free-plan card goes. */
+  /** Where the "Plan details" link in the Free-plan card goes. */
   upgradeHref?: string;
   /**
    * Per-QR analytics URL — accepted but unused after Fix 20 (the
@@ -49,7 +49,7 @@ interface Props {
 export default function Sidebar({
   me, current, upgradeHref = "/pricing",
 }: Props) {
-  const limit = PLAN_LIMITS[me.plan] ?? 5;
+  const limit = PLAN_LIMITS[me.plan] ?? 25;
   const used = Math.min(me.qrCount, limit);
   const usagePct = Math.round((used / limit) * 100);
 
@@ -116,7 +116,7 @@ export default function Sidebar({
             href={upgradeHref}
             className="mt-3 block rounded-md bg-white px-2 py-1.5 text-center text-[11px] font-semibold text-deep-teal hover:bg-white/90"
           >
-            Upgrade to Pro
+            Plan details
           </Link>
         )}
       </div>

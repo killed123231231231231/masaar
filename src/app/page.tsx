@@ -693,69 +693,23 @@ function CapabilityPill({ label, note }: { label: string; note: string }) {
 
 // B6/Section 6 — Pricing Teaser (NEW).
 //
-// 3-card preview of the 5-tier table that lives on /pricing (built in
-// Phase 4). Borrows getqr's pricing card grid + "Most Popular"
-// highlight + "Save X%" badge patterns — but ships HONEST tiers:
-//
-// - No $1 trial trap (getqr's pattern; their FAQ is 6/13
-//   billing-defensive as a result — see design-targets/getqr-analysis.md)
-// - Tiers are differentiated by FEATURES, not just billing cadence
-// - SAR pricing upfront, no "prices may vary by country" geo-trick
-//
-// 5 full tiers per STRATEGY.md §5 (Free / Starter / Pro / Menu Pro /
-// Menu Pro + Ordering / Agency); this teaser surfaces the 3 most
-// representative — Free / Pro (Most Popular) / Menu Pro — and links
-// to /pricing for the full comparison matrix.
-// B6 audit fix — tier renames + "Best for" subheads + tighter CTAs.
-// Menu Pro -> Restaurant Pro (better F&B positioning, Usama-approved).
-// Each tier carries a one-line "Best for X" so a visitor self-selects
-// faster. CTA copy matches the tier's intent (Free = try, Pro =
-// business, Restaurant Pro = build a menu).
+// Vertexa QR is free (PAYMENTS_ENABLED stays false), so the teaser shows
+// the single Free plan and links to /pricing for the FAQ.
 const PRICING_PREVIEW = [
   {
     name: "Free",
     price: "SAR 0",
     cadence: "forever",
-    headline: "Try Vertexa QR with no card.",
-    bestFor: "Best for testing QR campaigns",
+    headline: "Everything in Vertexa QR. No card needed.",
+    bestFor: "One plan for everyone",
     items: [
-      "5 dynamic QR codes",
-      "Basic scan analytics",
-      "PNG / SVG export",
+      "Up to 25 QR codes per account",
+      "Dynamic QR codes: change the destination any time",
+      "Scan analytics for every code",
+      "PDF up to 5 MB, images up to 2 MB",
+      "Videos: link to YouTube or Vimeo",
     ],
-    cta: "Start free",
-    href: "/create",
-    badge: null,
-  },
-  {
-    name: "Pro",
-    price: "SAR 99",
-    cadence: "per month",
-    headline: "Everything most businesses need.",
-    bestFor: "Best for active businesses tracking scans",
-    items: [
-      "Unlimited dynamic QRs",
-      "Full analytics + CSV export",
-      "Logo, colors, frames",
-      "15+ content types",
-    ],
-    cta: "Start Business plan",
-    href: "/create",
-    badge: "Most popular",
-  },
-  {
-    name: "Restaurant Pro",
-    price: "SAR 199",
-    cadence: "per month",
-    headline: "Built for Saudi cafés + restaurants.",
-    bestFor: "Best for cafés and restaurants with menus",
-    items: [
-      "Everything in Pro",
-      "Menu vertical + AI import",
-      "Photo CDN + allergen tags",
-      "Bilingual menu rendering",
-    ],
-    cta: "Build my digital menu",
+    cta: "Create a QR code",
     href: "/create",
     badge: null,
   },
@@ -770,15 +724,14 @@ function PricingTeaser() {
             Pricing
           </p>
           <h2 className="mt-3 text-balance font-display text-3xl font-bold tracking-tight sm:text-4xl">
-            Plans that grow with you
+            Free to use
           </h2>
           <p className="mt-4 text-balance text-base leading-relaxed text-charcoal/65">
-            SAR-priced, no surprise renewals. Start free, upgrade when scans
-            outgrow the limit.
+            No paid plans, no card, no trial period.
           </p>
         </div>
 
-        <ul className="mt-10 grid gap-5 lg:grid-cols-3">
+        <ul className="mx-auto mt-10 grid max-w-xl gap-5">
           {PRICING_PREVIEW.map((tier) => {
             const isPopular = tier.badge === "Most popular";
             return (
@@ -842,7 +795,7 @@ function PricingTeaser() {
             href="/pricing"
             className="inline-flex items-center gap-1 text-sm font-semibold text-deep-teal hover:underline"
           >
-            See all plans + the feature matrix
+            Pricing details and questions
             <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </div>
