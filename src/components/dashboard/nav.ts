@@ -33,9 +33,15 @@ export const NAV: NavSpec[] = [
   { label: "Settings", icon: Settings, href: "/dashboard/settings", key: "settings" },
 ];
 
+/**
+ * Plan usage for the sidebar meter. `used` is the real QR count (never
+ * capped); only the bar width `pct` is clamped to 0-100. `limit` is the
+ * plan's default cap, not the per-user profiles.qr_quota (not on MeBundle),
+ * so it must not be stated as a hard fact on prominent surfaces.
+ */
 export function planUsage(me: SidebarMe) {
   const limit = PLAN_LIMITS[me.plan] ?? 25;
-  const used = Math.min(me.qrCount, limit);
+  const used = Math.max(0, me.qrCount);
   const pct = Math.min(100, Math.round((used / limit) * 100));
   return { limit, used, pct };
 }

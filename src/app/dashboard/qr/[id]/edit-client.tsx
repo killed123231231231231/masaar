@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { INK_BTN, INPUT } from "@/components/dashboard/ui";
 import Step3Customize from "@/app/create/_components/step-3-customize";
 import { DEFAULT_CUSTOMIZATION, type Customization } from "@/app/create/_lib/types";
 import type { QrCode } from "@/types/database";
@@ -127,11 +128,12 @@ export default function EditQrClient({ initial }: { initial: QrCode }) {
   return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2">
-        <Section title="Name">
+        <Section title="Name" htmlFor="qr-edit-name">
           <input
+            id="qr-edit-name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="block w-full rounded-lg border border-charcoal/15 h-11 px-3 text-sm transition-colors duration-150 focus:border-deep-teal focus:outline-none focus:ring-2 focus:ring-deep-teal/20"
+            className={`${INPUT} h-11`}
           />
         </Section>
 
@@ -141,15 +143,17 @@ export default function EditQrClient({ initial }: { initial: QrCode }) {
               ? "Destination URL (editable any time)"
               : "Encoded content"
           }
+          htmlFor="qr-edit-destination"
         >
           <input
+            id="qr-edit-destination"
             value={destination}
             onChange={(e) => setDestination(e.target.value)}
             disabled={initial.kind === "static"}
-            className="block w-full rounded-lg border border-charcoal/15 h-11 px-3 text-sm transition-colors duration-150 focus:border-deep-teal focus:outline-none focus:ring-2 focus:ring-deep-teal/20 disabled:bg-sand-light/60"
+            className={`${INPUT} h-11 disabled:cursor-not-allowed disabled:bg-stone disabled:text-muted-2`}
           />
           {initial.kind === "static" && (
-            <p className="mt-2 text-xs text-amber-600">
+            <p className="mt-2 font-body text-xs text-muted-2">
               Static QRs can&apos;t be edited — the value is embedded directly
               in the printed code.
             </p>
@@ -158,22 +162,23 @@ export default function EditQrClient({ initial }: { initial: QrCode }) {
       </div>
 
       {canConvertType && (
-        <div className="rounded-xl border border-charcoal/10 bg-white p-4">
-          <h3 className="text-sm font-semibold uppercase tracking-wide text-charcoal/55">
+        <div className="rounded-card border border-stone-dark/70 bg-white p-5">
+          <h3 className="font-body text-[13px] font-medium text-ink">
             QR type
           </h3>
-          <p className="mt-2 text-sm text-charcoal/70">
+          <p className="mt-2 font-body text-sm text-muted-2">
             When scanned, this QR opens a hosted{" "}
-            <span className="font-semibold">
+            <span className="font-medium text-ink">
               {TYPE_LABEL[initial.content_kind] ?? initial.content_kind}
             </span>{" "}
-            page. You can turn it into a <span className="font-semibold">direct
+            page. You can turn it into a <span className="font-medium text-ink">direct
             website link</span> instead — the printed code keeps working, only
             where it points changes (no reprint).
           </p>
-          <label className="mt-3 flex items-center gap-2 text-sm text-charcoal/75">
+          <label className="mt-3 flex items-center gap-2 font-body text-sm text-ink">
             <input
               type="checkbox"
+              className="h-4 w-4 rounded accent-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/30"
               checked={convertToUrl}
               onChange={(e) => setConvertToUrl(e.target.checked)}
             />
@@ -185,9 +190,10 @@ export default function EditQrClient({ initial }: { initial: QrCode }) {
                 value={targetUrl}
                 onChange={(e) => setTargetUrl(e.target.value)}
                 placeholder="https://your-site.com"
-                className="block w-full rounded-lg border border-charcoal/15 h-11 px-3 text-sm focus:border-deep-teal focus:outline-none focus:ring-2 focus:ring-deep-teal/20"
+                aria-label="Website link"
+                className={`${INPUT} h-11`}
               />
-              <p className="mt-2 rounded-lg bg-amber-50 p-2 text-xs text-amber-700">
+              <p className="mt-2 rounded-2xl bg-amber-50 p-3 font-body text-xs text-amber-800">
                 On save, scanning this QR jumps straight to this link — the
                 hosted {TYPE_LABEL[initial.content_kind] ?? initial.content_kind}{" "}
                 page will no longer show. This can’t be auto-undone, so
@@ -213,7 +219,7 @@ export default function EditQrClient({ initial }: { initial: QrCode }) {
           <button
             onClick={save}
             disabled={saving}
-            className="inline-flex w-full items-center justify-center rounded-lg bg-deep-teal px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors duration-200 hover:bg-deep-teal-dark disabled:opacity-60"
+            className={`${INK_BTN} h-11 w-full`}
           >
             {saving ? "Saving…" : "Save changes"}
           </button>
@@ -225,17 +231,19 @@ export default function EditQrClient({ initial }: { initial: QrCode }) {
 
 function Section({
   title,
+  htmlFor,
   children,
 }: {
   title: string;
+  htmlFor?: string;
   children: React.ReactNode;
 }) {
   return (
     <div>
-      <h3 className="text-sm font-semibold uppercase tracking-wide text-charcoal/55">
+      <label htmlFor={htmlFor} className="block font-body text-[13px] font-medium text-ink">
         {title}
-      </h3>
-      <div className="mt-3">{children}</div>
+      </label>
+      <div className="mt-2">{children}</div>
     </div>
   );
 }

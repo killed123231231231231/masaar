@@ -109,7 +109,7 @@ export function PlanCard({
         aria-label="QR codes used"
         aria-valuemin={0}
         aria-valuemax={limit}
-        aria-valuenow={used}
+        aria-valuenow={Math.min(used, limit)}
       >
         <div className="h-full rounded-full bg-lime" style={{ width: `${pct}%` }} />
       </div>

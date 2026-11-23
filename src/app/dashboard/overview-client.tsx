@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -111,9 +112,17 @@ function PageHeader({
               <QrFilterSelect userQrs={bundle.userQrs} current={filterQrId} />
               <PeriodSelect current={bundle.period} />
               <a
-                href={`/api/account/scans.csv?period=${bundle.period}`}
+                href={
+                  filterQrId
+                    ? `/api/qr/${encodeURIComponent(filterQrId)}/scans.csv?period=${bundle.period}`
+                    : `/api/account/scans.csv?period=${bundle.period}`
+                }
                 className={OUTLINE_BTN}
-                title="Download every scan in this period as CSV"
+                title={
+                  filterQrId
+                    ? "Download this QR code's scans in this period as CSV"
+                    : "Download every scan in this period as CSV"
+                }
               >
                 <Download className="h-4 w-4" aria-hidden /> Export
               </a>
@@ -376,7 +385,9 @@ function RightRail({
       />
       <div className="relative mt-4">
         <ul
-          className="-mx-1 space-y-1 overflow-y-auto px-1 [scroll-behavior:smooth] [scrollbar-width:thin]"
+          className={`-mx-1 space-y-1 px-1 ${
+            hasOverflow ? "overflow-y-auto [scroll-behavior:smooth] [scrollbar-width:thin]" : ""
+          }`}
           style={{ maxHeight: hasOverflow ? "424px" : undefined }}
         >
           {bundle.userQrs.map((q) => (
@@ -404,22 +415,59 @@ function RailRow({
   onSelect: () => void;
 }) {
   const [open, setOpen] = useState(false);
+  // The rail list can scroll on its own, which would clip an absolutely
+  // positioned dropdown. The menu is portalled to <body> and placed with
+  // fixed coordinates from the trigger, opening upward when there is no
+  // room below.
+  const [pos, setPos] = useState<{ top?: number; bottom?: number; right: number } | null>(null);
   const rootRef = useRef<HTMLLIElement | null>(null);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     if (!open) return;
     function onDown(e: MouseEvent) {
-      if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
+      const t = e.target as Node;
+      if (!rootRef.current?.contains(t) && !menuRef.current?.contains(t)) setOpen(false);
     }
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") {
+        setOpen(false);
+        triggerRef.current?.focus();
+      }
+    }
+    // Fixed coordinates go stale on scroll/resize; close rather than drift.
+    function onMove() {
+      setOpen(false);
     }
     document.addEventListener("mousedown", onDown);
     document.addEventListener("keydown", onKey);
+    window.addEventListener("scroll", onMove, true);
+    window.addEventListener("resize", onMove);
     return () => {
       document.removeEventListener("mousedown", onDown);
       document.removeEventListener("keydown", onKey);
+      window.removeEventListener("scroll", onMove, true);
+      window.removeEventListener("resize", onMove);
     };
   }, [open]);
+
+  function toggleMenu() {
+    if (open) {
+      setOpen(false);
+      return;
+    }
+    const r = triggerRef.current?.getBoundingClientRect();
+    if (r) {
+      const MENU_H = 150;
+      const right = Math.max(8, window.innerWidth - r.right);
+      setPos(
+        window.innerHeight - r.bottom < MENU_H + 12 && r.top > MENU_H + 12
+          ? { bottom: window.innerHeight - r.top + 4, right }
+          : { top: r.bottom + 4, right }
+      );
+    }
+    setOpen(true);
+  }
 
   const inactive = q.status !== "active";
   return (
@@ -455,7 +503,8 @@ function RailRow({
         </button>
         <button
           type="button"
-          onClick={() => setOpen((o) => !o)}
+          ref={triggerRef}
+          onClick={toggleMenu}
           aria-haspopup="menu"
           aria-expanded={open}
           aria-label={`More actions for ${q.name}`}
@@ -464,10 +513,12 @@ function RailRow({
           <MoreHorizontal className="h-4 w-4" />
         </button>
       </div>
-      {open && (
+      {open && pos && createPortal(
         <div
+          ref={menuRef}
           role="menu"
-          className="absolute right-1 top-full z-20 mt-1 w-48 overflow-hidden rounded-2xl border border-stone-dark bg-white p-1.5 font-body shadow-float"
+          style={{ position: "fixed", top: pos.top, bottom: pos.bottom, right: pos.right }}
+          className="z-50 w-48 overflow-hidden rounded-2xl border border-stone-dark bg-white p-1.5 font-body shadow-float"
         >
           <button
             type="button"
@@ -496,7 +547,8 @@ function RailRow({
           >
             <List className="h-4 w-4" aria-hidden /> All QR codes
           </Link>
-        </div>
+        </div>,
+        document.body,
       )}
     </li>
   );

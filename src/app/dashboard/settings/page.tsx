@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Gauge } from "lucide-react";
 import DashboardFrame from "@/components/dashboard/frame";
-import { planUsage } from "@/components/dashboard/nav";
 import { Card, FOCUS, IconWell, PageTitle } from "@/components/dashboard/ui";
 import { createClient } from "@/lib/supabase/server";
 import { getMe } from "@/lib/me";
@@ -22,7 +21,9 @@ export default async function SettingsPage() {
   if (!user) redirect("/");
 
   const me = await getMe(user.id, user.email ?? "");
-  const { limit, used, pct } = planUsage(me);
+  // Real count only. The per-user limit (profiles.qr_quota) is not loaded
+  // here, so no fixed cap is stated as fact on this page.
+  const qrCount = Math.max(0, me.qrCount);
 
   return (
     <DashboardFrame me={me} current="settings" className="space-y-6">
@@ -44,19 +45,10 @@ export default async function SettingsPage() {
           <div className="min-w-0 flex-1">
             <h2 className="font-heading text-[17px] font-semibold text-ink">{me.plan} plan</h2>
             <p className="mt-0.5 font-body text-sm text-muted-2">
-              <span className="tabular-nums text-ink">{used.toLocaleString()}</span> of{" "}
-              {limit.toLocaleString()} QR codes used.
+              You have{" "}
+              <span className="tabular-nums text-ink">{qrCount.toLocaleString()}</span>{" "}
+              {qrCount === 1 ? "QR code" : "QR codes"} on this account.
             </p>
-            <div
-              className="mt-3 h-2 max-w-md overflow-hidden rounded-full bg-stone"
-              role="progressbar"
-              aria-label="QR codes used"
-              aria-valuemin={0}
-              aria-valuemax={limit}
-              aria-valuenow={used}
-            >
-              <div className="h-full rounded-full bg-ink" style={{ width: `${pct}%` }} />
-            </div>
           </div>
         </div>
       </Card>
