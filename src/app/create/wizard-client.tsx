@@ -109,8 +109,16 @@ export default function WizardClient({
           // the default for any missing key — otherwise those keys restore as
           // `undefined`, which reads as "on" in `!== null` checks and shows
           // controls in a false state.
-          if (s.customization)
-            setCustom({ ...DEFAULT_CUSTOMIZATION, ...s.customization });
+          if (s.customization) {
+            const merged = { ...DEFAULT_CUSTOMIZATION, ...s.customization };
+            // Drafts saved before 2026-11-23 carry the old teal frame default;
+            // move them to the new ink default so frames look the same for
+            // everyone. (Only the in-progress draft; saved QRs are untouched.)
+            if (merged.frame_color?.toUpperCase() === "#0F5B55") {
+              merged.frame_color = DEFAULT_CUSTOMIZATION.frame_color;
+            }
+            setCustom(merged);
+          }
           if (s.max_step) setMaxStep(s.max_step);
           if (s.draft_token) draftToken.current = s.draft_token;
           if (s.short_id) shortId.current = s.short_id;
