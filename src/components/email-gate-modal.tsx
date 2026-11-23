@@ -94,7 +94,7 @@ export default function EmailGateModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-charcoal/40 px-4 py-6 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 px-4 py-6 backdrop-blur-sm"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -107,17 +107,17 @@ export default function EmailGateModal({
         />
       ) : (
         <div
-          className="w-full max-w-sm rounded-2xl border border-charcoal/10 bg-white p-7 shadow-xl"
+          className="w-full max-w-sm rounded-panel border border-stone-dark bg-white p-7 font-body shadow-float"
           onClick={(e) => e.stopPropagation()}
         >
           <form onSubmit={handleSubmit}>
-            <span className="grid h-12 w-12 place-items-center rounded-xl bg-deep-teal/10 text-deep-teal">
+            <span className="grid h-12 w-12 place-items-center rounded-full bg-lime text-ink">
               <QrCode className="h-6 w-6" />
             </span>
-            <h2 className="mt-4 font-display text-lg font-bold text-charcoal">
+            <h2 className="mt-4 font-heading text-2xl font-medium text-ink">
               Last Step!
             </h2>
-            <p className="mt-1 text-sm text-charcoal/60">
+            <p className="mt-1 text-sm text-muted-2">
               Tell us where to send your QR code.
             </p>
             <input
@@ -127,44 +127,45 @@ export default function EmailGateModal({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
-              className="mt-5 w-full rounded-lg border border-charcoal/15 px-3 py-2.5 text-sm outline-none focus:border-deep-teal focus:ring-2 focus:ring-deep-teal/20"
+              aria-label="Email"
+              className="mt-5 w-full rounded-xl h-11 border border-stone-dark bg-white px-3.5 py-2.5 text-ink placeholder:text-muted-3 hover:border-ink/25 text-sm outline-none focus:border-ink focus:ring-2 focus:ring-ink/20"
             />
-            <label className="mt-3 flex items-start gap-2 text-xs text-charcoal/60">
+            <label className="mt-3 flex items-start gap-2 text-xs text-muted-2">
               <input
                 type="checkbox"
                 required
                 checked={agreed}
                 onChange={(e) => setAgreed(e.target.checked)}
-                className="mt-0.5"
+                className="mt-0.5 h-4 w-4 accent-ink"
               />
               <span>
                 I agree to the{" "}
-                <Link href="/terms" target="_blank" className="font-medium text-deep-teal hover:underline">
+                <Link href="/terms" target="_blank" className="font-medium text-ink underline underline-offset-2 hover:no-underline">
                   Terms &amp; Conditions
                 </Link>{" "}
                 and{" "}
-                <Link href="/privacy" target="_blank" className="font-medium text-deep-teal hover:underline">
+                <Link href="/privacy" target="_blank" className="font-medium text-ink underline underline-offset-2 hover:no-underline">
                   Privacy Policy
                 </Link>
               </span>
             </label>
-            {err && <p className="mt-2 text-xs text-terracotta-dark">{err}</p>}
+            {err && <p className="mt-2 text-xs text-red-700">{err}</p>}
             <button
               type="submit"
               disabled={loading || !agreed}
-              className="mt-4 w-full rounded-lg bg-deep-teal px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-terracotta disabled:opacity-50"
+              className="mt-4 w-full rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-ink-soft disabled:opacity-50"
             >
               {loading ? "Continuing…" : "Continue"}
             </button>
-            <p className="mt-3 text-center text-xs text-charcoal/45">
-              Free forever. No credit card.
+            <p className="mt-3 text-center text-xs text-muted-3">
+              Free plan. No card needed.
             </p>
-            <p className="mt-3 text-center text-xs text-charcoal/55">
+            <p className="mt-3 text-center text-xs text-muted-3">
               Have an account?{" "}
               <button
                 type="button"
                 onClick={() => setView("login")}
-                className="font-semibold text-deep-teal hover:underline"
+                className="font-semibold text-ink underline underline-offset-2 hover:no-underline"
               >
                 Log in
               </button>

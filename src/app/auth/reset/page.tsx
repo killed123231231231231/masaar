@@ -84,34 +84,34 @@ function ResetClient() {
   }
 
   return (
-    <main className="min-h-screen bg-[#F6F4EE] text-charcoal">
+    <main className="min-h-screen bg-paper font-body text-ink">
       <div className="mx-auto flex min-h-screen max-w-md flex-col items-stretch justify-center px-5 py-10">
         <Link href="/" className="mb-8 flex items-center justify-center gap-2">
           <LogoMark className="h-8 w-8" />
-          <span className="text-lg font-display font-extrabold tracking-tight text-deep-teal">
-            Vertexa <span className="text-terracotta">QR</span>
+          <span className="font-heading text-[22px] font-extrabold tracking-[-0.03em] text-ink">
+            Vertexa QR
           </span>
         </Link>
 
-        <div className="rounded-2xl border border-charcoal/10 bg-white p-7 shadow-xl">
+        <div className="rounded-panel border border-stone-dark bg-white p-7 shadow-float">
           {stage === "verifying" && (
             <div className="text-center">
-              <h1 className="font-display text-xl font-bold text-charcoal">
+              <h1 className="font-heading text-2xl font-medium text-ink">
                 Verifying your link…
               </h1>
-              <p className="mt-2 text-sm text-charcoal/60">One moment.</p>
+              <p className="mt-2 text-sm text-muted-2">One moment.</p>
             </div>
           )}
 
           {stage === "error" && (
             <div className="text-center">
-              <h1 className="font-display text-xl font-bold text-charcoal">
+              <h1 className="font-heading text-2xl font-medium text-ink">
                 Couldn’t verify this link
               </h1>
-              <p className="mt-2 text-sm text-charcoal/65">{exchErr}</p>
+              <p className="mt-2 text-sm text-muted-2">{exchErr}</p>
               <Link
                 href="/"
-                className="mt-6 inline-flex items-center justify-center rounded-lg bg-deep-teal px-5 py-2.5 text-sm font-semibold text-white hover:bg-deep-teal-dark"
+                className="mt-6 inline-flex items-center justify-center rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-white hover:bg-ink-soft"
               >
                 Back to home
               </Link>
@@ -120,10 +120,10 @@ function ResetClient() {
 
           {stage === "set" && (
             <>
-              <h1 className="font-display text-xl font-bold text-charcoal">
+              <h1 className="font-heading text-2xl font-medium text-ink">
                 Set your password
               </h1>
-              <p className="mt-1 text-sm text-charcoal/60">
+              <p className="mt-1 text-sm text-muted-2">
                 Pick something at least 8 characters long.
               </p>
               <form onSubmit={handleSubmit} className="mt-5 space-y-3">
@@ -136,13 +136,14 @@ function ResetClient() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="New password"
-                    className="w-full rounded-lg border border-charcoal/15 px-3 py-2.5 pr-10 text-sm outline-none focus:border-deep-teal focus:ring-2 focus:ring-deep-teal/20"
+                    aria-label="New password"
+                    className="w-full rounded-xl h-11 border border-stone-dark bg-white px-3.5 py-2.5 text-ink placeholder:text-muted-3 hover:border-ink/25 pr-10 text-sm outline-none focus:border-ink focus:ring-2 focus:ring-ink/20"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((s) => !s)}
                     aria-label={showPassword ? "Hide password" : "Show password"}
-                    className="absolute inset-y-0 right-2 grid place-items-center px-2 text-charcoal/50 hover:text-charcoal/75"
+                    className="absolute inset-y-0 right-2 grid place-items-center px-2 text-muted-3 hover:text-muted"
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
@@ -154,17 +155,18 @@ function ResetClient() {
                   value={confirm}
                   onChange={(e) => setConfirm(e.target.value)}
                   placeholder="Confirm new password"
-                  className="w-full rounded-lg border border-charcoal/15 px-3 py-2.5 text-sm outline-none focus:border-deep-teal focus:ring-2 focus:ring-deep-teal/20"
+                  aria-label="Confirm new password"
+                  className="w-full rounded-xl h-11 border border-stone-dark bg-white px-3.5 py-2.5 text-ink placeholder:text-muted-3 hover:border-ink/25 text-sm outline-none focus:border-ink focus:ring-2 focus:ring-ink/20"
                 />
                 {formErr && (
-                  <p className="rounded-md border border-terracotta/25 bg-terracotta/5 p-2.5 text-xs text-terracotta-dark">
+                  <p className="rounded-xl border border-red-200 bg-red-50 p-2.5 text-xs text-red-700">
                     {formErr}
                   </p>
                 )}
                 <button
                   type="submit"
                   disabled={saving}
-                  className="w-full rounded-lg bg-deep-teal px-5 py-3 text-sm font-semibold text-white hover:bg-deep-teal-dark disabled:opacity-60"
+                  className="w-full rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white hover:bg-ink-soft disabled:opacity-60"
                 >
                   {saving ? "Saving…" : "Set password and continue"}
                 </button>
