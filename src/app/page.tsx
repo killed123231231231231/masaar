@@ -14,27 +14,12 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import LogoMark from "@/components/logo-mark";
-import HeaderLoginButton from "@/components/header-login-button";
-import HeaderProfileMenu from "@/components/header-profile-menu";
-import MobileNav from "@/components/mobile-nav";
+import SiteHeader from "@/components/site/site-header";
+import SiteFooter from "@/components/site/site-footer";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
-// B6 pivot — header nav reduced to 4 anchor-scroll items mapping to
-// real sections on this landing. Dropped Product / Solutions /
-// Resources / About — single-page funnel doesn't need a sub-page
-// sprawl, and getqr's analysis shows even they get away with zero
-// header nav. We keep four so a returning visitor can jump to
-// pricing / FAQ without scrolling, but every link lands within the
-// same page. Sub-page routes (/product etc.) are server-side
-// redirected to the relevant anchor in next.config.ts (commit C).
-const NAV = [
-  { label: "Features", href: "#features" },
-  { label: "Pricing", href: "#pricing" },
-  { label: "GCC", href: "#gcc" },
-  { label: "FAQ", href: "#faq" },
-];
 
 // B6 audit fix — the 6 "Example"-labeled wordmarks read as
 // forgotten placeholders, not honest scarcity. Pivoted to a
@@ -92,76 +77,6 @@ export default async function LandingPage() {
 }
 
 /* ------------------------------------------------------------------ */
-
-function SiteHeader({
-  isAuthed,
-  userEmail,
-}: {
-  isAuthed: boolean;
-  userEmail: string | null;
-}) {
-  return (
-    <header className="sticky top-0 z-40 border-b border-charcoal/10 bg-white/80 backdrop-blur-md">
-      <div className="mx-auto flex h-[76px] max-w-6xl items-center justify-between px-6 sm:h-20">
-        <Link href="/" className="flex items-center gap-2">
-          <LogoMark className="h-8 w-8" />
-          <span className="text-lg font-display font-extrabold tracking-tight text-deep-teal">
-            Vertexa <span className="text-terracotta">QR</span>
-          </span>
-        </Link>
-
-        <nav className="hidden items-center gap-7 md:flex">
-          {NAV.map((item) => (
-            <Link
-              key={item.label}
-              href={item.href}
-              className="text-sm font-medium text-charcoal/70 transition-colors hover:text-deep-teal"
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-
-        <div className="flex items-center gap-2">
-          {isAuthed ? (
-            <>
-              <Link
-                href="/dashboard"
-                className="hidden px-3 py-2 text-sm font-medium text-charcoal/75 transition-colors hover:text-deep-teal sm:inline-block"
-              >
-                Dashboard
-              </Link>
-              <Link
-                href="/create"
-                className="rounded-lg bg-deep-teal px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-deep-teal-dark"
-              >
-                Create QR Code
-              </Link>
-              {/* B5/Item 13 completion — the read-only chip is now a real
-                  dropdown (Dashboard / Settings / Sign out) mirroring the
-                  sidebar's ProfileChip. */}
-              <HeaderProfileMenu email={userEmail} />
-            </>
-          ) : (
-            <>
-              <HeaderLoginButton />
-              <Link
-                href="/create"
-                className="rounded-lg bg-deep-teal px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-deep-teal-dark sm:px-4"
-              >
-                Create QR Code
-              </Link>
-            </>
-          )}
-          {/* C2 — mobile menu (hamburger + drawer). Renders md:hidden; the
-              nav anchors and anon Log in are otherwise unreachable on
-              mobile. */}
-          <MobileNav nav={NAV} isAuthed={isAuthed} />
-        </div>
-      </div>
-    </header>
-  );
-}
 
 /* ────────────────────────────── HERO ────────────────────────────── */
 
@@ -994,86 +909,3 @@ function Faq() {
 // Originally folded in B5 audit M1 + M4 (footer Log in /login hop +
 // stale Resources entries); the pivot supersedes both since the whole
 // footer link map gets rewritten anyway.
-const FOOTER_COLS = [
-  {
-    title: "Product",
-    links: [
-      { label: "Features", href: "#features" },
-      { label: "Pricing", href: "/pricing" },
-      { label: "Create a QR", href: "/create" },
-    ],
-  },
-  {
-    title: "Company",
-    links: [
-      { label: "Built for GCC", href: "#gcc" },
-      { label: "Contact", href: "/contact" },
-    ],
-  },
-  {
-    title: "Resources",
-    links: [
-      { label: "FAQ", href: "#faq" },
-      { label: "Privacy", href: "/privacy" },
-      { label: "Terms", href: "/terms" },
-    ],
-  },
-];
-
-function SiteFooter() {
-  return (
-    <footer className="border-t border-charcoal/10 bg-white">
-      <div className="mx-auto max-w-6xl px-6 py-14">
-        <div className="grid gap-10 md:grid-cols-[1.6fr_repeat(3,1fr)]">
-          <div>
-            <Link href="/" className="flex items-center gap-2">
-              <LogoMark className="h-8 w-8" />
-              <span className="text-lg font-display font-extrabold tracking-tight text-deep-teal">
-                Vertexa <span className="text-terracotta">QR</span>
-              </span>
-            </Link>
-            <p className="mt-4 max-w-xs text-sm leading-relaxed text-charcoal/55">
-              Adaptive dynamic QR codes for GCC businesses. Every scan has a
-              path.
-            </p>
-          </div>
-
-          {FOOTER_COLS.map(({ title, links }) => (
-            <div key={title}>
-              <h3 className="text-sm font-semibold">{title}</h3>
-              <ul className="mt-4 space-y-3">
-                {links.map((l) => (
-                  <li key={l.label}>
-                    <Link
-                      href={l.href}
-                      className="text-sm text-charcoal/55 transition-colors hover:text-deep-teal"
-                    >
-                      {l.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-charcoal/10 pt-6 text-sm text-charcoal/50 sm:flex-row">
-          <p>
-            © {new Date().getFullYear()} Vertexa QR. All rights reserved.
-          </p>
-          <p>
-            Built for the GCC · Powered by{" "}
-            <a
-              href="https://www.vertechxa.ai"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-medium text-charcoal/70 underline-offset-2 transition-colors hover:text-deep-teal hover:underline"
-            >
-              Vertexa
-            </a>
-          </p>
-        </div>
-      </div>
-    </footer>
-  );
-}

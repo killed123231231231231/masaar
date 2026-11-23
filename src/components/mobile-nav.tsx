@@ -4,21 +4,25 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Menu, X } from "lucide-react";
+import { ChevronRight, Menu, X } from "lucide-react";
 import LoginModal from "@/components/login-modal";
+import LogoMark from "@/components/logo-mark";
 
 interface NavItem {
   label: string;
   href: string;
 }
 
+const ring =
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/30 focus-visible:ring-offset-2 focus-visible:ring-offset-paper";
+
 /**
- * C2 — mobile menu for the public SiteHeader. Below `md` the nav anchors
- * and (for anon) the Log in control were hidden with no fallback, so
- * mobile visitors couldn't navigate or sign in. This renders a hamburger
- * (md:hidden) + a slide-in drawer with the nav links, the Create-QR CTA,
- * and a Log in entry (anon) that opens the same Welcome Back modal the
- * header uses. Authed account actions stay in the profile menu.
+ * C2 — mobile menu for the public SiteHeader. Below `lg` the nav links
+ * and (for anon) the Log in control are hidden in the header bar, so this
+ * renders a hamburger + a full-width sheet with the nav links, the
+ * Create-QR CTA, and a Log in entry (anon) that opens the same Welcome
+ * Back modal the header uses. Authed account actions stay in the profile
+ * menu.
  */
 export default function MobileNav({
   nav,
@@ -52,34 +56,38 @@ export default function MobileNav({
     };
   }, [open, login]);
 
-  const itemCls =
-    "block rounded-lg px-3 py-3 text-sm font-medium text-charcoal/80 transition-colors hover:bg-sand-light hover:text-deep-teal";
+  const itemCls = `flex items-center justify-between rounded-2xl px-4 py-3.5 font-heading text-[22px] font-medium tracking-[-0.01em] text-ink transition-colors hover:bg-stone ${ring}`;
 
   const drawer = (
     <div
-      className="fixed inset-0 z-[90] md:hidden"
+      className="fixed inset-0 z-[90] lg:hidden"
       role="dialog"
       aria-modal="true"
       aria-label="Menu"
     >
       <div
-        className="absolute inset-0 bg-charcoal/40 backdrop-blur-sm"
+        className="absolute inset-0 bg-ink/30 backdrop-blur-sm"
         onClick={() => setOpen(false)}
       />
-      <div className="absolute right-0 top-0 flex h-full w-[82%] max-w-xs flex-col bg-white shadow-xl">
-        <div className="flex items-center justify-between border-b border-charcoal/10 px-5 py-4">
-          <span className="font-display font-bold text-charcoal">Menu</span>
+      <div className="absolute inset-x-0 top-0 flex max-h-[100dvh] flex-col rounded-b-[32px] bg-paper font-body shadow-float">
+        <div className="flex h-[68px] items-center justify-between px-4 sm:h-[76px] sm:px-6">
+          <span className="flex items-center gap-2.5">
+            <LogoMark className="h-8 w-8" />
+            <span className="font-heading text-[22px] font-extrabold tracking-[-0.03em] text-ink">
+              Vertexa QR
+            </span>
+          </span>
           <button
             type="button"
             onClick={() => setOpen(false)}
             aria-label="Close menu"
-            className="grid h-9 w-9 place-items-center rounded-lg text-charcoal/55 hover:bg-sand-light hover:text-charcoal"
+            className={`grid h-10 w-10 place-items-center rounded-full bg-stone text-ink transition-colors hover:bg-stone-dark ${ring}`}
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <nav className="flex-1 overflow-y-auto px-3 py-4">
+        <nav aria-label="Mobile" className="flex-1 overflow-y-auto px-2 pb-2 sm:px-4">
           {nav.map((item) => (
             <Link
               key={item.label}
@@ -88,8 +96,26 @@ export default function MobileNav({
               className={itemCls}
             >
               {item.label}
+              <ChevronRight className="h-5 w-5 text-muted-4" aria-hidden />
             </Link>
           ))}
+          {isAuthed && (
+            <Link href="/dashboard" onClick={() => setOpen(false)} className={itemCls}>
+              Dashboard
+              <ChevronRight className="h-5 w-5 text-muted-4" aria-hidden />
+            </Link>
+          )}
+        </nav>
+
+        <div className="grid gap-2 border-t border-stone px-4 pb-5 pt-4 sm:px-6">
+          <Link
+            href="/create"
+            onClick={() => setOpen(false)}
+            className={`flex h-12 items-center justify-center gap-2 rounded-full bg-ink px-5 text-base font-medium text-white transition-colors hover:bg-ink-soft ${ring}`}
+          >
+            Create QR code
+            <ChevronRight className="h-4 w-4" aria-hidden />
+          </Link>
           {!isAuthed && (
             <button
               type="button"
@@ -97,26 +123,11 @@ export default function MobileNav({
                 setOpen(false);
                 setLogin(true);
               }}
-              className={`${itemCls} w-full text-left`}
+              className={`flex h-12 items-center justify-center rounded-full bg-stone px-5 text-base font-medium text-ink transition-colors hover:bg-stone-dark ${ring}`}
             >
               Log in
             </button>
           )}
-          {isAuthed && (
-            <Link href="/dashboard" onClick={() => setOpen(false)} className={itemCls}>
-              Dashboard
-            </Link>
-          )}
-        </nav>
-
-        <div className="border-t border-charcoal/10 p-4">
-          <Link
-            href="/create"
-            onClick={() => setOpen(false)}
-            className="block rounded-lg bg-deep-teal px-4 py-3 text-center text-sm font-semibold text-white transition-colors hover:bg-deep-teal-dark"
-          >
-            Create QR Code
-          </Link>
         </div>
       </div>
     </div>
@@ -127,7 +138,7 @@ export default function MobileNav({
       role="dialog"
       aria-modal="true"
       aria-label="Log in"
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-charcoal/40 px-4 py-6 backdrop-blur-sm"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-ink/40 px-4 py-6 backdrop-blur-sm"
       onClick={() => setLogin(false)}
     >
       <LoginModal
@@ -146,9 +157,10 @@ export default function MobileNav({
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Open menu"
-        className="grid h-10 w-10 place-items-center rounded-lg text-charcoal/70 transition-colors hover:bg-sand-light md:hidden"
+        aria-expanded={open}
+        className={`grid h-10 w-10 place-items-center rounded-full bg-stone text-ink transition-colors hover:bg-stone-dark lg:hidden ${ring}`}
       >
-        <Menu className="h-6 w-6" />
+        <Menu className="h-5 w-5" />
       </button>
       {mounted && open && createPortal(drawer, document.body)}
       {mounted && login && createPortal(loginOverlay, document.body)}
