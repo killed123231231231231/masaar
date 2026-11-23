@@ -85,7 +85,7 @@ export default function StackedPanels() {
                   </h3>
                   <p className="mt-5 max-w-[440px] font-body text-base leading-[1.5] text-muted-2 md:text-lg">{p.body}</p>
                   <div className="mt-8 lg:mt-10">
-                    <PrimaryButton href={p.cta.href} className="!bg-white shadow-sm hover:!bg-lime">
+                    <PrimaryButton href={p.cta.href}>
                       {p.cta.label}
                     </PrimaryButton>
                   </div>

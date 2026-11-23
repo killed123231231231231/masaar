@@ -116,7 +116,7 @@ export function PrimaryButton({
     <Link
       href={href}
       prefetch={prefetch}
-      className={`group inline-flex h-10 items-center gap-2.5 rounded-full py-1.5 pl-1 pr-3.5 font-body text-[15px] font-medium text-ink transition-colors hover:bg-stone ${FOCUS} ${className}`}
+      className={`group inline-flex h-10 items-center gap-2.5 rounded-full py-1.5 pl-1 pr-3.5 font-body text-[15px] font-medium text-ink transition-colors border border-stone-dark/70 bg-white shadow-[0_1px_2px_rgba(26,26,26,0.06)] hover:border-lime hover:bg-lime ${FOCUS} ${className}`}
     >
       <span className="grid h-8 w-8 place-items-center rounded-full bg-ink text-white transition-transform duration-200 group-hover:translate-x-0.5">
         <Icon className="h-4 w-4" strokeWidth={2} aria-hidden />

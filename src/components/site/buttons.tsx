@@ -4,22 +4,24 @@ import { ChevronRight } from "lucide-react";
 import { focusRing } from "@/components/site/section";
 
 /**
- * Primary button: ink circle with a white chevron, then the label on a
- * transparent background. On hover the circle nudges right and the pill
- * fills with stone. `filled` shows the stone pill by default (hover goes
- * to stone-dark).
+ * Primary button: ink circle with a white chevron, then the label, on a
+ * white pill with a hairline stone border (so it reads on paper and stone
+ * backgrounds). On hover the pill turns lime and the circle nudges right.
  */
+export const PILL =
+  "border border-stone-dark/70 bg-white shadow-[0_1px_2px_rgba(26,26,26,0.06)] hover:border-lime hover:bg-lime";
+
 export function PrimaryButton({
   href,
   children,
   className = "",
   size = "md",
-  filled = false,
 }: {
   href: string;
   children: ReactNode;
   className?: string;
   size?: "md" | "lg";
+  /** Kept for API compatibility; every primary button now shares one look. */
   filled?: boolean;
 }) {
   const lg = size === "lg";
@@ -27,7 +29,7 @@ export function PrimaryButton({
     <Link
       href={href}
       className={`group inline-flex shrink-0 items-center rounded-full font-body font-medium text-ink transition-colors duration-200 ${
-        filled ? "bg-stone hover:bg-stone-dark" : "hover:bg-stone"
+        PILL
       } ${
         lg ? "h-12 gap-3 py-1.5 pl-1.5 pr-5 text-[17px]" : "h-10 gap-2.5 py-1.5 pl-1 pr-3 text-base"
       } ${focusRing} ${className}`}

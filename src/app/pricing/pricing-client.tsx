@@ -99,7 +99,7 @@ function PlanCard() {
         </ul>
         <Link
           href={FREE_PLAN.href}
-          className="group mt-8 inline-flex h-11 items-center gap-2.5 rounded-full py-1.5 pl-1.5 pr-4 text-base font-medium text-ink transition-colors hover:bg-stone focus:outline-none focus-visible:ring-2 focus-visible:ring-ink/30"
+          className="group mt-8 inline-flex h-11 items-center gap-2.5 rounded-full py-1.5 pl-1.5 pr-4 text-base font-medium text-ink transition-colors border border-stone-dark/70 bg-white shadow-[0_1px_2px_rgba(26,26,26,0.06)] hover:border-lime hover:bg-lime focus:outline-none focus-visible:ring-2 focus-visible:ring-ink/30"
         >
           <span className="grid h-8 w-8 place-items-center rounded-full bg-ink text-white transition-transform group-hover:translate-x-0.5">
             <ChevronRight className="h-4 w-4" />
