@@ -18,18 +18,18 @@ export default function Hero() {
         <Float className="bottom-[36px] left-[13%] hidden lg:block" rotate="-8deg" duration="8s" delay="-3s">
           <QuarterDisc className="h-[72px] w-[72px] lg:h-[96px] lg:w-[96px]" />
         </Float>
-        <Float className="bottom-[56px] right-[14%] hidden lg:block" rotate="45deg" duration="5.4s" delay="-2.2s">
+        <Float className="bottom-[56px] right-[14%] hidden lg:block" rotate="0deg" duration="5.4s" delay="-2.2s">
           <Diamond className="h-[58px] w-[58px] lg:h-[74px] lg:w-[74px]" />
         </Float>
         <Float className="right-[27%] top-[30px] hidden lg:block" duration="5s" delay="-0.8s">
-          <GlowDot className="h-4 w-4" />
+          <GlowDot className="h-8 w-8" />
         </Float>
 
         {/* Phone: two small shapes tucked into the corners. */}
         <Float className="-left-3 top-3 lg:hidden" rotate="-14deg" duration="7s">
           <Seal id="hero-seal-sm" className="h-[64px] w-[64px]" />
         </Float>
-        <Float className="-right-2 top-10 lg:hidden" rotate="45deg" duration="5.6s" delay="-2s">
+        <Float className="-right-2 top-10 lg:hidden" rotate="0deg" duration="5.6s" delay="-2s">
           <Diamond className="h-9 w-9" />
         </Float>
       </div>
