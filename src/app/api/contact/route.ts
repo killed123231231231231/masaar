@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { sendContactNotification } from "@/lib/email";
+import { ABUSE_MESSAGE_MAX, abuseReportMessage, isReportableShortId } from "@/lib/abuse-report";
 
 export const runtime = "nodejs";
 
@@ -25,6 +26,8 @@ export async function POST(request: Request) {
     phone?: string;
     message?: string;
     preferred_time?: string;
+    topic?: string;
+    qr?: string;
   } | null;
   try {
     body = await request.json();
@@ -34,7 +37,22 @@ export async function POST(request: Request) {
   const name = (body?.name ?? "").trim();
   const email = (body?.email ?? "").trim().toLowerCase();
   const phone = (body?.phone ?? "").trim();
-  const message = (body?.message ?? "").trim();
+  const userMessage = (body?.message ?? "").trim();
+  // Abuse reports come from the "Report abuse" link on hosted scan pages.
+  // The QR id is optional, but when present it must look like a short id.
+  // It is prefixed to the message so it reaches the inbox and the saved
+  // row without a schema change.
+  const isAbuse = body?.topic === "abuse";
+  const rawQr = typeof body?.qr === "string" ? body.qr.trim() : "";
+  if (isAbuse && rawQr && !isReportableShortId(rawQr)) {
+    return NextResponse.json({ error: "invalid_qr" }, { status: 400 });
+  }
+  const abuseQr = isAbuse ? rawQr || "not given" : null;
+  if (isAbuse && userMessage.length > ABUSE_MESSAGE_MAX) {
+    return NextResponse.json({ error: "field_too_long" }, { status: 400 });
+  }
+  const message =
+    abuseQr && userMessage ? abuseReportMessage(abuseQr, userMessage) : userMessage;
   const preferredTime = (body?.preferred_time ?? "").trim();
 
   if (!name) return NextResponse.json({ error: "name_required" }, { status: 400 });
@@ -84,6 +102,7 @@ export async function POST(request: Request) {
       phone: phone || null,
       message,
       preferredTime: preferredTime || null,
+      abuseQr,
     });
     if (!result.sent && !result.stubbed) {
       console.warn(`[contact] notification email failed: ${result.error}`);

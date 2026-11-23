@@ -75,15 +75,18 @@ export async function sendContactNotification(args: {
   phone?: string | null;
   message: string;
   preferredTime?: string | null;
+  /** Set for abuse reports from a hosted scan page's "Report abuse" link. */
+  abuseQr?: string | null;
 }): Promise<{ sent: boolean; stubbed: boolean; error?: string }> {
   const to = process.env.RESEND_NOTIFY_TO || "contact@vertechxa.ai";
   const key = process.env.RESEND_API_KEY;
   const html = `
-<h2>New contact request — Vertexa QR</h2>
+<h2>${args.abuseQr ? "Abuse report" : "New contact request"} — Vertexa QR</h2>
 <table style="border-collapse:collapse;">
   <tr><td style="padding:4px 12px 4px 0;color:#666;">Name</td><td style="padding:4px 0;"><strong>${escapeHtml(args.name)}</strong></td></tr>
   <tr><td style="padding:4px 12px 4px 0;color:#666;">Email</td><td style="padding:4px 0;"><a href="mailto:${escapeHtml(args.email)}">${escapeHtml(args.email)}</a></td></tr>
   ${args.phone ? `<tr><td style="padding:4px 12px 4px 0;color:#666;">Phone</td><td style="padding:4px 0;">${escapeHtml(args.phone)}</td></tr>` : ""}
+  ${args.abuseQr ? `<tr><td style="padding:4px 12px 4px 0;color:#666;">Reported QR</td><td style="padding:4px 0;"><strong>${escapeHtml(args.abuseQr)}</strong></td></tr>` : ""}
   ${args.preferredTime ? `<tr><td style="padding:4px 12px 4px 0;color:#666;">Preferred time</td><td style="padding:4px 0;">${escapeHtml(args.preferredTime)}</td></tr>` : ""}
 </table>
 <h3 style="margin-top:24px;">Message</h3>
@@ -110,7 +113,9 @@ export async function sendContactNotification(args: {
         from: process.env.RESEND_FROM || "Vertexa QR <onboarding@resend.dev>",
         to,
         reply_to: args.email,
-        subject: `Contact: ${args.name} wants a demo`,
+        subject: args.abuseQr
+          ? `Abuse report: QR ${args.abuseQr}`
+          : `Contact: ${args.name} wants a demo`,
         html,
       }),
     });

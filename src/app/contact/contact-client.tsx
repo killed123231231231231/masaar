@@ -2,14 +2,23 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Check, Mail, MessageSquare, Phone, User } from "lucide-react";
+import { Check, Flag, Mail, MessageSquare, Phone, User } from "lucide-react";
+import { ABUSE_MESSAGE_MAX } from "@/lib/abuse-report";
 import LogoMark from "@/components/logo-mark";
 
-// /contact — real demo-request page that replaces the old
-// old mailto link from Session B's landing. Server form
-// POSTs to /api/contact, which calls submit_contact_request (migration
-// 011, SECURITY DEFINER, 3/hr per IP) and fires a Resend notification.
-export default function ContactPage() {
+// /contact — demo-request page, and the abuse-report form reached from
+// the "Report abuse" link on hosted scan pages (mode="abuse", with the
+// reported QR's shortId validated by page.tsx). Both POST to
+// /api/contact, which calls submit_contact_request (migration 011,
+// SECURITY DEFINER, 3/hr per IP) and fires a Resend notification.
+export default function ContactClient({
+  mode,
+  reportedQr,
+}: {
+  mode: "demo" | "abuse";
+  reportedQr: string | null;
+}) {
+  const isAbuse = mode === "abuse";
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("+966 ");
@@ -31,9 +40,10 @@ export default function ContactPage() {
           name,
           email,
           // Strip the default "+966 " if the user didn't add a real number.
-          phone: phone.trim() === "+966" ? "" : phone,
+          phone: isAbuse || phone.trim() === "+966" ? "" : phone,
           message,
-          preferred_time: preferred,
+          preferred_time: isAbuse ? "" : preferred,
+          ...(isAbuse ? { topic: "abuse", qr: reportedQr ?? undefined } : {}),
         }),
       });
       const data = await res.json().catch(() => null);
@@ -71,26 +81,50 @@ export default function ContactPage() {
 
       <div className="mx-auto max-w-3xl px-5 py-12 lg:py-16">
         {done ? (
-          <ThankYou name={name} />
+          <ThankYou name={name} isAbuse={isAbuse} />
         ) : (
           <>
-            <div className="text-center">
-              <span className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-deep-teal">
-                Book a demo
-              </span>
-              <h1 className="mt-3 font-display text-3xl font-bold tracking-tight sm:text-4xl">
-                Let’s talk about your QR rollout
-              </h1>
-              <p className="mt-3 text-balance text-base text-charcoal/65">
-                Tell us a bit about your business — we’ll get back within one
-                working day to set up a short walkthrough.
-              </p>
-            </div>
+            {isAbuse ? (
+              <div>
+                <span className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-terracotta-dark">
+                  <Flag className="h-3.5 w-3.5" /> Report abuse
+                </span>
+                <h1 className="mt-3 font-display text-3xl font-bold tracking-tight sm:text-4xl">
+                  Report a QR code
+                </h1>
+                <p className="mt-3 text-base text-charcoal/65">
+                  Tell us what this QR code opened and why it looks unsafe,
+                  for example a fake login page or a scam. We review every
+                  report and can switch the code off.
+                </p>
+              </div>
+            ) : (
+              <div className="text-center">
+                <span className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-deep-teal">
+                  Book a demo
+                </span>
+                <h1 className="mt-3 font-display text-3xl font-bold tracking-tight sm:text-4xl">
+                  Let’s talk about your QR rollout
+                </h1>
+                <p className="mt-3 text-balance text-base text-charcoal/65">
+                  Tell us a bit about your business — we’ll get back within one
+                  working day to set up a short walkthrough.
+                </p>
+              </div>
+            )}
 
             <form
               onSubmit={handleSubmit}
               className="mt-10 rounded-2xl border border-charcoal/10 bg-white p-7 shadow-[0_1px_2px_rgba(15,91,85,0.06),0_2px_8px_-2px_rgba(15,91,85,0.08)] sm:p-9"
             >
+              {isAbuse && reportedQr && (
+                <div className="mb-5 rounded-lg border border-charcoal/10 bg-sand-light/60 px-3 py-2.5 text-sm">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-charcoal/55">
+                    QR code being reported
+                  </span>
+                  <p className="mt-0.5 break-all font-mono text-charcoal">{reportedQr}</p>
+                </div>
+              )}
               <div className="grid gap-5 sm:grid-cols-2">
                 <Field
                   icon={User}
@@ -111,34 +145,43 @@ export default function ContactPage() {
                   placeholder="you@company.com"
                   autoComplete="email"
                 />
-                <Field
-                  icon={Phone}
-                  label="Phone (optional)"
-                  type="tel"
-                  value={phone}
-                  onChange={setPhone}
-                  placeholder="+966 5X XXX XXXX"
-                  autoComplete="tel"
-                />
-                <Field
-                  label="Preferred demo time (optional)"
-                  value={preferred}
-                  onChange={setPreferred}
-                  placeholder="e.g. Tuesday 2pm Riyadh time"
-                />
+                {!isAbuse && (
+                  <>
+                    <Field
+                      icon={Phone}
+                      label="Phone (optional)"
+                      type="tel"
+                      value={phone}
+                      onChange={setPhone}
+                      placeholder="+966 5X XXX XXXX"
+                      autoComplete="tel"
+                    />
+                    <Field
+                      label="Preferred demo time (optional)"
+                      value={preferred}
+                      onChange={setPreferred}
+                      placeholder="e.g. Tuesday 2pm Riyadh time"
+                    />
+                  </>
+                )}
               </div>
 
               <label className="mt-5 block">
                 <span className="mb-1.5 inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-charcoal/55">
-                  <MessageSquare className="h-3.5 w-3.5" /> What do you want to discuss?
+                  <MessageSquare className="h-3.5 w-3.5" />{" "}
+                  {isAbuse ? "What is wrong with this QR code?" : "What do you want to discuss?"}
                 </span>
                 <textarea
                   required
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   rows={5}
-                  maxLength={5000}
-                  placeholder="A few sentences about your use case — restaurant menus, retail signage, event tickets, etc."
+                  maxLength={isAbuse ? ABUSE_MESSAGE_MAX : 5000}
+                  placeholder={
+                    isAbuse
+                      ? "What did the QR code open, and where did you see it printed?"
+                      : "A few sentences about your use case — restaurant menus, retail signage, event tickets, etc."
+                  }
                   className="w-full rounded-lg border border-charcoal/15 px-3 py-2.5 text-sm outline-none focus:border-deep-teal focus:ring-2 focus:ring-deep-teal/20"
                 />
               </label>
@@ -154,10 +197,12 @@ export default function ContactPage() {
                 disabled={loading}
                 className="mt-6 w-full rounded-lg bg-deep-teal px-5 py-3 text-base font-semibold text-white shadow-sm transition-colors hover:bg-deep-teal-dark disabled:opacity-60 sm:w-auto"
               >
-                {loading ? "Sending…" : "Request demo"}
+                {loading ? "Sending…" : isAbuse ? "Send report" : "Request demo"}
               </button>
               <p className="mt-3 text-xs text-charcoal/45">
-                We reply to every request within one working day (Sun–Thu, Riyadh time).
+                {isAbuse
+                  ? "We only use your email to follow up on this report."
+                  : "We reply to every request within one working day (Sun–Thu, Riyadh time)."}
               </p>
             </form>
           </>
@@ -205,7 +250,7 @@ function Field({
   );
 }
 
-function ThankYou({ name }: { name: string }) {
+function ThankYou({ name, isAbuse }: { name: string; isAbuse: boolean }) {
   const first = name.split(" ")[0] || "there";
   return (
     <div className="rounded-2xl border border-charcoal/10 bg-white p-12 text-center shadow-[0_1px_2px_rgba(15,91,85,0.06),0_2px_8px_-2px_rgba(15,91,85,0.08)]">
@@ -213,11 +258,12 @@ function ThankYou({ name }: { name: string }) {
         <Check className="h-7 w-7" strokeWidth={2.5} />
       </span>
       <h1 className="mt-5 font-display text-2xl font-bold text-charcoal">
-        Thanks, {first} — we’ll be in touch
+        {isAbuse ? `Thanks, ${first}. Your report was sent` : `Thanks, ${first} — we’ll be in touch`}
       </h1>
       <p className="mt-3 text-balance text-base text-charcoal/65">
-        Your request landed in our inbox. Expect a reply within one working day
-        (Sun–Thu, Riyadh time).
+        {isAbuse
+          ? "We review every report and switch off codes that point to harmful content."
+          : "Your request landed in our inbox. Expect a reply within one working day (Sun–Thu, Riyadh time)."}
       </p>
       <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
         <Link
@@ -226,12 +272,14 @@ function ThankYou({ name }: { name: string }) {
         >
           Back to home
         </Link>
-        <Link
-          href="/create"
-          className="rounded-lg bg-deep-teal px-5 py-2.5 text-sm font-semibold text-white hover:bg-deep-teal-dark"
-        >
-          Create a QR while you wait
-        </Link>
+        {!isAbuse && (
+          <Link
+            href="/create"
+            className="rounded-lg bg-deep-teal px-5 py-2.5 text-sm font-semibold text-white hover:bg-deep-teal-dark"
+          >
+            Create a QR while you wait
+          </Link>
+        )}
       </div>
     </div>
   );
