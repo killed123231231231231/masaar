@@ -157,7 +157,7 @@ export function PageTitle({
         </h1>
         {sub && <p className="mt-1.5 max-w-2xl font-body text-[15px] text-muted-2">{sub}</p>}
       </div>
-      {right && <div className="flex flex-wrap items-center gap-2">{right}</div>}
+      {right && <div className="flex min-w-0 max-w-full flex-wrap items-center gap-2">{right}</div>}
     </div>
   );
 }
