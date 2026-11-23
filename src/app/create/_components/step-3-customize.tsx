@@ -246,7 +246,11 @@ export default function Step3Customize({
                     textColor={c.text_color}
                     text={c.qr_text || "SCAN ME"}
                   >
-                    <span className="block h-20 w-20 bg-ink" />
+                    {/* Placeholder QR with its white quiet zone, so dark
+                        frames (Card, Filled) read like the real render. */}
+                    <span className="block h-20 w-20 bg-white p-2">
+                      <span className="block h-full w-full bg-ink" />
+                    </span>
                   </FramedQr>
                 </span>
               </span>
