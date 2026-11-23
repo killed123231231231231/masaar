@@ -30,9 +30,12 @@ type Step = 1 | 2 | 3;
 
 export default function WizardClient({
   isAuthed,
+  siteFooter,
   me,
 }: {
   isAuthed: boolean;
+  /** Public site footer (server-rendered), shown below the anon builder. */
+  siteFooter?: React.ReactNode;
   /** Sidebar profile data — present only when isAuthed; null for anon. */
   me?: SidebarMe | null;
 }) {
@@ -472,7 +475,13 @@ export default function WizardClient({
           </div>
         </div>
       ) : (
-        <div className="h-screen overflow-hidden bg-paper font-body text-ink">{shell}</div>
+        // Anon builder: the contained shell fills the first viewport and
+        // the public site footer follows below it, like every other
+        // public page.
+        <div className="bg-paper font-body text-ink">
+          {shell}
+          {siteFooter}
+        </div>
       )}
 
       {/* Outside the overflow-hidden shell so the modal isn't clipped. */}
