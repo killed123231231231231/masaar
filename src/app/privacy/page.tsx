@@ -8,15 +8,17 @@ export default function PrivacyPage() {
       title="Privacy Policy"
       intro="Placeholder policy — full legal copy is being prepared."
     >
-      <p>
-        Vertexa QR stores the data you enter to build QR codes and aggregated
-        scan analytics (country, city, device, time). Scan IP addresses
-        are hashed, never stored raw. We don’t sell personal data.
-      </p>
-      <p>
-        This is a pre-launch placeholder. The final Privacy Policy will
-        replace this page before public launch.
-      </p>
+      <article className="max-w-2xl space-y-5 font-body text-[17px] leading-[1.65] text-muted-2">
+        <p>
+          Vertexa QR stores the data you enter to build QR codes and aggregated
+          scan analytics (country, city, device, time). Scan IP addresses
+          are hashed, never stored raw. We don’t sell personal data.
+        </p>
+        <p>
+          This is a pre-launch placeholder. The final Privacy Policy will
+          replace this page before public launch.
+        </p>
+      </article>
     </MarketingShell>
   );
 }
