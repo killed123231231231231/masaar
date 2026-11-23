@@ -40,7 +40,7 @@ export default function Step1Type({
         <div
           role="group"
           aria-label="QR code type"
-          className="grid min-w-0 flex-1 auto-rows-fr grid-cols-1 gap-3 min-[420px]:grid-cols-2 lg:grid-cols-3 xl:gap-4"
+          className="grid min-w-0 flex-1 grid-cols-1 content-start min-[420px]:auto-rows-fr gap-3 min-[420px]:grid-cols-2 lg:grid-cols-3 xl:gap-4"
         >
           {CONTENT_TYPES.map((c) => {
             const Icon = ICONS[c.icon] ?? QrCode;

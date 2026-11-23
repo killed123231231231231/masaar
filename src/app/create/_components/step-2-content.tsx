@@ -70,7 +70,7 @@ export default function Step2Content({
   return (
     <div className="grid gap-8 lg:grid-cols-[1fr_380px] lg:gap-10">
       {/* LEFT — form card (Sunbeam double frame: stone outer, white inner). */}
-      <div className="min-w-0 rounded-panel bg-stone p-1.5">
+      <div className="min-w-0 self-start rounded-panel bg-stone p-1.5">
       <section className="rounded-[26px] border border-stone-dark bg-white p-5 sm:p-8">
         <header className="flex items-start gap-4 border-b border-stone-dark pb-6">
           <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-lime text-ink">
