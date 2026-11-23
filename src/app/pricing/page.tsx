@@ -2,7 +2,7 @@ import MarketingShell from "@/components/marketing-shell";
 import PricingClient from "./pricing-client";
 
 export const metadata = {
-  title: "Pricing — Vertexa QR",
+  title: "Pricing · Vertexa QR",
   description:
     "Vertexa QR is free: up to 25 dynamic QR codes per account with scan analytics. No card needed.",
 };

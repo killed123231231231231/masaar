@@ -50,7 +50,7 @@ export default function AuthAside() {
           </h2>
           <p className="mt-4 text-balance text-[17px] leading-relaxed text-ink/80">
             Create dynamic QR codes, edit them after printing, and see every
-            scan.
+            scan
           </p>
 
           <ul className="mt-8 space-y-2.5">

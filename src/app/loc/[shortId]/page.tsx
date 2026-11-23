@@ -72,15 +72,11 @@ export default async function LocationPage({
   return (
     <main className="min-h-screen bg-paper font-body text-ink">
       <div className="mx-auto w-full max-w-md px-4 pb-12 pt-8">
-        <div className="mx-auto flex w-fit items-center justify-center gap-2 rounded-full bg-stone px-3 py-1.5 text-ink">
-          <MapPin className="h-5 w-5" />
-          <span className="text-xs font-semibold uppercase tracking-wider">Location</span>
-        </div>
-        {label && (
-          <h1 className="mt-2 text-center font-heading text-2xl font-medium tracking-tight text-ink">
-            {label}
-          </h1>
-        )}
+        {/* One heading only: the place name, or a plain fallback. */}
+        <h1 className="flex items-center justify-center gap-2 text-center font-heading text-2xl font-medium tracking-tight text-ink">
+          <MapPin className="h-5 w-5 shrink-0" aria-hidden />
+          <span className="min-w-0 break-words">{label || "Shared location"}</span>
+        </h1>
 
         <div className="mt-5 overflow-hidden rounded-card border border-stone-dark shadow-card">
           <iframe title={label || "Location"} src={osmEmbed(lat, lng)} className="h-72 w-full" loading="lazy" />

@@ -135,9 +135,9 @@ function VCardPreview({
         <p className="text-[11px] text-muted-2">{form.organization || "Company"}</p>
       </div>
       <div className="space-y-2 p-4">
-        <Row label="Phone" value={form.phone || "—"} />
-        <Row label="Email" value={form.email || "—"} />
-        <Row label="Title" value={form.title || "—"} />
+        <Row label="Phone" value={form.phone || "-"} />
+        <Row label="Email" value={form.email || "-"} />
+        <Row label="Title" value={form.title || "-"} />
         <div className="mt-3 rounded-md bg-ink py-2 text-center text-xs font-semibold text-white">
           Save contact
         </div>

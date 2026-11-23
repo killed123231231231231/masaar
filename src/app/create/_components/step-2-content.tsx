@@ -29,14 +29,14 @@ const FORM_COPY: Partial<Record<WizardType, { subtitle: string }>> = {
   url: { subtitle: "Enter the website URL for your QR code and give a memorable name" },
   text: { subtitle: "Type or paste the text people will see when they scan" },
   vcard: { subtitle: "Fill in the contact details people will save when they scan" },
-  wifi: { subtitle: "Enter your network details — scanners will join in one tap" },
+  wifi: { subtitle: "Enter your network details and scanners join in one tap" },
   email: { subtitle: "Pre-fill the recipient, subject, and body for a one-tap email" },
   sms: { subtitle: "Pre-fill the phone number and message for a one-tap text" },
   phone: { subtitle: "Enter the phone number people will call when they scan" },
   whatsapp: { subtitle: "Open a WhatsApp chat with a pre-filled message" },
   app_link: { subtitle: "Send scanners to your app on the right store automatically" },
-  pdf: { subtitle: "Upload a PDF — scanners open it on a clean hosted page" },
-  image: { subtitle: "Upload an image — scanners see it full-screen" },
+  pdf: { subtitle: "Upload a PDF. Scanners open it on a clean hosted page" },
+  image: { subtitle: "Upload an image. Scanners see it full-screen" },
   video: { subtitle: "Share a video with a YouTube or Vimeo link" },
 };
 
@@ -143,7 +143,7 @@ export default function Step2Content({
                 </select>
               </Field>
               <p className="-mt-1 text-xs text-muted-3 sm:col-span-2">
-                Most networks use WPA/WPA2 — the password is required so phones auto-connect. Only choose “None” for a genuinely open network.
+                Most networks use WPA/WPA2, so the password is required so phones auto-connect. Only choose “None” for a genuinely open network.
               </p>
               <label className="flex items-center gap-2 text-sm text-muted sm:col-span-2">
                 <input type="checkbox" checked={!!form.hidden} onChange={(e) => set("hidden", e.target.checked)} className="h-4 w-4 accent-ink" />

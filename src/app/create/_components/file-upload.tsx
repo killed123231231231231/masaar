@@ -83,12 +83,12 @@ export default function FileUpload({
     // Client-side pre-check — instant, friendly feedback before sending
     // (a 40MB video shouldn't upload just to be rejected by the server).
     if (file.size > cfg.max) {
-      setError(`That file is too large — ${cfg.hint}.`);
+      setError(`That file is too large: ${cfg.hint}.`);
       return;
     }
     const isMov = kind === "video" && /\.mov$/i.test(file.name);
     if (file.type && !cfg.types.includes(file.type) && !isMov) {
-      setError(`Unsupported file — ${cfg.hint}.`);
+      setError(`Unsupported file: ${cfg.hint}.`);
       return;
     }
 

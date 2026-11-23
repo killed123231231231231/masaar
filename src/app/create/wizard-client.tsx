@@ -30,9 +30,12 @@ type Step = 1 | 2 | 3;
 
 export default function WizardClient({
   isAuthed,
+  siteFooter,
   me,
 }: {
   isAuthed: boolean;
+  /** Public site footer (server-rendered), shown below the anon builder. */
+  siteFooter?: React.ReactNode;
   /** Sidebar profile data — present only when isAuthed; null for anon. */
   me?: SidebarMe | null;
 }) {
@@ -164,7 +167,7 @@ export default function WizardClient({
       if (!type) return;
       const meta = typeMeta(type);
       if (!meta.ready || !meta.backend) {
-        toast.error(`${meta.label} isn’t available yet — pick Website, Text or vCard.`);
+        toast.error(`${meta.label} isn’t available yet. Pick Website, Text or vCard.`);
         return;
       }
       const { error } = buildPayload({
@@ -233,7 +236,7 @@ export default function WizardClient({
         // Created + live. Stay on the page so the footer flips to "Download"
         // and the user grabs the file first — then we send them to their QR
         // list (not the overview). No redirect here.
-        toast.success("QR created — download it below.");
+        toast.success("QR created. Download it below.");
         setCreated(true);
         return;
       }
@@ -472,7 +475,13 @@ export default function WizardClient({
           </div>
         </div>
       ) : (
-        <div className="h-screen overflow-hidden bg-paper font-body text-ink">{shell}</div>
+        // Anon builder: the contained shell fills the first viewport and
+        // the public site footer follows below it, like every other
+        // public page.
+        <div className="bg-paper font-body text-ink">
+          {shell}
+          {siteFooter}
+        </div>
       )}
 
       {/* Outside the overflow-hidden shell so the modal isn't clipped. */}

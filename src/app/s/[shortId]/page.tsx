@@ -48,7 +48,7 @@ export async function generateMetadata({
   const title = p.display_name || qr.name || "Profile";
   return {
     title: `${title} · Vertexa QR`,
-    description: p.bio || "Find me on social — shared via Vertexa QR.",
+    description: p.bio || "Find me on social, shared via Vertexa QR.",
     openGraph: {
       title,
       description: p.bio || "Find me on social.",

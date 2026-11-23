@@ -16,7 +16,7 @@ const plexArabic = IBM_Plex_Sans_Arabic({
 });
 
 export const metadata: Metadata = {
-  title: "Vertexa QR — Free QR code generator with scan analytics",
+  title: "Vertexa QR · Free QR code generator with scan analytics",
   description:
     "Generate dynamic QR codes with logos, colors, and analytics. Edit destinations after printing. Free to start.",
   openGraph: {
