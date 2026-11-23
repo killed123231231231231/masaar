@@ -143,18 +143,15 @@ export const INPUT =
 export function PageTitle({
   title,
   sub,
-  eyebrow,
   right,
 }: {
   title: ReactNode;
   sub?: ReactNode;
-  eyebrow?: ReactNode;
   right?: ReactNode;
 }) {
   return (
     <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
       <div className="min-w-0">
-        {eyebrow && <div className="mb-2">{eyebrow}</div>}
         <h1 className="font-heading text-[28px] font-semibold leading-[1.15] tracking-[-0.02em] text-ink sm:text-[34px]">
           {title}
         </h1>

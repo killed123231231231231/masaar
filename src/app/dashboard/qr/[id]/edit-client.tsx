@@ -155,7 +155,7 @@ export default function EditQrClient({ initial }: { initial: QrCode }) {
           />
           {initial.kind === "static" && (
             <p className="mt-2 text-xs text-amber-700">
-              Static QRs can&apos;t be edited — the value is embedded directly
+              Static QRs can&apos;t be edited: the value is embedded directly
               in the printed code.
             </p>
           )}
@@ -178,7 +178,7 @@ export default function EditQrClient({ initial }: { initial: QrCode }) {
               {TYPE_LABEL[initial.content_kind] ?? initial.content_kind}
             </span>{" "}
             page. You can turn it into a <span className="font-semibold">direct
-            website link</span> instead — the printed code keeps working, only
+            website link</span> instead. The printed code keeps working, only
             where it points changes (no reprint).
           </p>
           <label className="mt-4 inline-flex cursor-pointer items-center gap-2.5 rounded-full bg-stone py-2 pl-3 pr-4 text-sm font-medium text-ink transition-colors hover:bg-stone-dark">
@@ -203,7 +203,7 @@ export default function EditQrClient({ initial }: { initial: QrCode }) {
                 className={inputCls}
               />
               <p className="mt-2 rounded-xl bg-amber-50 p-3 text-xs leading-relaxed text-amber-800">
-                On save, scanning this QR jumps straight to this link — the
+                On save, scanning this QR jumps straight to this link. The
                 hosted {TYPE_LABEL[initial.content_kind] ?? initial.content_kind}{" "}
                 page will no longer show. This can’t be auto-undone, so
                 double-check the URL.

@@ -6,14 +6,16 @@ import {
   Area, AreaChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
 import {
-  ArrowDownRight, ArrowUpRight, CalendarDays, ChevronDown, ScanLine, TrendingUp,
+  ArrowDownRight, ArrowUpRight, CalendarDays, ScanLine, TrendingUp,
   type LucideIcon,
 } from "lucide-react";
 import { PERIODS, type Bucket, type Period } from "@/lib/analytics";
 import { Card, CardHeader, FOCUS, IconWell } from "@/components/dashboard/ui";
+import SelectMenu from "@/components/dashboard/select-menu";
+import { GRANULARITY_LABEL, bucketTrend, type TrendPoint } from "@/components/dashboard/trend-buckets";
 
-// Chart palette for the 2026-11 redesign: ink, lime, lilac, sky, mint, blush.
-export const PALETTE = ["#1A1A1A", "#DBFC74", "#E3B8FF", "#A9CCFF", "#8EF0B9", "#FFC2E2"];
+// Chart palette: ink, lime, lilac, sky only (owner's rule).
+export const PALETTE = ["#1A1A1A", "#DBFC74", "#E3B8FF", "#A9CCFF"];
 const INK = "#1A1A1A";
 const MUTED = "#71717A";
 
@@ -89,26 +91,27 @@ export function PeriodPills({ current }: { current: Period }) {
   );
 }
 
-/** Calendar pill with a native select (accessible, works on touch). */
-export function PeriodSelect({ current }: { current: Period }) {
+/** Calendar pill with the themed dropdown. Keeps every other param. */
+export function PeriodSelect({
+  current,
+  size = "md",
+  align = "left",
+}: {
+  current: Period;
+  size?: "sm" | "md";
+  align?: "left" | "right";
+}) {
   const setParam = useSetParam();
-  const id = useId();
   return (
-    <div className="relative">
-      <label htmlFor={id} className="sr-only">Period</label>
-      <CalendarDays className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink" aria-hidden />
-      <select
-        id={id}
-        value={current}
-        onChange={(e) => setParam("period", e.target.value)}
-        className={`h-10 cursor-pointer appearance-none rounded-full border border-stone-dark bg-white pl-10 pr-9 font-body text-sm font-medium text-ink transition-colors hover:bg-cream ${FOCUS}`}
-      >
-        {PERIODS.map((p) => (
-          <option key={p.id} value={p.id}>{p.label}</option>
-        ))}
-      </select>
-      <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-3" aria-hidden />
-    </div>
+    <SelectMenu
+      label="Period"
+      icon={CalendarDays}
+      size={size}
+      align={align}
+      value={current}
+      options={PERIODS.map((p) => ({ value: p.id, label: p.label }))}
+      onChange={(v) => setParam("period", v)}
+    />
   );
 }
 
@@ -140,21 +143,24 @@ export function KpiCard({
   sub?: React.ReactNode;
 }) {
   return (
-    <Card as="div" className={`flex flex-col p-4 sm:p-5 ${className}`}>
-      <IconWell icon={icon} tone={tone} />
-      <p className="mt-3.5 truncate font-body text-[13px] leading-tight text-muted-2">{label}</p>
+    <Card as="div" className={`flex h-full min-w-0 flex-col p-4 sm:p-5 ${className}`}>
+      {/* Label row: icon well + label on one line keeps the number high. */}
+      <div className="flex min-w-0 items-center gap-2.5">
+        <IconWell icon={icon} tone={tone} size="sm" />
+        <p className="min-w-0 font-body text-[13px] font-medium leading-snug text-muted-2">{label}</p>
+      </div>
       <p
-        className={`mt-1.5 font-heading font-semibold leading-tight tracking-[-0.02em] text-ink ${
-          value.length > 9 ? "line-clamp-2 break-words text-lg" : "truncate text-2xl"
+        className={`mt-4 min-w-0 break-words font-heading font-semibold leading-[1.1] tracking-[-0.02em] text-ink ${
+          value.length > 14 ? "text-xl" : value.length > 9 ? "text-[22px]" : "text-[28px]"
         }`}
         title={valueTitle ?? value}
       >
         {value}
       </p>
-      <div className="mt-2.5 space-y-1">
+      <div className="mt-auto space-y-1.5 pt-3">
         {delta != null && <Delta pct={delta} label={deltaLabel ?? null} />}
         {today != null && <TodayBadge count={today} />}
-        {sub && <div className="font-body text-xs text-muted-3">{sub}</div>}
+        {sub && <div className="font-body text-xs leading-snug text-muted-3">{sub}</div>}
       </div>
     </Card>
   );
@@ -206,7 +212,7 @@ export function TrendCard({
   title?: string;
 }) {
   const gid = useId().replace(/:/g, "");
-  const data = series.map((b) => ({ date: shortDay(b.label), count: b.count }));
+  const { granularity, points: data } = bucketTrend(series, period);
   const hasData = data.some((d) => d.count > 0);
   const showDots = data.length <= 31;
   return (
@@ -219,9 +225,17 @@ export function TrendCard({
           </span>
         }
         right={
-          <span className="inline-flex h-8 items-center rounded-full bg-stone px-3 font-body text-xs font-medium text-ink">
-            Daily
-          </span>
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Granularity follows the range: daily up to 30 days, weekly
+                for 90 days, weekly or monthly for all time. */}
+            <span
+              className="inline-flex h-8 items-center rounded-full bg-stone px-3 font-body text-xs font-medium text-ink"
+              title={`One point per ${granularity}`}
+            >
+              {GRANULARITY_LABEL[granularity]}
+            </span>
+            <PeriodSelect current={period} size="sm" align="right" />
+          </div>
         }
       />
       <div className="mt-5 h-64 w-full sm:h-72">
@@ -278,13 +292,13 @@ function TrendTooltip({
 }: {
   active?: boolean;
   label?: string | number;
-  payload?: { value?: number | string }[];
+  payload?: { value?: number | string; payload?: TrendPoint }[];
 }) {
   if (!active || !payload?.length) return null;
   const count = Number(payload[0]?.value ?? 0);
   return (
     <div className="rounded-2xl border border-stone-dark bg-white px-3 py-2 font-body shadow-float">
-      <p className="text-[11px] text-muted-3">{label}</p>
+      <p className="text-[11px] text-muted-3">{payload[0]?.payload?.full ?? label}</p>
       <p className="mt-0.5 text-xs text-muted-2">
         Scans <span className="ml-1 font-heading text-sm font-semibold text-ink">{count.toLocaleString()}</span>
       </p>
@@ -329,11 +343,13 @@ export function DonutCard({
   const has = total > 0;
   const data = has ? series : [{ label: "No data", count: 1 }];
   return (
-    <Card className={`p-5 ${className}`}>
+    <Card className={`flex flex-col p-5 ${className}`}>
       <CardHeader title={title} note={note} />
-      <div className="mt-4 flex flex-col items-center gap-5 sm:flex-row xl:flex-col 2xl:flex-row">
+      {/* Donut above, full-width legend below: labels never truncate, at
+          any card width. */}
+      <div className="mt-4 flex flex-1 flex-col items-center gap-5">
         {/* outline-none kills the square focus box recharts' Pie sectors show. */}
-        <div className="relative mx-auto h-[132px] w-[132px] shrink-0 [&_:focus]:outline-none [&_svg]:outline-none">
+        <div className="relative h-[148px] w-[148px] shrink-0 [&_:focus]:outline-none [&_svg]:outline-none">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
@@ -342,8 +358,8 @@ export function DonutCard({
                 nameKey="label"
                 cx="50%"
                 cy="50%"
-                innerRadius={44}
-                outerRadius={64}
+                innerRadius={50}
+                outerRadius={72}
                 paddingAngle={has && series.length > 1 ? 2 : 0}
                 strokeWidth={0}
                 rootTabIndex={-1}
@@ -362,23 +378,22 @@ export function DonutCard({
             </div>
           </div>
         </div>
-        <ul className="w-full min-w-0 flex-1 space-y-2.5 font-body text-[13px]">
+        <ul className="w-full divide-y divide-stone font-body text-[13px]">
           {has ? (
             series.map((b, i) => (
-              <li key={b.label} className="flex items-center justify-between gap-3">
-                <span className="flex min-w-0 items-center gap-2">
-                  <span
-                    className="h-2.5 w-2.5 shrink-0 rounded-full ring-1 ring-inset ring-ink/10"
-                    style={{ background: PALETTE[i % PALETTE.length] }}
-                    aria-hidden
-                  />
-                  <span className="truncate capitalize text-muted-2">{b.label}</span>
-                </span>
-                <span className="shrink-0 tabular-nums font-medium text-ink">{pct(b.count, total)}%</span>
+              <li key={b.label} className="flex items-center gap-3 py-2 first:pt-0 last:pb-0">
+                <span
+                  className="h-2.5 w-2.5 shrink-0 rounded-full ring-1 ring-inset ring-ink/10"
+                  style={{ background: PALETTE[i % PALETTE.length] }}
+                  aria-hidden
+                />
+                <span className="min-w-0 flex-1 break-words capitalize text-ink">{b.label}</span>
+                <span className="shrink-0 tabular-nums text-muted-3">{b.count.toLocaleString()}</span>
+                <span className="w-10 shrink-0 text-right font-medium tabular-nums text-ink">{pct(b.count, total)}%</span>
               </li>
             ))
           ) : (
-            <li className="text-muted-3">No scans yet</li>
+            <li className="text-center text-muted-3">No scans yet</li>
           )}
         </ul>
       </div>

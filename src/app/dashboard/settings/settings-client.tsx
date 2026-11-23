@@ -65,7 +65,7 @@ function EmailCard({ email }: { email: string }) {
       setCurrentPassword("");
       setLoading(false);
     } catch {
-      setErr("Network error — please retry.");
+      setErr("Network error. Please retry.");
       setLoading(false);
     }
   }
@@ -223,7 +223,7 @@ function PasswordCard() {
       setConfirm("");
       setLoading(false);
     } catch {
-      setErr("Network error — please retry.");
+      setErr("Network error. Please retry.");
       setLoading(false);
     }
   }

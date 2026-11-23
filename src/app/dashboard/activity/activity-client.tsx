@@ -173,16 +173,16 @@ function ActivityRow({ s }: { s: AccountRecentScan }) {
             <ExternalLink className="h-3 w-3 shrink-0" aria-hidden />
           </a>
         ) : (
-          "—"
+          <span className="text-muted-3">Not set</span>
         )}
       </td>
       <td className="px-5 py-3 text-muted-2">
-        {[s.city, s.country].filter(Boolean).join(", ") || "—"}
+        {[s.city, s.country].filter(Boolean).join(", ") || "Unknown"}
       </td>
       <td className="px-5 py-3 capitalize text-muted-2">
         <span className="inline-flex items-center gap-1.5">
           <Dev className="h-3.5 w-3.5 text-ink" strokeWidth={1.75} aria-hidden />
-          {s.device_type || "—"}
+          {s.device_type || "Unknown"}
         </span>
       </td>
     </tr>
