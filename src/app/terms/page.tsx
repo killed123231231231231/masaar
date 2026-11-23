@@ -1,12 +1,12 @@
 import MarketingShell from "@/components/marketing-shell";
 
-export const metadata = { title: "Terms & Conditions — Vertexa QR" };
+export const metadata = { title: "Terms & Conditions · Vertexa QR" };
 
 export default function TermsPage() {
   return (
     <MarketingShell
       title="Terms & Conditions"
-      intro="Placeholder terms — full legal copy is being prepared."
+      intro="Placeholder terms. Full legal copy is being prepared."
     >
       <article className="max-w-2xl space-y-5 font-body text-[17px] leading-[1.65] text-muted-2">
         <p>

@@ -37,7 +37,7 @@ const COUNTDOWN_SECONDS = 5 * 60;
 
 const FEATURES = [
   "Download as PNG, JPG, and SVG",
-  "Edit destination anytime — no reprints",
+  "Edit destination anytime, no reprints",
   "Unlimited dynamic QR codes",
   "Full scan analytics (geo + device + trend)",
   "Logo, color, and frame customization",
@@ -222,7 +222,7 @@ function CountdownBanner({
       <span className="inline-flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
         <Timer className="h-4 w-4 shrink-0" strokeWidth={2.25} />
         {expired ? (
-          <span>Special offer expired — you can still activate at the regular rate.</span>
+          <span>Special offer expired. You can still activate at the regular rate.</span>
         ) : (
           <>
             <span>
@@ -388,7 +388,7 @@ function RightColumn({
 
       {paymentsEnabled && (
         <p className="mt-3 text-center text-[11px] text-red-700">
-          Payments are in test mode — your card will not be charged.
+          Payments are in test mode: your card will not be charged.
         </p>
       )}
 
@@ -400,7 +400,7 @@ function RightColumn({
 
       {paymentsEnabled && expired && (
         <p className="mt-3 text-center text-[11px] text-muted-3">
-          The countdown expired — you can still activate at the trial rate above.
+          The countdown expired. You can still activate at the trial rate above.
         </p>
       )}
 

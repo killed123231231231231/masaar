@@ -98,7 +98,7 @@ export default function LocationForm({
         setLocating(false);
       },
       () => {
-        setErr("Couldn’t get your location — allow access or search instead.");
+        setErr("Couldn’t get your location. Allow access or search instead.");
         setLocating(false);
       },
       { enableHighAccuracy: true, timeout: 10000 }
@@ -156,7 +156,7 @@ export default function LocationForm({
         <input
           value={form.label ?? ""}
           onChange={(e) => set("label", e.target.value)}
-          placeholder="Café Riyadh — King Fahd Road"
+          placeholder="Café Riyadh, King Fahd Road"
           className={inputCls}
         />
       </label>

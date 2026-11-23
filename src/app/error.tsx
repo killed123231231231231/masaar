@@ -12,7 +12,7 @@ export default function Error({
       <div className="w-full max-w-md rounded-2xl border border-charcoal/10 bg-white p-8 text-center shadow-sm">
         <h1 className="font-heading text-2xl font-medium text-ink">Something went wrong</h1>
         <p className="mt-2 font-body text-sm text-muted-2">
-          We couldn&apos;t load this page. This is usually temporary — please
+          We couldn&apos;t load this page. This is usually temporary, so please
           try again.
         </p>
         <button

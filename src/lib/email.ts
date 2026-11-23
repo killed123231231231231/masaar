@@ -47,7 +47,7 @@ export function buildWelcomeEmailHtml(args: {
 
   return `
 <h1>Hi! Your QR is live.</h1>
-<p>Your QR code is now active and ready to share. Scan it, print it, drop it on a table tent — every scan is tracked in your Vertexa QR dashboard.</p>
+<p>Your QR code is now active and ready to share. Scan it, print it, drop it on a table tent: every scan is tracked in your Vertexa QR dashboard.</p>
 <div style="text-align:center;">
   <img src="${qrImageUrl}" alt="Your QR Code" style="width:280px;" />
   <p><strong>QR ID:</strong> <code>${shortId}</code></p>
@@ -58,7 +58,7 @@ export function buildWelcomeEmailHtml(args: {
 ${loginBlock}
 <hr />
 <p style="color:#999;font-size:12px;">
-  Vertexa QR — Free QR codes with scan analytics<br />
+  Vertexa QR · Free QR codes with scan analytics<br />
   This email was sent because you created a QR on Vertexa QR.
 </p>`.trim();
 }
@@ -81,7 +81,7 @@ export async function sendContactNotification(args: {
   const to = process.env.RESEND_NOTIFY_TO || "contact@vertechxa.ai";
   const key = process.env.RESEND_API_KEY;
   const html = `
-<h2>${args.abuseQr ? "Abuse report" : "New contact request"} — Vertexa QR</h2>
+<h2>${args.abuseQr ? "Abuse report" : "New contact request"} · Vertexa QR</h2>
 <table style="border-collapse:collapse;">
   <tr><td style="padding:4px 12px 4px 0;color:#666;">Name</td><td style="padding:4px 0;"><strong>${escapeHtml(args.name)}</strong></td></tr>
   <tr><td style="padding:4px 12px 4px 0;color:#666;">Email</td><td style="padding:4px 0;"><a href="mailto:${escapeHtml(args.email)}">${escapeHtml(args.email)}</a></td></tr>
@@ -92,7 +92,7 @@ export async function sendContactNotification(args: {
 <h3 style="margin-top:24px;">Message</h3>
 <p style="white-space:pre-wrap;background:#F4F2EE;padding:14px;border-radius:8px;">${escapeHtml(args.message)}</p>
 <hr />
-<p style="color:#999;font-size:12px;">Submitted from quickqrcode.live — reply directly to the email above.</p>`.trim();
+<p style="color:#999;font-size:12px;">Submitted from quickqrcode.live. Reply directly to the email above.</p>`.trim();
 
   if (!key || !key.startsWith("re_")) {
     console.log(

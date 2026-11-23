@@ -301,8 +301,8 @@ export default function QrCustomizer({ initialShortId, onSave, saving, allowLogo
           </div>
           <p className="mt-2 text-xs text-muted-3">
             {DYNAMIC_CAPABLE.includes(content_kind)
-              ? "Routes through your Vertexa QR link — can be dynamic (editable, tracked) or static."
-              : `${CONTENT_TABS.find((t) => t.key === content_kind)?.label} is encoded directly into the QR — it's a static code (no redirect or tracking).`}
+              ? "Routes through your Vertexa QR link and can be dynamic (editable, tracked) or static."
+              : `${CONTENT_TABS.find((t) => t.key === content_kind)?.label} is encoded directly into the QR, so it's a static code (no redirect or tracking).`}
           </p>
 
           <div className="mt-4 space-y-3">
@@ -411,7 +411,7 @@ export default function QrCustomizer({ initialShortId, onSave, saving, allowLogo
                 />
                 <p className="text-xs text-muted-3">
                   Points to the app link. Per-platform store routing comes
-                  later — for now everyone goes to the App URL.
+                  later. For now everyone goes to the App URL.
                 </p>
               </div>
             )}

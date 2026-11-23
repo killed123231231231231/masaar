@@ -66,7 +66,7 @@ export default function EmailGateModal({
       });
     } catch {
       setLoading(false);
-      setErr("Couldn’t save your email — please retry.");
+      setErr("Couldn’t save your email. Please retry.");
       return;
     }
 
@@ -78,7 +78,7 @@ export default function EmailGateModal({
       setErr(
         body?.message ||
           body?.error ||
-          "Couldn’t save your email — please retry."
+          "Couldn’t save your email. Please retry."
       );
       return;
     }

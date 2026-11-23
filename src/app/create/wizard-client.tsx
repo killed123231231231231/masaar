@@ -167,7 +167,7 @@ export default function WizardClient({
       if (!type) return;
       const meta = typeMeta(type);
       if (!meta.ready || !meta.backend) {
-        toast.error(`${meta.label} isn’t available yet — pick Website, Text or vCard.`);
+        toast.error(`${meta.label} isn’t available yet. Pick Website, Text or vCard.`);
         return;
       }
       const { error } = buildPayload({
@@ -236,7 +236,7 @@ export default function WizardClient({
         // Created + live. Stay on the page so the footer flips to "Download"
         // and the user grabs the file first — then we send them to their QR
         // list (not the overview). No redirect here.
-        toast.success("QR created — download it below.");
+        toast.success("QR created. Download it below.");
         setCreated(true);
         return;
       }

@@ -53,7 +53,7 @@ export default function FeedbackWidget({
         const j = await res.json().catch(() => ({}));
         setErr(
           j.error === "rate_limited"
-            ? "Thanks — looks like you’ve already shared feedback recently."
+            ? "Thanks, looks like you’ve already shared feedback recently."
             : "Couldn’t submit just now. Please try again."
         );
         setSubmitting(false);

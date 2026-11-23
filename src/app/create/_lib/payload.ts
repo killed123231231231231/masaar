@@ -120,7 +120,7 @@ export function buildPayload(args: {
       if (encryption !== "nopass" && !(form.password || "").trim())
         return {
           error:
-            "Enter the WiFi password — or set Encryption to “None” for an open network.",
+            "Enter the WiFi password, or set Encryption to “None” for an open network.",
         };
       destination = encodeWifi({
         ssid: form.ssid,
