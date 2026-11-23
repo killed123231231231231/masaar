@@ -50,11 +50,11 @@ export const CONTENT_TYPES: TypeMeta[] = [
   { key: "video", label: "Video", desc: "Display a video with one scan", icon: "Video", backend: "video", ready: true },
   { key: "wifi", label: "WiFi", desc: "Connect to a WiFi network", icon: "Wifi", backend: "wifi", ready: true },
   { key: "email", label: "Email", desc: "Open a prefilled email", icon: "Mail", backend: "email", ready: true },
-  { key: "sms", label: "SMS", desc: "Send text message instantly", icon: "MessageSquare", backend: "sms", ready: true },
+  { key: "sms", label: "SMS", desc: "Send text message instantly", icon: "Messages", backend: "sms", ready: true },
   { key: "whatsapp", label: "WhatsApp", desc: "Start a WhatsApp chat instantly", icon: "WhatsApp", backend: "whatsapp", ready: true },
   { key: "location", label: "Location", desc: "Open a location in Google Maps", icon: "MapPin", backend: "location", ready: true },
   { key: "payment", label: "Payment", desc: "Receive payments", icon: "Wallet", badge: "Coming soon", backend: null, ready: false },
-  { key: "feedback", label: "Feedback", desc: "Request feedback or a review", icon: "Star", backend: "feedback", ready: true },
+  { key: "feedback", label: "Feedback", desc: "Request feedback or a review", icon: "Reviews", backend: "feedback", ready: true },
   // Masaar-only extras (getqr has no equivalent) — kept last.
   { key: "phone", label: "Phone", desc: "Start a phone call", icon: "Phone", backend: "phone", ready: true },
   { key: "text", label: "Text", desc: "Encode plain text", icon: "Type", backend: "text", ready: true },

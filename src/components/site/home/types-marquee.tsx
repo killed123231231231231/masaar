@@ -7,12 +7,11 @@ import {
   Mail,
   MapPin,
   MessageCircle,
-  MessageSquare,
   Share2,
-  Star,
   Wifi,
   type LucideIcon,
 } from "lucide-react";
+import { MessagesIcon, ReviewsIcon } from "@/components/icons/line-icons";
 import WhatsAppIcon from "@/components/icons/whatsapp";
 import Reveal from "@/components/motion/reveal";
 
@@ -27,9 +26,9 @@ export const QR_TYPES: { label: string; icon: LucideIcon }[] = [
   { label: "Image", icon: ImageIcon },
   { label: "App link", icon: Link2 },
   { label: "Email", icon: Mail },
-  { label: "SMS", icon: MessageSquare },
+  { label: "SMS", icon: MessagesIcon },
   { label: "Location", icon: MapPin },
-  { label: "Feedback", icon: Star },
+  { label: "Feedback", icon: ReviewsIcon },
 ];
 
 /** Pastel icon wells, cycled so neighbouring types never share a colour. */

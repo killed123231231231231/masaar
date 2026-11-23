@@ -5,6 +5,7 @@ import {
   MessageCircle, MessageSquare, Wifi, Mail, Phone, Type, MapPin,
   Star, UtensilsCrossed, Wallet, QrCode, type LucideIcon,
 } from "lucide-react";
+import { MessagesIcon, ReviewsIcon } from "@/components/icons/line-icons";
 import WhatsAppIcon from "@/components/icons/whatsapp";
 import { typeMeta, type WizardType } from "../_lib/types";
 import PhonePreview from "./phone-preview";
@@ -16,6 +17,8 @@ import PaymentForm from "./payment-form";
 
 const ICONS: Record<string, LucideIcon> = {
   WhatsApp: WhatsAppIcon,
+  Messages: MessagesIcon,
+  Reviews: ReviewsIcon,
   Globe, FileText, Image: ImageIcon, Contact, Video, Link2,
   MessageCircle, MessageSquare, Wifi, Mail, Phone, Type, MapPin,
   Star, UtensilsCrossed, Wallet,

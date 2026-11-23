@@ -3,10 +3,11 @@
 import Link from "next/link";
 import {
   BarChart3, Calendar, ExternalLink, LinkIcon, Download, Lock,
-  Mail, MapPin, MessageSquare, MoreVertical, Pencil, Phone, Plus,
+  Mail, MapPin, MoreVertical, Pencil, Phone, Plus,
   Search, Smartphone, Text as TextIcon, UserSquare,
   Wifi, Trash2, QrCode as QrCodeIcon, type LucideIcon,
 } from "lucide-react";
+import { MessagesIcon, ReviewsIcon } from "@/components/icons/line-icons";
 import WhatsAppIcon from "@/components/icons/whatsapp";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -58,7 +59,7 @@ const TYPE_META: Record<string, { label: string; icon: LucideIcon }> = {
   vcard: { label: "vCard", icon: UserSquare },
   wifi: { label: "WiFi", icon: Wifi },
   email: { label: "Email", icon: Mail },
-  sms: { label: "SMS", icon: MessageSquare },
+  sms: { label: "SMS", icon: MessagesIcon },
   phone: { label: "Phone", icon: Phone },
   whatsapp: { label: "WhatsApp", icon: WhatsAppIcon },
   app_link: { label: "App Link", icon: Smartphone },

@@ -5,11 +5,14 @@ import {
   MessageCircle, MessageSquare, Wifi, Mail, Phone, Type, MapPin,
   Star, UtensilsCrossed, Wallet, Share2, QrCode, Check, type LucideIcon,
 } from "lucide-react";
+import { MessagesIcon, ReviewsIcon } from "@/components/icons/line-icons";
 import WhatsAppIcon from "@/components/icons/whatsapp";
 import { CONTENT_TYPES, type WizardType } from "../_lib/types";
 
 const ICONS: Record<string, LucideIcon> = {
   WhatsApp: WhatsAppIcon,
+  Messages: MessagesIcon,
+  Reviews: ReviewsIcon,
   Globe, FileText, Image: ImageIcon, Contact, Video, Link2,
   MessageCircle, MessageSquare, Wifi, Mail, Phone, Type, MapPin,
   Star, UtensilsCrossed, Wallet, Share2,
