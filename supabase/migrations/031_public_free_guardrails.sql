@@ -108,6 +108,9 @@ create trigger trg_guard_profile_quota before update on public.profiles
 -- short_id and kind can never be changed by end users (they are what is
 -- printed). Existing rows get admin_locked = false (default) — no behaviour change.
 alter table public.qr_codes add column if not exists admin_locked boolean not null default false;
+-- Status the QR had when the owner admin locked it; restored on unlock so an
+-- unlock never switches on a QR its owner had paused. NULL when not locked.
+alter table public.qr_codes add column if not exists admin_prev_status text;
 
 create or replace function public.guard_qr_update()
 returns trigger language plpgsql set search_path = public as $$
@@ -119,7 +122,8 @@ begin
   if new.short_id is distinct from old.short_id or new.kind is distinct from old.kind then
     raise exception 'immutable_field' using errcode = 'P0001';
   end if;
-  if new.admin_locked is distinct from old.admin_locked then
+  if new.admin_locked is distinct from old.admin_locked
+     or new.admin_prev_status is distinct from old.admin_prev_status then
     raise exception 'admin_only_field' using errcode = 'P0001';
   end if;
   -- A locked row is frozen for end users: any column change (payload_json,
