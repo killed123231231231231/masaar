@@ -168,7 +168,7 @@ export default function CheckoutClient({
   }
 
   return (
-    <main className="min-h-screen bg-[#F6F4EE] text-charcoal">
+    <main className="min-h-screen bg-paper font-body text-ink">
       <CountdownBanner secondsLeft={secondsLeft} expired={expired} />
       <TopBar />
 
@@ -212,7 +212,7 @@ function CountdownBanner({
   return (
     <div
       className={`px-5 py-2.5 text-center text-xs font-semibold text-white sm:text-sm ${
-        expired ? "bg-charcoal" : "bg-deep-teal"
+        expired ? "bg-muted" : "bg-ink"
       }`}
     >
       <span className="inline-flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
@@ -239,15 +239,15 @@ function CountdownBanner({
 
 function TopBar() {
   return (
-    <header className="border-b border-charcoal/10 bg-white/85 backdrop-blur">
+    <header className="border-b border-ink/10 bg-white/85 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3">
         <Link href="/" className="flex items-center gap-2">
           <LogoMark className="h-7 w-7" />
-          <span className="text-sm font-display font-extrabold tracking-tight text-deep-teal">
-            Vertexa <span className="text-terracotta">QR</span>
+          <span className="font-heading text-lg font-extrabold tracking-[-0.03em] text-ink">
+            Vertexa QR
           </span>
         </Link>
-        <span className="text-[11px] uppercase tracking-wider text-charcoal/55">
+        <span className="text-[11px] uppercase tracking-wider text-muted-3">
           Secure checkout
         </span>
       </div>
@@ -268,12 +268,12 @@ function LeftColumn({
 }) {
   return (
     <section className="space-y-6">
-      <div className="rounded-2xl border border-charcoal/10 bg-white p-6 shadow-sm sm:p-8">
-        <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
+      <div className="rounded-card border border-stone-dark bg-white p-6 shadow-card sm:p-8">
+        <h1 className="font-heading text-[28px] font-medium tracking-[-0.02em] tracking-tight sm:text-3xl">
           Your QR code is ready!
         </h1>
-        <p className="mt-1 text-sm text-charcoal/60">
-          Activating <span className="font-medium text-charcoal/80">“{qr.name}”</span>
+        <p className="mt-1 text-sm text-muted-2">
+          Activating <span className="font-medium text-muted">“{qr.name}”</span>
           {qr.short_id && (
             <>
               {" "}· <code className="text-xs">/r/{qr.short_id}</code>
@@ -295,19 +295,19 @@ function SocialProofCard({ count }: { count: number | null }) {
   // Real number when meaningful, honest fallback otherwise.
   const showRealNumber = count != null && count >= 100;
   return (
-    <div className="rounded-2xl border border-charcoal/10 bg-white p-6 shadow-sm">
+    <div className="rounded-card border border-stone-dark bg-white p-6 shadow-card">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <AvatarCluster />
           <div>
-            <p className="font-display text-base font-bold text-charcoal">
+            <p className="font-heading text-base font-bold text-ink">
               {showRealNumber ? (
                 <>{formatCount(count!)} QR codes created today</>
               ) : (
                 <>Be among the first to create your QR</>
               )}
             </p>
-            <p className="text-xs text-charcoal/55">
+            <p className="text-xs text-muted-3">
               {showRealNumber
                 ? "Join the businesses growing with Vertexa QR."
                 : "Early-access launch — your timing is perfect."}
@@ -316,19 +316,19 @@ function SocialProofCard({ count }: { count: number | null }) {
         </div>
       </div>
 
-      <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-charcoal/10 pt-4">
+      <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-ink/10 pt-4">
         <div className="flex items-center gap-0.5">
           {Array.from({ length: 5 }).map((_, i) => (
             <Star
               key={i}
-              className="h-4 w-4 fill-terracotta text-terracotta"
+              className="h-4 w-4 fill-ink text-ink"
               strokeWidth={0}
             />
           ))}
         </div>
-        <p className="text-xs font-medium text-charcoal/65">
+        <p className="text-xs font-medium text-muted-2">
           Trusted by GCC businesses ·{" "}
-          <span className="text-[10px] uppercase tracking-wider text-charcoal/40">
+          <span className="text-[10px] uppercase tracking-wider text-muted-3">
             Example
           </span>
         </p>
@@ -338,7 +338,7 @@ function SocialProofCard({ count }: { count: number | null }) {
 }
 
 function AvatarCluster() {
-  const tints = ["bg-deep-teal", "bg-terracotta", "bg-deep-teal-light", "bg-deep-teal-dark"];
+  const tints = ["bg-ink", "bg-muted", "bg-muted-2", "bg-ink-soft"];
   const letters = ["A", "F", "K", "L"];
   return (
     <div className="flex -space-x-2" aria-hidden>
@@ -350,7 +350,7 @@ function AvatarCluster() {
           {l}
         </span>
       ))}
-      <span className="grid h-8 w-8 place-items-center rounded-full border-2 border-white bg-sand-light text-[10px] font-bold text-charcoal/65">
+      <span className="grid h-8 w-8 place-items-center rounded-full border-2 border-white bg-stone text-[10px] font-bold text-muted-2">
         <Users className="h-3.5 w-3.5" strokeWidth={2.25} />
       </span>
     </div>
@@ -385,43 +385,43 @@ function RightColumn({
   expired: boolean;
 }) {
   return (
-    <section className="rounded-2xl border border-charcoal/10 bg-white p-6 shadow-sm sm:p-8">
-      <h2 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
+    <section className="rounded-card border border-stone-dark bg-white p-6 shadow-card sm:p-8">
+      <h2 className="font-heading text-[28px] font-medium tracking-[-0.02em] tracking-tight sm:text-3xl">
         Activate now
       </h2>
-      <p className="mt-1 text-sm text-charcoal/60">
+      <p className="mt-1 text-sm text-muted-2">
         Make “{qr.name}” live in seconds.
       </p>
 
       <ul className="mt-6 space-y-2.5">
         {FEATURES.map((f) => (
-          <li key={f} className="flex items-start gap-2.5 text-sm text-charcoal/75">
-            <Check className="mt-0.5 h-4 w-4 shrink-0 text-deep-teal" strokeWidth={2.5} />
+          <li key={f} className="flex items-start gap-2.5 text-sm text-muted">
+            <Check className="mt-0.5 h-4 w-4 shrink-0 text-ink" strokeWidth={2.5} />
             <span>{f}</span>
           </li>
         ))}
       </ul>
 
-      <div className="mt-6 rounded-xl border border-deep-teal/20 bg-deep-teal/5 px-4 py-3 text-xs font-semibold text-deep-teal">
-        Promo <span className="rounded bg-deep-teal/15 px-1.5 py-0.5">MASAAR-LAUNCH</span>{" "}
+      <div className="mt-6 rounded-xl border border-ink/20 bg-stone/60 px-4 py-3 text-xs font-semibold text-ink">
+        Promo <span className="rounded bg-lime/50 px-1.5 py-0.5">MASAAR-LAUNCH</span>{" "}
         applied — you save{" "}
         {Math.round(((PRICE_ORIG - PRICE_NOW) / PRICE_ORIG) * 100)}%
       </div>
 
-      <div className="mt-5 flex items-end justify-between border-y border-charcoal/10 py-4">
+      <div className="mt-5 flex items-end justify-between border-y border-ink/10 py-4">
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-charcoal/45">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-3">
             Total due today
           </p>
-          <p className="mt-1 font-display text-3xl font-bold text-charcoal">
+          <p className="mt-1 font-heading text-3xl font-bold text-ink">
             SAR {PRICE_NOW.toFixed(2)}
           </p>
-          <p className="text-xs text-charcoal/55">
+          <p className="text-xs text-muted-3">
             <span className="line-through">SAR {PRICE_ORIG.toFixed(2)}</span>
             {" "}was the regular price
           </p>
         </div>
-        <p className="max-w-[140px] text-right text-[10px] text-charcoal/45">
+        <p className="max-w-[140px] text-right text-[10px] text-muted-3">
           {TRIAL_DAYS}-day trial, then SAR {RECURRING}/mo. Cancel anytime.
         </p>
       </div>
@@ -433,25 +433,25 @@ function RightColumn({
       </div>
 
       {paymentsEnabled && (
-        <p className="mt-3 text-center text-[11px] text-terracotta-dark">
+        <p className="mt-3 text-center text-[11px] text-red-700">
           Payments are in test mode — your card will not be charged.
         </p>
       )}
 
       {!paymentsEnabled && (
-        <p className="mt-3 text-center text-[11px] text-charcoal/45">
+        <p className="mt-3 text-center text-[11px] text-muted-3">
           Launch promo: activation is free this week. Real billing starts next sprint.
         </p>
       )}
 
       {expired && (
-        <p className="mt-3 text-center text-[11px] text-charcoal/55">
+        <p className="mt-3 text-center text-[11px] text-muted-3">
           The countdown expired — you can still activate at the trial rate above.
         </p>
       )}
 
       {err && (
-        <p className="mt-4 rounded-lg border border-terracotta/30 bg-terracotta/5 p-3 text-sm text-terracotta-dark">
+        <p className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
           {err}
           {loginHint && (
             <>
@@ -464,11 +464,11 @@ function RightColumn({
         </p>
       )}
 
-      <p className="mt-5 text-center text-[10px] leading-relaxed text-charcoal/45">
+      <p className="mt-5 text-center text-[10px] leading-relaxed text-muted-3">
         By activating you agree to our{" "}
-        <Link href="/terms" className="underline hover:text-charcoal/70">Terms</Link>{" "}
+        <Link href="/terms" className="underline hover:text-muted">Terms</Link>{" "}
         and{" "}
-        <Link href="/privacy" className="underline hover:text-charcoal/70">Privacy Policy</Link>.
+        <Link href="/privacy" className="underline hover:text-muted">Privacy Policy</Link>.
         Get a {TRIAL_DAYS}-day trial for SAR {PRICE_NOW}. After trial,
         we&apos;ll charge SAR {RECURRING} every month until you cancel.
       </p>
@@ -486,7 +486,7 @@ function PayPalButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#FFC439] py-3 text-sm font-bold text-[#003087] shadow-sm transition-colors hover:bg-[#F0B72F] disabled:opacity-60"
+      className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#FFC439] py-3 text-sm font-bold text-[#003087] shadow-sm transition-colors hover:bg-[#F0B72F] disabled:opacity-60"
     >
       {busy ? "Processing…" : (
         <>
@@ -506,7 +506,7 @@ function GPayButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="flex w-full items-center justify-center gap-2 rounded-lg bg-charcoal py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-charcoal/90 disabled:opacity-60"
+      className="flex w-full items-center justify-center gap-2 rounded-xl bg-ink py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-ink/90 disabled:opacity-60"
     >
       {busy ? "Processing…" : (
         <>
@@ -523,7 +523,7 @@ function GPayMark() {
   // brand permission). Brand-safe placeholder until Sprint 3 wires real GPay.
   return (
     <span
-      className="grid h-5 w-5 place-items-center rounded-full bg-white text-[10px] font-extrabold text-charcoal"
+      className="grid h-5 w-5 place-items-center rounded-full bg-white text-[10px] font-extrabold text-ink"
       aria-hidden
     >
       G
@@ -539,7 +539,7 @@ function CardButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#1A56DB] py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#1E40AF] disabled:opacity-60"
+      className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#1A56DB] py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#1E40AF] disabled:opacity-60"
     >
       {busy ? "Activating…" : (
         <>
@@ -571,7 +571,7 @@ const TESTIMONIALS: Testimonial[] = [
     body: "Saved me hours on menu setup. Changing the destination after print is the killer feature.",
     when: "2 weeks ago",
     initial: "A",
-    tint: "bg-deep-teal",
+    tint: "bg-ink",
   },
   {
     name: "Fatima Hassan",
@@ -580,7 +580,7 @@ const TESTIMONIALS: Testimonial[] = [
     body: "Beautiful, fast, and just works. Customers can finally see what they're scanning.",
     when: "1 month ago",
     initial: "F",
-    tint: "bg-terracotta",
+    tint: "bg-muted",
   },
   {
     name: "Khalid Bin Rashid",
@@ -589,7 +589,7 @@ const TESTIMONIALS: Testimonial[] = [
     body: "Customer experience went from clunky printed PDFs to seamless mobile. Worth every riyal.",
     when: "3 weeks ago",
     initial: "K",
-    tint: "bg-deep-teal-light",
+    tint: "bg-muted-2",
   },
   {
     name: "Layla Mansour",
@@ -598,7 +598,7 @@ const TESTIMONIALS: Testimonial[] = [
     body: "Setup took under a minute. Analytics tells me exactly which posters are pulling weight.",
     when: "1 week ago",
     initial: "L",
-    tint: "bg-deep-teal-dark",
+    tint: "bg-ink-soft",
   },
 ];
 
@@ -613,10 +613,10 @@ function Testimonials() {
     <section className="mt-14">
       <div className="flex items-end justify-between gap-4">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-deep-teal">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-ink">
             Why our customers choose Vertexa QR
           </p>
-          <h2 className="mt-1 font-display text-xl font-bold tracking-tight sm:text-2xl">
+          <h2 className="mt-1 font-heading text-2xl font-medium tracking-tight sm:text-2xl">
             Real businesses, real scans
           </h2>
         </div>
@@ -625,7 +625,7 @@ function Testimonials() {
             type="button"
             onClick={() => scroll(-1)}
             aria-label="Previous testimonials"
-            className="grid h-9 w-9 place-items-center rounded-full border border-charcoal/15 bg-white text-charcoal/70 hover:bg-sand-light hover:text-deep-teal"
+            className="grid h-9 w-9 place-items-center rounded-full border border-ink/15 bg-white text-muted hover:bg-stone hover:text-ink"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
@@ -633,7 +633,7 @@ function Testimonials() {
             type="button"
             onClick={() => scroll(1)}
             aria-label="Next testimonials"
-            className="grid h-9 w-9 place-items-center rounded-full border border-charcoal/15 bg-white text-charcoal/70 hover:bg-sand-light hover:text-deep-teal"
+            className="grid h-9 w-9 place-items-center rounded-full border border-ink/15 bg-white text-muted hover:bg-stone hover:text-ink"
           >
             <ChevronRight className="h-4 w-4" />
           </button>
@@ -647,9 +647,9 @@ function Testimonials() {
         {TESTIMONIALS.map((t) => (
           <article
             key={t.name}
-            className="relative shrink-0 snap-start rounded-2xl border border-charcoal/10 bg-white p-5 shadow-sm w-[280px] sm:w-[320px]"
+            className="relative shrink-0 snap-start rounded-card border border-stone-dark bg-white p-5 shadow-card w-[280px] sm:w-[320px]"
           >
-            <span className="absolute right-4 top-4 rounded-md bg-sand-light px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-widest text-charcoal/45">
+            <span className="absolute right-4 top-4 rounded-md bg-stone px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-widest text-muted-3">
               Example
             </span>
             <div className="flex items-center gap-1">
@@ -658,17 +658,17 @@ function Testimonials() {
                   key={i}
                   className={`h-3.5 w-3.5 ${
                     i < t.rating
-                      ? "fill-terracotta text-terracotta"
-                      : "text-charcoal/15"
+                      ? "fill-ink text-ink"
+                      : "text-muted-4"
                   }`}
                   strokeWidth={0}
                 />
               ))}
             </div>
-            <p className="mt-3 text-sm leading-relaxed text-charcoal/75">
+            <p className="mt-3 text-sm leading-relaxed text-muted">
               “{t.body}”
             </p>
-            <div className="mt-4 flex items-center gap-3 border-t border-charcoal/5 pt-3">
+            <div className="mt-4 flex items-center gap-3 border-t border-ink/5 pt-3">
               <span
                 className={`grid h-9 w-9 place-items-center rounded-full text-sm font-bold text-white ${t.tint}`}
                 aria-hidden
@@ -676,8 +676,8 @@ function Testimonials() {
                 {t.initial}
               </span>
               <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-charcoal">{t.name}</p>
-                <p className="truncate text-[11px] text-charcoal/55">
+                <p className="truncate text-sm font-semibold text-ink">{t.name}</p>
+                <p className="truncate text-[11px] text-muted-3">
                   {t.city} · {t.when}
                 </p>
               </div>
@@ -701,15 +701,15 @@ function MobilePayBar({
   paymentsEnabled: boolean;
 }) {
   return (
-    <div className="fixed inset-x-0 bottom-0 z-30 border-t border-charcoal/10 bg-white/95 px-4 py-3 backdrop-blur lg:hidden">
+    <div className="fixed inset-x-0 bottom-0 z-30 border-t border-ink/10 bg-white/95 px-4 py-3 backdrop-blur lg:hidden">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3">
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-charcoal/45">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-3">
             Today
           </p>
-          <p className="font-display text-base font-bold text-charcoal">
+          <p className="font-heading text-base font-bold text-ink">
             SAR {PRICE_NOW.toFixed(2)}{" "}
-            <span className="text-xs font-normal text-charcoal/40 line-through">
+            <span className="text-xs font-normal text-muted-3 line-through">
               SAR {PRICE_ORIG.toFixed(2)}
             </span>
           </p>
@@ -718,7 +718,7 @@ function MobilePayBar({
           type="button"
           onClick={onPay}
           disabled={busy != null}
-          className="flex-1 rounded-lg bg-deep-teal px-5 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-deep-teal-dark disabled:opacity-60"
+          className="flex-1 rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-ink-soft disabled:opacity-60"
         >
           {busy ? "Processing…" : paymentsEnabled ? "Continue to payment" : "Activate now"}
         </button>
