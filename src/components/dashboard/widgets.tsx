@@ -142,21 +142,24 @@ export function KpiCard({
   sub?: React.ReactNode;
 }) {
   return (
-    <Card as="div" className={`flex flex-col p-4 sm:p-5 ${className}`}>
-      <IconWell icon={icon} tone={tone} />
-      <p className="mt-3.5 truncate font-body text-[13px] leading-tight text-muted-2">{label}</p>
+    <Card as="div" className={`flex h-full min-w-0 flex-col p-4 sm:p-5 ${className}`}>
+      {/* Label row: icon well + label on one line keeps the number high. */}
+      <div className="flex min-w-0 items-center gap-2.5">
+        <IconWell icon={icon} tone={tone} size="sm" />
+        <p className="min-w-0 font-body text-[13px] font-medium leading-snug text-muted-2">{label}</p>
+      </div>
       <p
-        className={`mt-1.5 font-heading font-semibold leading-tight tracking-[-0.02em] text-ink ${
-          value.length > 9 ? "line-clamp-2 break-words text-lg" : "truncate text-2xl"
+        className={`mt-4 min-w-0 break-words font-heading font-semibold leading-[1.1] tracking-[-0.02em] text-ink ${
+          value.length > 14 ? "text-xl" : value.length > 9 ? "text-[22px]" : "text-[28px]"
         }`}
         title={valueTitle ?? value}
       >
         {value}
       </p>
-      <div className="mt-2.5 space-y-1">
+      <div className="mt-auto space-y-1.5 pt-3">
         {delta != null && <Delta pct={delta} label={deltaLabel ?? null} />}
         {today != null && <TodayBadge count={today} />}
-        {sub && <div className="font-body text-xs text-muted-3">{sub}</div>}
+        {sub && <div className="font-body text-xs leading-snug text-muted-3">{sub}</div>}
       </div>
     </Card>
   );

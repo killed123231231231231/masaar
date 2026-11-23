@@ -1,7 +1,8 @@
 import { Bone } from "@/components/dashboard/ui";
 
 // Loading boundary (Suspense fallback) for the Overview — mirrors the real
-// layout (ink rail, header, KPI row, trend, right rail) so the swap is calm.
+// layout (ink rail, header, full-width KPI row, trend, side column) so the
+// swap is calm.
 export default function DashboardLoading() {
   return (
     <div className="min-h-screen bg-paper">
@@ -19,26 +20,32 @@ export default function DashboardLoading() {
                 <Bone className="h-10 w-24 rounded-full" />
               </div>
             </div>
-            <div className="mt-7 xl:grid xl:grid-cols-[minmax(0,1fr)_296px] xl:gap-6">
-              <div className="space-y-6">
-                <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <div key={i} className="rounded-card border border-stone-dark/70 bg-white p-4">
-                      <Bone className="h-10 w-10 rounded-full" />
-                      <Bone className="mt-4 h-3 w-20" />
-                      <Bone className="mt-2 h-6 w-16" />
-                    </div>
-                  ))}
+            <div className="mt-7 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-6 xl:grid-cols-5">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div
+                  key={i}
+                  className={`rounded-card border border-stone-dark/70 bg-white p-4 ${
+                    i < 3 ? "md:col-span-2 xl:col-span-1" : i === 3 ? "md:col-span-3 xl:col-span-1" : "col-span-2 md:col-span-3 xl:col-span-1"
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Bone className="h-8 w-8 rounded-full" />
+                    <Bone className="h-3 w-20" />
+                  </div>
+                  <Bone className="mt-4 h-7 w-16" />
+                  <Bone className="mt-3 h-4 w-24" />
                 </div>
-                <div className="rounded-card border border-stone-dark/70 bg-white p-5">
-                  <Bone className="h-4 w-40" />
-                  <Bone className="mt-5 h-64 w-full" />
-                </div>
+              ))}
+            </div>
+            <div className="mt-6 xl:grid xl:grid-cols-[minmax(0,1fr)_320px] xl:gap-6">
+              <div className="rounded-card border border-stone-dark/70 bg-white p-5">
+                <Bone className="h-4 w-40" />
+                <Bone className="mt-5 h-64 w-full" />
               </div>
               <div className="mt-6 hidden rounded-card border border-stone-dark/70 bg-white p-5 xl:mt-0 xl:block">
                 <Bone className="h-4 w-28" />
                 <div className="mt-5 space-y-3">
-                  {Array.from({ length: 5 }).map((_, i) => (
+                  {Array.from({ length: 4 }).map((_, i) => (
                     <Bone key={i} className="h-14 w-full rounded-2xl" />
                   ))}
                 </div>
