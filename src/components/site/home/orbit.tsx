@@ -1,7 +1,5 @@
 import type { CSSProperties } from "react";
 import LogoMark from "@/components/logo-mark";
-import Reveal from "@/components/motion/reveal";
-import { PrimaryButton } from "@/components/site/buttons";
 import { Container, SectionTitle } from "@/components/site/section";
 import { Seal } from "@/components/site/shapes";
 import { QR_TYPES } from "@/components/site/home/types-marquee";
@@ -14,7 +12,7 @@ const RINGS = [
 /**
  * Orbit section: faint concentric rings with QR-type icon chips that
  * slowly revolve (chips counter-rotate to stay upright) around a lime
- * seal. Decorative; the heading and button carry the meaning.
+ * seal. Decorative; the heading carries the meaning.
  */
 export default function Orbit() {
   return (
@@ -23,11 +21,6 @@ export default function Orbit() {
         <SectionTitle id="orbit-title" className="max-w-[640px]">
           Every kind of QR code in one place
         </SectionTitle>
-        <Reveal delay={100} className="mt-8 flex justify-center">
-          <PrimaryButton href="/create" size="lg">
-            Create QR code
-          </PrimaryButton>
-        </Reveal>
       </Container>
 
       <div
@@ -106,7 +99,7 @@ export default function Orbit() {
             </div>
           </div>
         </div>
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-paper to-transparent" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-paper via-paper/70 to-transparent" />
       </div>
     </section>
   );
