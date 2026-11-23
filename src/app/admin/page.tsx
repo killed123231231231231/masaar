@@ -125,7 +125,7 @@ export default async function AdminPage() {
               set the QR to suspended until that migration is applied.
             </p>
           )}
-          <RecentQrTable qrs={data.recentQrs} />
+          <RecentQrTable qrs={data.recentQrs} lockColumnMissing={data.lockColumnMissing} />
         </Card>
       </main>
     </div>

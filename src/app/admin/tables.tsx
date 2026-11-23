@@ -1,5 +1,6 @@
 import { formatRiyadhDateTime } from "@/lib/admin";
 import type { AdminQrRow, AdminUserRow } from "./data";
+import AdminActionButton from "./action-button";
 
 // Server-rendered tables. Times are formatted here, on the server, in
 // Riyadh time with AM/PM. Each table scrolls inside its own card on narrow
@@ -76,7 +77,13 @@ function statusPill(status: string, locked: boolean) {
   return <Pill tone="muted">{status || "-"}</Pill>;
 }
 
-export function RecentQrTable({ qrs }: { qrs: AdminQrRow[] }) {
+export function RecentQrTable({
+  qrs,
+  lockColumnMissing,
+}: {
+  qrs: AdminQrRow[];
+  lockColumnMissing: boolean;
+}) {
   if (qrs.length === 0) {
     return <p className="px-5 pb-3 text-sm text-charcoal/60">No QR codes yet.</p>;
   }
@@ -119,7 +126,7 @@ export function RecentQrTable({ qrs }: { qrs: AdminQrRow[] }) {
               </td>
               <td className={TD}>{statusPill(q.status, q.adminLocked)}</td>
               <td className={`${TD} text-right`}>
-                <QrAction qr={q} />
+                <QrAction qr={q} lockColumnMissing={lockColumnMissing} />
               </td>
             </tr>
           ))}
@@ -129,13 +136,45 @@ export function RecentQrTable({ qrs }: { qrs: AdminQrRow[] }) {
   );
 }
 
-// Placeholders until the admin action routes land (next commit).
 function UserAction({ user }: { user: AdminUserRow }) {
-  void user;
-  return <span className="text-xs text-charcoal/40">-</span>;
+  if (user.isSelf) return <span className="text-xs text-charcoal/50">-</span>;
+  if (user.suspended) {
+    return (
+      <AdminActionButton
+        action="user-unsuspend"
+        id={user.id}
+        confirmText={`Unsuspend ${user.email}? They will be able to sign in again.`}
+      />
+    );
+  }
+  return (
+    <AdminActionButton
+      action="user-suspend"
+      id={user.id}
+      confirmText={`Suspend ${user.email}? They will not be able to sign in until you unsuspend them. Their QR codes keep working.`}
+    />
+  );
 }
 
-function QrAction({ qr }: { qr: AdminQrRow }) {
-  void qr;
-  return <span className="text-xs text-charcoal/40">-</span>;
+function QrAction({ qr, lockColumnMissing }: { qr: AdminQrRow; lockColumnMissing: boolean }) {
+  const locked = qr.adminLocked || (lockColumnMissing && qr.status === "suspended");
+  if (locked) {
+    return (
+      <AdminActionButton
+        action="qr-unlock"
+        id={qr.id}
+        confirmText={`Unlock "${qr.name}"? It will be set to active and scans will open its destination again.`}
+      />
+    );
+  }
+  if (qr.status !== "active" && qr.status !== "suspended") {
+    return <span className="text-xs text-charcoal/50">-</span>;
+  }
+  return (
+    <AdminActionButton
+      action="qr-lock"
+      id={qr.id}
+      confirmText={`Lock "${qr.name}"? Scans will show the expired page instead of its destination until you unlock it.`}
+    />
+  );
 }
