@@ -2,7 +2,6 @@ import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
 import type { SidebarMe } from "@/components/dashboard/sidebar";
 import { getMe } from "@/lib/me";
-import SiteFooter from "@/components/site/site-footer";
 import WizardClient from "./wizard-client";
 
 // The 3-step builder wizard (replaces the legacy single-page builder).
@@ -24,7 +23,7 @@ export default async function CreatePage() {
 
   return (
     <Suspense fallback={null}>
-      <WizardClient isAuthed={!!user} me={me} siteFooter={user ? null : <SiteFooter />} />
+      <WizardClient isAuthed={!!user} me={me} />
     </Suspense>
   );
 }
