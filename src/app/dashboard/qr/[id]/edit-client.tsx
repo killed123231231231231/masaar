@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { Check, Repeat2 } from "lucide-react";
 import Step3Customize from "@/app/create/_components/step-3-customize";
 import { DEFAULT_CUSTOMIZATION, type Customization } from "@/app/create/_lib/types";
 import type { QrCode } from "@/types/database";
@@ -125,17 +126,20 @@ export default function EditQrClient({ initial }: { initial: QrCode }) {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Section title="Name">
+    <div className="space-y-6 font-body">
+      <div className="rounded-panel bg-stone p-1.5">
+      <div className="grid gap-5 rounded-[26px] border border-stone-dark bg-white p-5 sm:grid-cols-2 sm:p-6">
+        <Section title="Name" htmlFor="qr-edit-name">
           <input
+            id="qr-edit-name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="block w-full rounded-lg border border-charcoal/15 h-11 px-3 text-sm transition-colors duration-150 focus:border-deep-teal focus:outline-none focus:ring-2 focus:ring-deep-teal/20"
+            className={inputCls}
           />
         </Section>
 
         <Section
+          htmlFor="qr-edit-destination"
           title={
             initial.kind === "dynamic"
               ? "Destination URL (editable any time)"
@@ -143,26 +147,32 @@ export default function EditQrClient({ initial }: { initial: QrCode }) {
           }
         >
           <input
+            id="qr-edit-destination"
             value={destination}
             onChange={(e) => setDestination(e.target.value)}
             disabled={initial.kind === "static"}
-            className="block w-full rounded-lg border border-charcoal/15 h-11 px-3 text-sm transition-colors duration-150 focus:border-deep-teal focus:outline-none focus:ring-2 focus:ring-deep-teal/20 disabled:bg-sand-light/60"
+            className={`${inputCls} disabled:cursor-not-allowed disabled:bg-stone disabled:text-muted-2`}
           />
           {initial.kind === "static" && (
-            <p className="mt-2 text-xs text-amber-600">
+            <p className="mt-2 text-xs text-amber-700">
               Static QRs can&apos;t be edited — the value is embedded directly
               in the printed code.
             </p>
           )}
         </Section>
       </div>
+      </div>
 
       {canConvertType && (
-        <div className="rounded-xl border border-charcoal/10 bg-white p-4">
-          <h3 className="text-sm font-semibold uppercase tracking-wide text-charcoal/55">
-            QR type
-          </h3>
-          <p className="mt-2 text-sm text-charcoal/70">
+        <div className="rounded-panel bg-stone p-1.5">
+        <div className="rounded-[26px] border border-stone-dark bg-white p-5 sm:p-6">
+          <div className="flex items-center gap-3">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-lime text-ink">
+              <Repeat2 className="h-4 w-4" />
+            </span>
+            <h2 className="font-heading text-xl font-medium text-ink">QR type</h2>
+          </div>
+          <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-muted-2">
             When scanned, this QR opens a hosted{" "}
             <span className="font-semibold">
               {TYPE_LABEL[initial.content_kind] ?? initial.content_kind}
@@ -171,23 +181,28 @@ export default function EditQrClient({ initial }: { initial: QrCode }) {
             website link</span> instead — the printed code keeps working, only
             where it points changes (no reprint).
           </p>
-          <label className="mt-3 flex items-center gap-2 text-sm text-charcoal/75">
+          <label className="mt-4 inline-flex cursor-pointer items-center gap-2.5 rounded-full bg-stone py-2 pl-3 pr-4 text-sm font-medium text-ink transition-colors hover:bg-stone-dark">
             <input
               type="checkbox"
               checked={convertToUrl}
               onChange={(e) => setConvertToUrl(e.target.checked)}
+              className="h-4 w-4 accent-ink"
             />
             Convert to a website link
           </label>
           {convertToUrl && (
-            <div className="mt-3">
+            <div className="mt-4 max-w-xl">
+              <label htmlFor="qr-edit-convert-url" className="sr-only">
+                Website URL
+              </label>
               <input
+                id="qr-edit-convert-url"
                 value={targetUrl}
                 onChange={(e) => setTargetUrl(e.target.value)}
                 placeholder="https://your-site.com"
-                className="block w-full rounded-lg border border-charcoal/15 h-11 px-3 text-sm focus:border-deep-teal focus:outline-none focus:ring-2 focus:ring-deep-teal/20"
+                className={inputCls}
               />
-              <p className="mt-2 rounded-lg bg-amber-50 p-2 text-xs text-amber-700">
+              <p className="mt-2 rounded-xl bg-amber-50 p-3 text-xs leading-relaxed text-amber-800">
                 On save, scanning this QR jumps straight to this link — the
                 hosted {TYPE_LABEL[initial.content_kind] ?? initial.content_kind}{" "}
                 page will no longer show. This can’t be auto-undone, so
@@ -195,6 +210,7 @@ export default function EditQrClient({ initial }: { initial: QrCode }) {
               </p>
             </div>
           )}
+        </div>
         </div>
       )}
 
@@ -213,9 +229,12 @@ export default function EditQrClient({ initial }: { initial: QrCode }) {
           <button
             onClick={save}
             disabled={saving}
-            className="inline-flex w-full items-center justify-center rounded-lg bg-deep-teal px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors duration-200 hover:bg-deep-teal-dark disabled:opacity-60"
+            className="group inline-flex h-11 w-full items-center justify-center gap-2.5 rounded-full bg-ink py-1.5 pl-5 pr-1.5 font-body text-[15px] font-medium text-white shadow-card transition-colors hover:bg-ink-soft focus:outline-none focus-visible:ring-2 focus-visible:ring-ink/30 focus-visible:ring-offset-2 disabled:opacity-60"
           >
-            {saving ? "Saving…" : "Save changes"}
+            <span className="flex-1 text-center">{saving ? "Saving…" : "Save changes"}</span>
+            <span className="grid h-8 w-8 place-items-center rounded-full bg-lime text-ink transition-transform group-hover:translate-x-0.5">
+              <Check className="h-4 w-4" />
+            </span>
           </button>
         }
       />
@@ -223,19 +242,24 @@ export default function EditQrClient({ initial }: { initial: QrCode }) {
   );
 }
 
+const inputCls =
+  "block h-11 w-full rounded-xl border border-stone-dark bg-white px-3.5 text-[15px] text-ink outline-none transition-colors duration-150 placeholder:text-muted-3 hover:border-ink/25 focus:border-ink focus:ring-2 focus:ring-ink/20";
+
 function Section({
   title,
+  htmlFor,
   children,
 }: {
   title: string;
+  htmlFor?: string;
   children: React.ReactNode;
 }) {
   return (
-    <div>
-      <h3 className="text-sm font-semibold uppercase tracking-wide text-charcoal/55">
+    <div className="min-w-0">
+      <label htmlFor={htmlFor} className="block text-sm font-medium text-ink">
         {title}
-      </h3>
-      <div className="mt-3">{children}</div>
+      </label>
+      <div className="mt-2">{children}</div>
     </div>
   );
 }
