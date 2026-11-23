@@ -114,7 +114,8 @@ function PageHeader({
         }
         right={
           hasQrs ? (
-            <>
+            // One row on phones too: the QR filter flexes and truncates.
+            <div className="flex w-full min-w-0 items-center gap-2 sm:w-auto">
               <QrFilterSelect userQrs={bundle.userQrs} current={filterQrId} />
               <PeriodSelect current={bundle.period} />
               <a
@@ -123,7 +124,7 @@ function PageHeader({
                     ? `/api/qr/${encodeURIComponent(filterQrId)}/scans.csv?period=${bundle.period}`
                     : `/api/account/scans.csv?period=${bundle.period}`
                 }
-                className={OUTLINE_BTN}
+                className={`${OUTLINE_BTN} shrink-0 max-sm:w-10 max-sm:px-0`}
                 aria-label="Export scans as CSV"
                 title={
                   filterQrId
@@ -134,7 +135,7 @@ function PageHeader({
                 <Download className="h-4 w-4" aria-hidden />
                 <span className="hidden sm:inline">Export</span>
               </a>
-            </>
+            </div>
           ) : (
             <PrimaryButton href="/create" icon={QrCode}>Create QR code</PrimaryButton>
           )
@@ -152,7 +153,7 @@ function QrFilterSelect({ userQrs, current }: { userQrs: AccountUserQr[]; curren
     <SelectMenu
       label="Filter by QR code"
       icon={QrCode}
-      className="max-w-[16rem]"
+      className="min-w-0 flex-1 sm:max-w-[16rem] sm:flex-none"
       value={current ?? ""}
       options={[{ value: "", label: "All QR codes" }, ...userQrs.map((q) => ({ value: q.id, label: q.name }))]}
       onChange={(v) => setParam("qr", v || null)}
