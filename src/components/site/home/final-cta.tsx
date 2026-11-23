@@ -6,7 +6,7 @@ import { Capsule, Diamond, FinderRing, Float, GlowDot, QuarterDisc, Seal } from 
 /** Closing call to action surrounded by floating shapes. */
 export default function FinalCta() {
   return (
-    <section aria-labelledby="cta-title" className="relative overflow-hidden py-20 md:py-[140px]">
+    <section aria-labelledby="cta-title" className="relative overflow-x-clip py-20 md:py-[140px]">
       <div aria-hidden className="pointer-events-none absolute inset-0 mx-auto max-w-[1300px]">
         <Float className="left-[3%] top-[18%] hidden lg:block lg:left-[8%]" rotate="10deg" duration="7.4s" delay="-1s">
           <FinderRing className="h-[88px] w-[88px] lg:h-[110px] lg:w-[110px]" />
@@ -20,8 +20,8 @@ export default function FinalCta() {
         <Float className="bottom-[16%] right-[14%] hidden lg:block lg:right-[20%]" rotate="45deg" duration="5.6s" delay="-0.6s">
           <Diamond className="h-[56px] w-[56px]" />
         </Float>
-        <Float className="bottom-[6%] left-[44%] hidden lg:block" rotate="0deg" duration="8s" delay="-4s">
-          <QuarterDisc className="h-[54px] w-[54px]" />
+        <Float className="bottom-[18%] left-[40%] hidden lg:block" rotate="-8deg" duration="8s" delay="-4s">
+          <QuarterDisc className="h-[60px] w-[60px]" />
         </Float>
         <Float className="left-[30%] top-[10%] hidden lg:block" duration="5s">
           <GlowDot className="h-3.5 w-3.5" />
@@ -51,7 +51,7 @@ export default function FinalCta() {
           </p>
         </Reveal>
         <Reveal delay={160} className="mt-8 flex justify-center">
-          <PrimaryButton href="/create" size="lg">
+          <PrimaryButton href="/create" size="lg" filled>
             Create QR code
           </PrimaryButton>
         </Reveal>
