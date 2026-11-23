@@ -602,7 +602,7 @@ export default function Step3Customize({
                 )}
                 <p className="mt-2 rounded-xl bg-stone/60 p-2 text-xs text-muted-2">
                   Anyone who scans must enter this password before the QR
-                  opens. It is stored encrypted and we can't read it.
+                  opens. It is stored encrypted and we can&apos;t read it.
                 </p>
               </>
             ) : (
