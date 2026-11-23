@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
-import { ArrowLeft, ArrowRight, Download } from "lucide-react";
+import { ArrowLeft, ChevronRight, Download } from "lucide-react";
 import { generateShortId } from "@/lib/shortid";
 import { createClient } from "@/lib/supabase/client";
 import { appUrl } from "@/lib/utils";
@@ -339,7 +339,7 @@ export default function WizardClient({
         />
       )}
       {step === 2 && type && (
-        <div className="mx-auto w-full max-w-7xl px-6 py-10 sm:px-10">
+        <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-10 sm:py-10">
           <Step2Content
             type={type}
             form={form}
@@ -352,7 +352,7 @@ export default function WizardClient({
         </div>
       )}
       {step === 3 && type && (
-        <div className="mx-auto w-full max-w-7xl px-6 py-10 sm:px-10">
+        <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-10 sm:py-10">
           <Step3Customize
             previewData={preview}
             shortId={shortId.current}
@@ -370,14 +370,23 @@ export default function WizardClient({
 
   // Fixed footer inside the shell (not a page-sticky bar). Cancel/Back
   // left, Next/Download right; Next disabled until a type is picked.
+  const secondaryBtn =
+    "inline-flex h-11 min-w-[112px] items-center justify-center gap-2 rounded-full bg-stone px-5 font-body text-[15px] font-medium text-ink transition-colors hover:bg-stone-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-ink/30";
+  // Ink pill with a lime chevron circle (Sunbeam primary, filled for the
+  // wizard's main action so it reads as the next step).
+  const primaryBtn =
+    "group inline-flex h-11 min-w-[140px] items-center justify-center gap-2.5 rounded-full bg-ink py-1.5 pl-5 pr-1.5 font-body text-[15px] font-medium text-white shadow-card transition-colors hover:bg-ink-soft focus:outline-none focus-visible:ring-2 focus-visible:ring-ink/30 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-[0.45]";
+  const primaryDot =
+    "grid h-8 w-8 place-items-center rounded-full bg-lime text-ink transition-transform group-hover:translate-x-0.5 group-disabled:translate-x-0";
+
   const footer = (
-    <div className="shrink-0 border-t border-charcoal/10 bg-white">
-      <div className="flex h-[86px] items-center justify-between px-4 sm:px-6 md:px-8">
+    <div className="shrink-0 border-t border-stone-dark bg-white">
+      <div className="flex h-[76px] items-center justify-between gap-3 px-4 sm:h-[84px] sm:px-6 md:px-8">
         {step === 1 ? (
           <button
             type="button"
             onClick={() => router.push("/")}
-            className="inline-flex h-11 min-w-[136px] items-center justify-center gap-2 rounded-xl border-[1.5px] border-deep-teal/50 text-sm font-semibold text-deep-teal transition-colors hover:bg-deep-teal/5"
+            className={secondaryBtn}
           >
             Cancel
           </button>
@@ -385,7 +394,7 @@ export default function WizardClient({
           <button
             type="button"
             onClick={() => goStep((step - 1) as Step)}
-            className="inline-flex h-11 min-w-[136px] items-center justify-center gap-2 rounded-xl border-[1.5px] border-deep-teal/50 text-sm font-semibold text-deep-teal transition-colors hover:bg-deep-teal/5"
+            className={secondaryBtn}
           >
             <ArrowLeft className="h-4 w-4" /> Back
           </button>
@@ -396,18 +405,24 @@ export default function WizardClient({
             <button
               type="button"
               onClick={downloadAndFinish}
-              className="inline-flex h-11 min-w-[140px] items-center justify-center gap-2 rounded-xl bg-deep-teal text-sm font-semibold text-white shadow-sm transition-colors hover:bg-deep-teal-dark"
+              className={primaryBtn}
             >
-              <Download className="h-4 w-4" /> Download
+              Download
+              <span className={primaryDot}>
+                <Download className="h-4 w-4" />
+              </span>
             </button>
           ) : (
             <button
               type="button"
               onClick={download}
               disabled={saving}
-              className="inline-flex h-11 min-w-[140px] items-center justify-center gap-2 rounded-xl bg-deep-teal text-sm font-semibold text-white shadow-sm transition-colors hover:bg-deep-teal-dark disabled:cursor-not-allowed disabled:opacity-60"
+              className={primaryBtn}
             >
               {saving ? "Creating…" : "Create QR"}
+              <span className={primaryDot}>
+                <ChevronRight className="h-4 w-4" />
+              </span>
             </button>
           )
         ) : type === "payment" && step === 2 ? (
@@ -419,38 +434,45 @@ export default function WizardClient({
             type="button"
             onClick={next}
             disabled={step === 1 && !type}
-            className="inline-flex h-11 min-w-[140px] items-center justify-center gap-2 rounded-xl bg-deep-teal text-sm font-semibold text-white shadow-sm transition-colors hover:bg-deep-teal-dark disabled:cursor-not-allowed disabled:opacity-[0.45]"
+            className={primaryBtn}
           >
-            Next <ArrowRight className="h-4 w-4" />
+            Next
+            <span className={primaryDot}>
+              <ChevronRight className="h-4 w-4" />
+            </span>
           </button>
         )}
       </div>
     </div>
   );
 
+  // Sunbeam double frame: a stone outer frame (~6px) around the white
+  // inner card. The card still owns the only scroll area.
   const shell = (
-    <div className="m-[18px] flex h-[calc(100vh-36px)] flex-col overflow-hidden rounded-[20px] border border-charcoal/10 bg-white">
-      <ProgressBar current={step} maxStep={maxStep} onJump={(n) => goStep(n)} />
-      {/* The ONLY scroll area in the wizard (getqr: overscroll-contain
-          so scroll never chains to the page). */}
-      <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain">
-        {stepContent}
+    <div className="m-2 h-[calc(100dvh-16px)] rounded-panel bg-stone p-1.5 sm:m-[14px] sm:h-[calc(100dvh-28px)]">
+      <div className="flex h-full flex-col overflow-hidden rounded-[26px] border border-stone-dark bg-white">
+        <ProgressBar current={step} maxStep={maxStep} onJump={(n) => goStep(n)} />
+        {/* The ONLY scroll area in the wizard (getqr: overscroll-contain
+            so scroll never chains to the page). */}
+        <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain">
+          {stepContent}
+        </div>
+        {footer}
       </div>
-      {footer}
     </div>
   );
 
   return (
     <>
       {me ? (
-        <div className="h-screen overflow-hidden bg-[#F6F4EE] text-charcoal">
+        <div className="h-screen overflow-hidden bg-paper font-body text-ink">
           <div className="flex h-full">
             <Sidebar me={me} current="none" />
             <div className="min-w-0 flex-1">{shell}</div>
           </div>
         </div>
       ) : (
-        <div className="h-screen overflow-hidden bg-[#F6F4EE] text-charcoal">{shell}</div>
+        <div className="h-screen overflow-hidden bg-paper font-body text-ink">{shell}</div>
       )}
 
       {/* Outside the overflow-hidden shell so the modal isn't clipped. */}
