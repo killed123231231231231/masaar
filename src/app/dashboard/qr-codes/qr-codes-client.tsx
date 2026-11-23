@@ -324,7 +324,7 @@ function ListRow({
       <Link
         href={`/dashboard/qr/${q.id}`}
         aria-label={`Open QR code ${q.name}`}
-        title={locked ? "Inactive — reactivate to open" : `Open QR code ${q.name}`}
+        title={locked ? "Inactive. Reactivate to open" : `Open QR code ${q.name}`}
         tabIndex={locked ? -1 : undefined}
         aria-disabled={locked || undefined}
         className={`group/qr block shrink-0 rounded-2xl border border-stone-dark bg-white p-1.5 transition-all duration-200 hover:-translate-y-0.5 hover:border-ink/25 hover:shadow-card ${FOCUS} ${lockCls}`}
@@ -443,13 +443,13 @@ function ListRow({
             aria-checked={isActive}
             aria-label={
               isActive
-                ? "Active — click to deactivate"
-                : "Inactive — click to activate"
+                ? "Active. Click to deactivate"
+                : "Inactive. Click to activate"
             }
             title={
               isActive
-                ? "Active — click to deactivate"
-                : "Inactive — click to activate"
+                ? "Active. Click to deactivate"
+                : "Inactive. Click to activate"
             }
             className={`relative h-6 w-11 shrink-0 rounded-full transition-colors duration-300 ease-out disabled:cursor-not-allowed disabled:opacity-60 ${FOCUS} ${
               isActive ? "bg-ink" : "bg-stone-dark"
@@ -482,7 +482,7 @@ function ListRow({
       <Link
         href={`/dashboard?qr=${q.id}`}
         className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-lime px-3 text-xs font-medium text-ink transition hover:bg-lime-deep ${FOCUS} ${lockCls}`}
-        title={locked ? "Inactive — reactivate to view analytics" : "Open analytics"}
+        title={locked ? "Inactive. Reactivate to view analytics" : "Open analytics"}
         tabIndex={locked ? -1 : undefined}
         aria-disabled={locked || undefined}
       >
@@ -497,7 +497,7 @@ function ListRow({
         onClick={downloadStyled}
         disabled={locked}
         className={`grid h-9 w-9 shrink-0 place-items-center rounded-full border border-stone-dark bg-white text-ink transition hover:bg-stone disabled:pointer-events-none disabled:opacity-40 ${FOCUS}`}
-        title={locked ? "Inactive — reactivate to download" : "Download PNG"}
+        title={locked ? "Inactive. Reactivate to download" : "Download PNG"}
         aria-label={`Download ${q.name} as PNG`}
       >
         <Download className="h-4 w-4" />
@@ -529,7 +529,7 @@ function RowMenu({
     // one was about to vanish for users juggling several codes.
     if (
       !window.confirm(
-        `Delete “${name}”? This can't be undone — the QR stops working and its scans are removed.`
+        `Delete “${name}”? This can't be undone: the QR stops working and its scans are removed.`
       )
     ) {
       return;

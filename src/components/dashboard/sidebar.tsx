@@ -55,7 +55,6 @@ export default function Sidebar({ me, current, upgradeHref = "/pricing" }: Props
       </div>
 
       <nav aria-label="Dashboard" className="mt-6 flex-1 space-y-1 px-3">
-        <p className="px-3 pb-2 text-[11px] font-medium uppercase tracking-[0.12em] text-white/50">Menu</p>
         {NAV.map((n) => {
           const active = n.key === current;
           return (

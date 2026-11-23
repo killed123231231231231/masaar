@@ -33,13 +33,10 @@ export default async function AdminPage() {
       <main className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
         <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="min-w-0">
-            <p className="inline-flex items-center gap-1.5 rounded-full bg-lime px-2.5 py-1 text-xs font-medium text-ink">
-              <ShieldCheck className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
-              Owner only
-            </p>
-            <h1 className="mt-3 font-heading text-[28px] font-semibold leading-tight tracking-[-0.02em] sm:text-[34px]">Admin</h1>
-            <p className="mt-1 text-sm text-muted-2">
-              Updated {formatRiyadhDateTime(data.generatedAt)} (Riyadh time)
+            <h1 className="font-heading text-[28px] font-semibold leading-tight tracking-[-0.02em] sm:text-[34px]">Admin</h1>
+            <p className="mt-1 inline-flex flex-wrap items-center gap-x-1.5 text-sm text-muted-2">
+              <ShieldCheck className="h-4 w-4 text-ink" strokeWidth={1.75} aria-hidden />
+              Owner only. Updated {formatRiyadhDateTime(data.generatedAt)} (Riyadh time)
             </p>
           </div>
           <Link
@@ -98,7 +95,7 @@ export default async function AdminPage() {
             <DailyBarChart data={data.signupsDaily} seriesLabel="Sign-ups" color="#1A1A1A" />
           </Card>
           <Card title="QR codes created per day" note="Last 30 days, Riyadh time">
-            <DailyBarChart data={data.qrsDaily} seriesLabel="QR codes" color="#B9E23A" />
+            <DailyBarChart data={data.qrsDaily} seriesLabel="QR codes" color="#E3B8FF" />
           </Card>
         </section>
 
