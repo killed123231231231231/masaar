@@ -1,57 +1,51 @@
-import Skeleton from "@/components/ui/skeleton";
+import { Bone } from "@/components/dashboard/ui";
 
-// Loading boundary (Suspense fallback) for the dashboard Overview — streams a
-// sidebar + KPI-row + trend skeleton matching the new sand-cream shell while
-// getAccountAnalytics resolves.
+// Loading boundary (Suspense fallback) for the Overview — mirrors the real
+// layout (ink rail, header, KPI row, trend, right rail) so the swap is calm.
 export default function DashboardLoading() {
   return (
-    <div className="min-h-screen bg-[#F6F4EE]">
+    <div className="min-h-screen bg-paper">
       <div className="flex">
-        {/* Sidebar placeholder (lg+) */}
-        <aside className="sticky top-0 hidden h-screen w-[220px] shrink-0 bg-deep-teal lg:block" />
-        <div className="flex min-w-0 flex-1 flex-col xl:flex-row">
-          <main className="min-w-0 flex-1 px-4 py-5 sm:px-5 sm:py-6 lg:px-8">
-            {/* Header */}
-            <Skeleton className="h-8 w-64" />
-            <Skeleton className="mt-2 h-4 w-80" />
-
-            {/* Period pills */}
-            <div className="mt-4 flex gap-2">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <Skeleton key={i} className="h-7 w-20 rounded-full" />
-              ))}
+        <aside className="sticky top-0 hidden h-screen w-[240px] shrink-0 bg-ink lg:block" />
+        <main className="min-w-0 flex-1 px-4 pb-10 pt-5 sm:px-6 sm:pt-6 lg:px-8 lg:pt-8">
+          <div className="mx-auto w-full max-w-[1400px]">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <Bone className="h-9 w-64" />
+                <Bone className="mt-3 h-4 w-80 max-w-full" />
+              </div>
+              <div className="flex gap-2">
+                <Bone className="h-10 w-36 rounded-full" />
+                <Bone className="h-10 w-24 rounded-full" />
+              </div>
             </div>
-
-            {/* KPI row */}
-            <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="rounded-2xl border border-charcoal/10 bg-white p-4 shadow-sm"
-                >
-                  <Skeleton className="h-8 w-8 rounded-lg" />
-                  <Skeleton className="mt-3 h-3 w-20" />
-                  <Skeleton className="mt-1 h-6 w-16" />
+            <div className="mt-7 xl:grid xl:grid-cols-[minmax(0,1fr)_296px] xl:gap-6">
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <div key={i} className="rounded-card border border-stone-dark/70 bg-white p-4">
+                      <Bone className="h-10 w-10 rounded-full" />
+                      <Bone className="mt-4 h-3 w-20" />
+                      <Bone className="mt-2 h-6 w-16" />
+                    </div>
+                  ))}
                 </div>
-              ))}
+                <div className="rounded-card border border-stone-dark/70 bg-white p-5">
+                  <Bone className="h-4 w-40" />
+                  <Bone className="mt-5 h-64 w-full" />
+                </div>
+              </div>
+              <div className="mt-6 hidden rounded-card border border-stone-dark/70 bg-white p-5 xl:mt-0 xl:block">
+                <Bone className="h-4 w-28" />
+                <div className="mt-5 space-y-3">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Bone key={i} className="h-14 w-full rounded-2xl" />
+                  ))}
+                </div>
+              </div>
             </div>
-
-            {/* Trend */}
-            <div className="mt-6 rounded-2xl border border-charcoal/10 bg-white p-5 shadow-sm">
-              <Skeleton className="h-4 w-40" />
-              <Skeleton className="mt-4 h-64 w-full" />
-            </div>
-          </main>
-          {/* Right rail placeholder (xl+) */}
-          <aside className="hidden shrink-0 border-l border-charcoal/10 bg-white px-5 py-6 xl:block xl:w-[300px]">
-            <Skeleton className="h-4 w-24" />
-            <div className="mt-4 space-y-2">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Skeleton key={i} className="h-12 w-full rounded-lg" />
-              ))}
-            </div>
-          </aside>
-        </div>
+          </div>
+        </main>
       </div>
     </div>
   );

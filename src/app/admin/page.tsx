@@ -29,22 +29,22 @@ export default async function AdminPage() {
   const { kpis } = data;
 
   return (
-    <div className="min-h-screen bg-[#F6F4EE] text-charcoal">
+    <div className="min-h-screen bg-paper font-body text-ink">
       <main className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
         <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="min-w-0">
-            <p className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-deep-teal">
+            <p className="inline-flex items-center gap-1.5 rounded-full bg-lime px-2.5 py-1 text-xs font-medium text-ink">
               <ShieldCheck className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
               Owner only
             </p>
-            <h1 className="mt-1 font-display text-2xl font-bold sm:text-3xl">Admin</h1>
-            <p className="mt-1 text-sm text-charcoal/65">
+            <h1 className="mt-3 font-heading text-[28px] font-semibold leading-tight tracking-[-0.02em] sm:text-[34px]">Admin</h1>
+            <p className="mt-1 text-sm text-muted-2">
               Updated {formatRiyadhDateTime(data.generatedAt)} (Riyadh time)
             </p>
           </div>
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-1.5 self-start rounded-lg border border-charcoal/15 bg-white px-3 py-2 text-sm font-medium text-charcoal/80 transition-colors hover:bg-sand-light sm:self-auto"
+            className="inline-flex h-10 items-center gap-1.5 self-start rounded-full bg-stone px-4 text-sm font-medium text-ink transition-colors hover:bg-stone-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-ink/30 focus-visible:ring-offset-2 sm:self-auto"
           >
             <ArrowLeft className="h-4 w-4" strokeWidth={1.75} aria-hidden />
             Back to dashboard
@@ -54,7 +54,7 @@ export default async function AdminPage() {
         {data.warnings.length > 0 && (
           <div
             role="status"
-            className="flex items-start gap-2 rounded-xl border border-terracotta/30 bg-terracotta/10 px-4 py-3 text-sm text-terracotta-dark"
+            className="flex items-start gap-2 rounded-card border border-blush bg-blush/30 px-4 py-3 text-sm text-ink"
           >
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" strokeWidth={1.75} aria-hidden />
             <p>{data.warnings.join(" ")}</p>
@@ -95,10 +95,10 @@ export default async function AdminPage() {
 
         <section aria-label="Daily activity" className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <Card title="New sign-ups per day" note="Last 30 days, Riyadh time">
-            <DailyBarChart data={data.signupsDaily} seriesLabel="Sign-ups" color="#0F5B55" />
+            <DailyBarChart data={data.signupsDaily} seriesLabel="Sign-ups" color="#1A1A1A" />
           </Card>
           <Card title="QR codes created per day" note="Last 30 days, Riyadh time">
-            <DailyBarChart data={data.qrsDaily} seriesLabel="QR codes" color="#E07A5F" />
+            <DailyBarChart data={data.qrsDaily} seriesLabel="QR codes" color="#B9E23A" />
           </Card>
         </section>
 
@@ -120,7 +120,7 @@ export default async function AdminPage() {
 
         <Card title="Recent QR codes" note="Newest 50" flush>
           {data.lockColumnMissing && (
-            <p className="mx-5 mb-3 rounded-lg bg-sand-light px-3 py-2 text-xs text-charcoal/70">
+            <p className="mx-5 mb-3 rounded-2xl bg-cream px-3 py-2 text-xs text-muted-2">
               Locking is off until database migration 031 (admin lock) is
               applied.
             </p>
@@ -144,19 +144,19 @@ function StatCard({
   details: { label: string; value: string }[];
 }) {
   return (
-    <div className="rounded-xl border border-charcoal/10 bg-white p-5 shadow-[0_1px_2px_rgba(15,91,85,0.06),0_2px_8px_-2px_rgba(15,91,85,0.08)]">
+    <div className="rounded-card border border-stone-dark/70 bg-white p-5 shadow-card">
       <div className="flex items-center gap-2.5">
-        <span className="grid h-9 w-9 place-items-center rounded-lg bg-deep-teal/10 text-deep-teal">
+        <span className="grid h-10 w-10 place-items-center rounded-full bg-lime text-ink">
           <Icon className="h-4 w-4" strokeWidth={1.75} aria-hidden />
         </span>
-        <p className="text-xs font-semibold uppercase tracking-wider text-charcoal/60">{label}</p>
+        <p className="text-[13px] text-muted-2">{label}</p>
       </div>
-      <p className="mt-4 font-display text-3xl font-bold leading-none">{value}</p>
-      <dl className="mt-4 flex flex-wrap gap-x-6 gap-y-2 border-t border-charcoal/10 pt-3">
+      <p className="mt-4 font-heading text-3xl font-semibold leading-none tracking-[-0.02em]">{value}</p>
+      <dl className="mt-4 flex flex-wrap gap-x-6 gap-y-2 border-t border-stone pt-3">
         {details.map((d) => (
           <div key={d.label} className="min-w-0">
-            <dt className="text-xs text-charcoal/60">{d.label}</dt>
-            <dd className="font-display text-sm font-semibold text-deep-teal">{d.value}</dd>
+            <dt className="text-xs text-muted-3">{d.label}</dt>
+            <dd className="font-heading text-sm font-semibold text-ink">{d.value}</dd>
           </div>
         ))}
       </dl>
@@ -177,10 +177,10 @@ function Card({
   children: React.ReactNode;
 }) {
   return (
-    <section className="min-w-0 rounded-xl border border-charcoal/10 bg-white shadow-[0_1px_2px_rgba(15,91,85,0.06),0_2px_8px_-2px_rgba(15,91,85,0.08)]">
+    <section className="min-w-0 rounded-card border border-stone-dark/70 bg-white shadow-card">
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-5 pb-3 pt-5">
-        <h2 className="font-display text-base font-bold">{title}</h2>
-        {note && <p className="text-xs text-charcoal/60">{note}</p>}
+        <h2 className="font-heading text-[17px] font-semibold">{title}</h2>
+        {note && <p className="text-xs text-muted-3">{note}</p>}
       </div>
       <div className={flush ? "pb-2" : "px-5 pb-5"}>{children}</div>
     </section>

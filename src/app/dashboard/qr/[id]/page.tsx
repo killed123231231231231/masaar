@@ -1,18 +1,16 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, BarChart3, MessageSquare } from "lucide-react";
-import Sidebar from "@/components/dashboard/sidebar";
-import MobileDashboardNav from "@/components/dashboard/mobile-dashboard-nav";
-import LogoMark from "@/components/logo-mark";
+import DashboardFrame from "@/components/dashboard/frame";
+import { FOCUS, OUTLINE_BTN, PageTitle, SECONDARY_BTN } from "@/components/dashboard/ui";
 import { createClient } from "@/lib/supabase/server";
 import { getMe } from "@/lib/me";
 import EditQrClient from "./edit-client";
 
 export const dynamic = "force-dynamic";
 
-// Edit a single QR. B5/Item 6 — migrated off the legacy DashboardShell
-// onto the new deep-teal Sidebar shell so the sidebar is locked on every
-// authed surface (Overview, Analytics, QR Codes, this edit page).
+// Edit a single QR. B5/Item 6 — uses the dashboard sidebar shell so the
+// sidebar is on every authed surface (Overview, QR Codes, this edit page).
 export default async function EditQrPage({
   params,
 }: {
@@ -42,58 +40,38 @@ export default async function EditQrPage({
   if (!qr) redirect("/dashboard");
 
   return (
-    <div className="min-h-screen bg-[#F6F4EE] text-charcoal">
-      <div className="flex">
-        <Sidebar
-          me={me}
-          current="qrcodes"
-          analyticsHref={`/dashboard?qr=${qr.id}`}
-        />
-        <main className="min-w-0 flex-1 space-y-7 px-4 py-5 sm:px-5 sm:py-6 lg:px-8">
-          <MobileDashboardNav me={me} current="qrcodes" />
+    <DashboardFrame me={me} current="qrcodes" className="space-y-6">
+      {/* B5/Fix 18 — clear way back to the QR list without the sidebar. */}
+      <Link
+        href="/dashboard/qr-codes"
+        className={`inline-flex w-fit items-center gap-1.5 rounded-full font-body text-sm text-muted-2 hover:text-ink ${FOCUS}`}
+      >
+        <ArrowLeft className="h-4 w-4" aria-hidden /> Back to QR codes
+      </Link>
 
-          {/* B5/Fix 18 — Back button above the page header so the
-              user has a clear escape back to the QR list without
-              hunting through the sidebar. Matches the brand outlined
-              button family ("View analytics" right next door). */}
-          <Link
-            href="/dashboard/qr-codes"
-            className="inline-flex w-fit items-center gap-1.5 rounded-lg border border-charcoal/15 bg-white px-3 py-1.5 text-sm font-medium text-charcoal/75 hover:bg-sand-light hover:text-deep-teal"
-          >
-            <ArrowLeft className="h-4 w-4" /> Back to QR codes
-          </Link>
-
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <h1 className="font-display text-2xl font-bold tracking-tight">
-                Edit “{qr.name}”
-              </h1>
-              <p className="mt-1 text-sm text-charcoal/55 capitalize">
-                {qr.kind} · {qr.content_kind}
-                {qr.short_id ? ` · /r/${qr.short_id}` : ""}
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              {qr.content_kind === "feedback" && (
-                <Link
-                  href={`/dashboard/qr/${qr.id}/feedback`}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-charcoal/15 bg-white px-3 py-1.5 text-sm font-medium text-charcoal/75 hover:bg-sand-light hover:text-deep-teal"
-                >
-                  <MessageSquare className="h-4 w-4" /> View feedback
-                </Link>
-              )}
-              <Link
-                href={`/dashboard?qr=${qr.id}`}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-charcoal/15 bg-white px-3 py-1.5 text-sm font-medium text-charcoal/75 hover:bg-sand-light hover:text-deep-teal"
-              >
-                <BarChart3 className="h-4 w-4" /> View analytics
+      <PageTitle
+        title={<>Edit “{qr.name}”</>}
+        sub={
+          <span className="capitalize">
+            {qr.kind} · {qr.content_kind.replace(/_/g, " ")}
+            {qr.short_id ? ` · /r/${qr.short_id}` : ""}
+          </span>
+        }
+        right={
+          <>
+            {qr.content_kind === "feedback" && (
+              <Link href={`/dashboard/qr/${qr.id}/feedback`} className={OUTLINE_BTN}>
+                <MessageSquare className="h-4 w-4" aria-hidden /> View feedback
               </Link>
-            </div>
-          </div>
+            )}
+            <Link href={`/dashboard?qr=${qr.id}`} className={SECONDARY_BTN}>
+              <BarChart3 className="h-4 w-4" aria-hidden /> View analytics
+            </Link>
+          </>
+        }
+      />
 
-          <EditQrClient initial={qr} />
-        </main>
-      </div>
-    </div>
+      <EditQrClient initial={qr} />
+    </DashboardFrame>
   );
 }

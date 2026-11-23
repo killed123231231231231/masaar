@@ -59,10 +59,10 @@ export default function AdminActionButton({
       type="button"
       onClick={run}
       disabled={busy || refreshing}
-      className={`inline-flex min-h-[36px] items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors disabled:cursor-wait disabled:opacity-60 ${
+      className={`inline-flex min-h-[36px] items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ink/30 focus-visible:ring-offset-2 disabled:cursor-wait disabled:opacity-60 ${
         cfg.danger
-          ? "border-terracotta/40 text-terracotta-dark hover:bg-terracotta/10"
-          : "border-deep-teal/30 text-deep-teal hover:bg-deep-teal/10"
+          ? "bg-ink text-white hover:bg-ink-soft"
+          : "bg-stone text-ink hover:bg-stone-dark"
       }`}
     >
       <Icon className={`h-3.5 w-3.5 ${busy || refreshing ? "animate-spin" : ""}`} strokeWidth={2} aria-hidden />
