@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { parseHttpUrl } from "@/lib/url";
 import { platformMeta } from "@/app/create/_lib/social-platforms";
+import { BrandGlyph } from "@/components/icons/brand-icons";
 
 // Session D — hosted bio-link page for the Social Media content type.
 // Public, no auth. Scan path: /r/<shortId> → (active social QR) → here.
@@ -121,10 +122,11 @@ export default async function SocialPage({
                   className="flex items-center gap-3 rounded-card border border-stone-dark bg-white px-4 py-3.5 transition hover:-translate-y-0.5 hover:shadow-card"
                 >
                   <span
-                    className="grid h-9 w-9 shrink-0 place-items-center rounded-xl text-[10px] font-bold uppercase text-white"
+                    className="grid h-9 w-9 shrink-0 place-items-center rounded-xl text-white"
                     style={{ background: m.color }}
+                    aria-hidden
                   >
-                    {m.label.slice(0, 2)}
+                    <BrandGlyph platform={m.key} color="#FFFFFF" className="h-[18px] w-[18px]" />
                   </span>
                   <span className="flex-1 text-left font-semibold text-ink">{m.label}</span>
                   <ChevronRight className="h-4 w-4 shrink-0 text-muted-4" />

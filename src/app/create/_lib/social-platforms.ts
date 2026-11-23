@@ -1,6 +1,6 @@
 // Shared social-platform metadata (no "use client" — imported by both the
-// builder form and the server-rendered /s hosted page). Brand colors only;
-// no brand glyphs (lucide dropped them) — we render a colored chip + label.
+// builder form and the server-rendered /s hosted page). Brand colours here;
+// the glyphs live in components/icons/brand-icons.tsx.
 
 export interface SocialPlatform {
   key: string;
@@ -19,7 +19,7 @@ export const SOCIAL_PLATFORMS: SocialPlatform[] = [
   { key: "linkedin", label: "LinkedIn", color: "#0A66C2", placeholder: "https://linkedin.com/in/username" },
   { key: "snapchat", label: "Snapchat", color: "#F7B500", placeholder: "https://snapchat.com/add/username" },
   { key: "telegram", label: "Telegram", color: "#26A5E4", placeholder: "https://t.me/username" },
-  { key: "website", label: "Website", color: "#0F5B55", placeholder: "https://example.com" },
+  { key: "website", label: "Website", color: "#1A1A1A", placeholder: "https://example.com" },
 ];
 
 export function platformMeta(key: string): SocialPlatform {
@@ -27,7 +27,7 @@ export function platformMeta(key: string): SocialPlatform {
     SOCIAL_PLATFORMS.find((p) => p.key === key) ?? {
       key,
       label: key,
-      color: "#0F5B55",
+      color: "#1A1A1A",
       placeholder: "https://",
     }
   );

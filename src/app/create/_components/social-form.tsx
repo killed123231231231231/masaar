@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { X, Loader2, ImagePlus } from "lucide-react";
 import { SOCIAL_PLATFORMS, platformMeta } from "../_lib/social-platforms";
+import { BrandGlyph } from "@/components/icons/brand-icons";
 
 type Link = { platform: string; url: string };
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -133,7 +134,7 @@ export default function SocialForm({
                     : "border-ink/15 text-muted hover:border-ink hover:text-ink"
                 }`}
               >
-                <span className="h-2.5 w-2.5 rounded-full" style={{ background: p.color }} />
+                <BrandGlyph platform={p.key} color={p.color} className="h-3.5 w-3.5 shrink-0" />
                 {p.label}
               </button>
             );
@@ -149,10 +150,11 @@ export default function SocialForm({
             return (
               <div key={l.platform} className="flex items-center gap-2">
                 <span
-                  className="grid h-9 w-9 shrink-0 place-items-center rounded-xl text-[10px] font-bold uppercase text-white"
+                  className="grid h-9 w-9 shrink-0 place-items-center rounded-xl text-white"
                   style={{ background: m.color }}
+                  aria-hidden
                 >
-                  {m.label.slice(0, 2)}
+                  <BrandGlyph platform={m.key} color="#FFFFFF" className="h-[18px] w-[18px]" />
                 </span>
                 <input
                   value={l.url}
