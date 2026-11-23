@@ -5,6 +5,9 @@ import ProductTabs from "@/components/site/home/product-tabs";
 import FeatureCards from "@/components/site/home/feature-cards";
 import TypesMarquee from "@/components/site/home/types-marquee";
 import StackedPanels from "@/components/site/home/stacked-panels";
+import Faq from "@/components/site/home/faq";
+import Orbit from "@/components/site/home/orbit";
+import FinalCta from "@/components/site/home/final-cta";
 import Reveal from "@/components/motion/reveal";
 import { Container } from "@/components/site/section";
 import { createClient } from "@/lib/supabase/server";
@@ -44,6 +47,9 @@ export default async function LandingPage() {
       <FeatureCards />
       <TypesMarquee />
       <StackedPanels />
+      <Faq />
+      <Orbit />
+      <FinalCta />
 
       <SiteFooter />
     </main>
