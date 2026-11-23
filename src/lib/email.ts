@@ -47,7 +47,7 @@ export function buildWelcomeEmailHtml(args: {
 
   return `
 <h1>Hi! Your QR is live.</h1>
-<p>Your QR code is now active and ready to share. Scan it, print it, drop it on a table tent — every scan is tracked in your Masaar dashboard.</p>
+<p>Your QR code is now active and ready to share. Scan it, print it, drop it on a table tent — every scan is tracked in your Vertexa QR dashboard.</p>
 <div style="text-align:center;">
   <img src="${qrImageUrl}" alt="Your QR Code" style="width:280px;" />
   <p><strong>QR ID:</strong> <code>${shortId}</code></p>
@@ -58,14 +58,14 @@ export function buildWelcomeEmailHtml(args: {
 ${loginBlock}
 <hr />
 <p style="color:#999;font-size:12px;">
-  Masaar — Smart QR codes for Saudi businesses<br />
-  This email was sent because you created a QR on Masaar.
+  Vertexa QR — Free QR codes with scan analytics<br />
+  This email was sent because you created a QR on Vertexa QR.
 </p>`.trim();
 }
 
 /**
  * Internal notification when someone submits the /contact form. Goes to
- * hello@masaar.sa (or whoever RESEND_NOTIFY_TO is set to). Same stub-
+ * contact@vertechxa.ai (or whoever RESEND_NOTIFY_TO is set to). Same stub-
  * safe behavior as the welcome email — logs and returns when the key
  * isn't a real Resend key.
  */
@@ -75,15 +75,18 @@ export async function sendContactNotification(args: {
   phone?: string | null;
   message: string;
   preferredTime?: string | null;
+  /** Set for abuse reports from a hosted scan page's "Report abuse" link. */
+  abuseQr?: string | null;
 }): Promise<{ sent: boolean; stubbed: boolean; error?: string }> {
-  const to = process.env.RESEND_NOTIFY_TO || "hello@masaar.sa";
+  const to = process.env.RESEND_NOTIFY_TO || "contact@vertechxa.ai";
   const key = process.env.RESEND_API_KEY;
   const html = `
-<h2>New contact request — Masaar</h2>
+<h2>${args.abuseQr ? "Abuse report" : "New contact request"} — Vertexa QR</h2>
 <table style="border-collapse:collapse;">
   <tr><td style="padding:4px 12px 4px 0;color:#666;">Name</td><td style="padding:4px 0;"><strong>${escapeHtml(args.name)}</strong></td></tr>
   <tr><td style="padding:4px 12px 4px 0;color:#666;">Email</td><td style="padding:4px 0;"><a href="mailto:${escapeHtml(args.email)}">${escapeHtml(args.email)}</a></td></tr>
   ${args.phone ? `<tr><td style="padding:4px 12px 4px 0;color:#666;">Phone</td><td style="padding:4px 0;">${escapeHtml(args.phone)}</td></tr>` : ""}
+  ${args.abuseQr ? `<tr><td style="padding:4px 12px 4px 0;color:#666;">Reported QR</td><td style="padding:4px 0;"><strong>${escapeHtml(args.abuseQr)}</strong></td></tr>` : ""}
   ${args.preferredTime ? `<tr><td style="padding:4px 12px 4px 0;color:#666;">Preferred time</td><td style="padding:4px 0;">${escapeHtml(args.preferredTime)}</td></tr>` : ""}
 </table>
 <h3 style="margin-top:24px;">Message</h3>
@@ -107,10 +110,12 @@ export async function sendContactNotification(args: {
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        from: process.env.RESEND_FROM || "Masaar <onboarding@resend.dev>",
+        from: process.env.RESEND_FROM || "Vertexa QR <onboarding@resend.dev>",
         to,
         reply_to: args.email,
-        subject: `Contact: ${args.name} wants a demo`,
+        subject: args.abuseQr
+          ? `Abuse report: QR ${args.abuseQr}`
+          : `Contact: ${args.name} wants a demo`,
         html,
       }),
     });
@@ -170,9 +175,9 @@ export async function sendWelcomeEmail(args: {
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        from: process.env.RESEND_FROM || "Masaar <onboarding@resend.dev>",
+        from: process.env.RESEND_FROM || "Vertexa QR <onboarding@resend.dev>",
         to: args.to,
-        subject: "Your Masaar QR is ready 🎉",
+        subject: "Your Vertexa QR code is ready",
         html,
       }),
     });

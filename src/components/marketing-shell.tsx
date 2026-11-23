@@ -56,8 +56,8 @@ export default async function MarketingShell({
         <div className="mx-auto flex h-[76px] max-w-7xl items-center justify-between px-6 sm:h-20">
           <Link href="/" className="flex items-center gap-2">
             <LogoMark className="h-8 w-8" />
-            <span className="text-lg font-bold tracking-tight">
-              Masaar <span className="font-arabic text-deep-teal">مسار</span>
+            <span className="text-lg font-display font-extrabold tracking-tight text-deep-teal">
+              Vertexa <span className="text-terracotta">QR</span>
             </span>
           </Link>
           <nav className="hidden items-center gap-7 md:flex">
@@ -124,6 +124,23 @@ export default async function MarketingShell({
           </div>
         )}
       </section>
+
+      <footer className="border-t border-charcoal/10 bg-sand-light">
+        <div className="mx-auto flex max-w-7xl flex-col gap-2 px-6 py-5 text-sm text-charcoal/60 sm:flex-row sm:items-center sm:justify-between">
+          <p>© {new Date().getFullYear()} Vertexa QR</p>
+          <p>
+            Powered by{" "}
+            <a
+              href="https://www.vertechxa.ai"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-charcoal/80 underline-offset-2 transition-colors hover:text-deep-teal hover:underline"
+            >
+              Vertexa
+            </a>
+          </p>
+        </div>
+      </footer>
     </main>
   );
 }

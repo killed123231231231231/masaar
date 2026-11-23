@@ -2,29 +2,18 @@ import MarketingShell from "@/components/marketing-shell";
 import PricingClient from "./pricing-client";
 
 export const metadata = {
-  title: "Pricing — Masaar",
+  title: "Pricing — Vertexa QR",
   description:
-    "SAR-priced plans for GCC businesses. Free tier ships real value, no $1 trial trap, no auto-renewal surprises.",
+    "Vertexa QR is free: up to 25 dynamic QR codes per account with scan analytics. No card needed.",
 };
 
-// B6 — full /pricing page. The /-landing's PricingTeaser surfaces 3
-// representative tiers and links here for the deep view. This page is
-// the deep view: 5 tiers (Free / Starter / Pro / Menu Pro / Agency),
-// annual toggle with savings, feature comparison matrix, pricing-
-// specific FAQ. Per STRATEGY.md §5.
-//
-// Server-component shell + a client island for the monthly/annual
-// toggle interactivity.
+// One Free plan. Vertexa QR is a free product (PAYMENTS_ENABLED stays
+// false); the plan card and FAQ live in the client component.
 export default function PricingPage() {
   return (
     <MarketingShell
-      title="Plans that grow with you"
-      intro={
-        <>
-          SAR-priced, no surprise renewals. Start free, upgrade when your scans
-          outgrow the limit.
-        </>
-      }
+      title="Pricing"
+      intro={<>Vertexa QR is free to use. No card, no trial period.</>}
       wide
     >
       <PricingClient />

@@ -3,13 +3,14 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { sendContactNotification } from "@/lib/email";
 import { clientIp, ipHash as hashRequestIp } from "@/lib/ip-hash";
 import { verifyTurnstile } from "@/lib/turnstile";
+import { ABUSE_MESSAGE_MAX, abuseReportMessage, isReportableShortId } from "@/lib/abuse-report";
 
 export const runtime = "nodejs";
 
 
 // Receives the /contact form, validates, hashes the IP, hands off to the
 // submit_contact_request SECURITY DEFINER RPC (which enforces a 3/hr per
-// IP rate limit), then fires a Resend notification to hello@masaar.sa.
+// IP rate limit), then fires a Resend notification to the RESEND_NOTIFY_TO inbox.
 // Email failure does NOT fail the request — the row is already saved,
 // and we'd rather degrade silently than 500 on the user.
 export async function POST(request: Request) {
@@ -20,6 +21,8 @@ export async function POST(request: Request) {
     message?: string;
     preferred_time?: string;
     turnstile_token?: string;
+    topic?: string;
+    qr?: string;
   } | null;
   try {
     body = await request.json();
@@ -29,7 +32,22 @@ export async function POST(request: Request) {
   const name = (body?.name ?? "").trim();
   const email = (body?.email ?? "").trim().toLowerCase();
   const phone = (body?.phone ?? "").trim();
-  const message = (body?.message ?? "").trim();
+  const userMessage = (body?.message ?? "").trim();
+  // Abuse reports come from the "Report abuse" link on hosted scan pages.
+  // The QR id is optional, but when present it must look like a short id.
+  // It is prefixed to the message so it reaches the inbox and the saved
+  // row without a schema change.
+  const isAbuse = body?.topic === "abuse";
+  const rawQr = typeof body?.qr === "string" ? body.qr.trim() : "";
+  if (isAbuse && rawQr && !isReportableShortId(rawQr)) {
+    return NextResponse.json({ error: "invalid_qr" }, { status: 400 });
+  }
+  const abuseQr = isAbuse ? rawQr || "not given" : null;
+  if (isAbuse && userMessage.length > ABUSE_MESSAGE_MAX) {
+    return NextResponse.json({ error: "field_too_long" }, { status: 400 });
+  }
+  const message =
+    abuseQr && userMessage ? abuseReportMessage(abuseQr, userMessage) : userMessage;
   const preferredTime = (body?.preferred_time ?? "").trim();
 
   if (!name) return NextResponse.json({ error: "name_required" }, { status: 400 });
@@ -90,6 +108,7 @@ export async function POST(request: Request) {
       phone: phone || null,
       message,
       preferredTime: preferredTime || null,
+      abuseQr,
     });
     if (!result.sent && !result.stubbed) {
       console.warn(`[contact] notification email failed: ${result.error}`);

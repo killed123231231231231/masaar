@@ -263,7 +263,7 @@ function ListRow({
       cornerColors: q.corner_colors,
       paletteOptions: q.palette_options,
     });
-    await qr.download({ name: q.name || "masaar-qr", extension: "png" });
+    await qr.download({ name: q.name || "vertexa-qr", extension: "png" });
   }
 
   return (

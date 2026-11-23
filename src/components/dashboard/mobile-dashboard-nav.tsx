@@ -13,14 +13,13 @@ import {
   Plus,
   QrCode,
   Settings,
-  UtensilsCrossed,
   X,
   type LucideIcon,
 } from "lucide-react";
 import LogoMark from "@/components/logo-mark";
 import type { SidebarCurrent, SidebarMe } from "@/components/dashboard/sidebar";
 
-const PLAN_LIMITS: Record<string, number> = { Free: 5, Pro: 5000 };
+const PLAN_LIMITS: Record<string, number> = { Free: 25, Pro: 5000 };
 
 /**
  * C2 — mobile dashboard nav. The desktop Sidebar is `hidden lg:flex`, so
@@ -55,14 +54,13 @@ export default function MobileDashboardNav({
     };
   }, [open]);
 
-  const limit = PLAN_LIMITS[me.plan] ?? 5;
+  const limit = PLAN_LIMITS[me.plan] ?? 25;
   const used = Math.min(me.qrCount, limit);
   const usagePct = Math.round((used / limit) * 100);
 
   const nav: { label: string; icon: LucideIcon; href: string; active: boolean }[] = [
     { label: "Overview", icon: LayoutGrid, href: "/dashboard", active: current === "overview" },
     { label: "QR Codes", icon: QrCode, href: "/dashboard/qr-codes", active: current === "qrcodes" },
-    { label: "AI Menu Builder", icon: UtensilsCrossed, href: "/dashboard/menu", active: current === "menu" },
     { label: "Activity", icon: Activity, href: "/dashboard/activity", active: current === "activity" },
     { label: "Settings", icon: Settings, href: "/dashboard/settings", active: current === "settings" },
   ];
@@ -80,8 +78,8 @@ export default function MobileDashboardNav({
       />
       <div className="absolute left-0 top-0 flex h-full w-[82%] max-w-xs flex-col bg-deep-teal text-white shadow-xl">
         <div className="flex items-center justify-between px-5 py-4">
-          <span className="font-display text-base font-bold">
-            Masaar <span className="font-arabic text-deep-teal-light">مسار</span>
+          <span className="font-display text-base font-extrabold tracking-tight text-white">
+            Vertexa <span className="text-terracotta-light">QR</span>
           </span>
           <button
             type="button"

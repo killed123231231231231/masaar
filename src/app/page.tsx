@@ -12,7 +12,6 @@ import {
   QrCode,
   RefreshCw,
   ShieldCheck,
-  UtensilsCrossed,
 } from "lucide-react";
 import LogoMark from "@/components/logo-mark";
 import HeaderLoginButton from "@/components/header-login-button";
@@ -42,8 +41,8 @@ const NAV = [
 // capability strip: small, confident, every claim shipped today.
 // Same vertical slot as the old trust strip.
 const TRUST_CAPABILITIES = [
-  "Arabic-first menus",
-  "SAR pricing",
+  "Free to use, no card needed",
+  "PNG / SVG / JPG export",
   "Dynamic destinations",
   "Live scan analytics",
   "Menu / WhatsApp / WiFi / vCard",
@@ -106,8 +105,8 @@ function SiteHeader({
       <div className="mx-auto flex h-[76px] max-w-6xl items-center justify-between px-6 sm:h-20">
         <Link href="/" className="flex items-center gap-2">
           <LogoMark className="h-8 w-8" />
-          <span className="text-lg font-bold tracking-tight">
-            Masaar <span className="font-arabic text-deep-teal">مسار</span>
+          <span className="text-lg font-display font-extrabold tracking-tight text-deep-teal">
+            Vertexa <span className="text-terracotta">QR</span>
           </span>
         </Link>
 
@@ -257,13 +256,13 @@ function HeroPreview() {
           <span className="h-2.5 w-2.5 rounded-full bg-sand-dark" />
           <span className="h-2.5 w-2.5 rounded-full bg-deep-teal/35" />
           <span className="ml-3 hidden text-[10px] font-medium text-charcoal/40 sm:inline">
-            masaar.app / dashboard
+            quickqrcode.live / dashboard
           </span>
         </div>
         <div className="overflow-hidden rounded-xl">
           <Image
             src="/landing/dashboard-preview.png"
-            alt="Masaar dashboard preview — account-wide scan analytics, KPI row, trend chart, and recent activity"
+            alt="Vertexa QR dashboard preview — account-wide scan analytics, KPI row, trend chart, and recent activity"
             width={1672}
             height={941}
             priority
@@ -441,7 +440,7 @@ function HowItWorks() {
           One code. Endless destinations.
         </h2>
         <p className="mt-4 text-balance text-base leading-relaxed text-charcoal/65">
-          Print once, change forever. Masaar separates the code from where it
+          Print once, change forever. Vertexa QR separates the code from where it
           points, so a campaign can evolve without a single reprint.
         </p>
       </div>
@@ -487,11 +486,11 @@ function HowItWorks() {
 // Replaces the old AnalyticsPreview section. Borrows getqr.com's
 // `lg:grid-cols-5` icon+h3+body card pattern as the dominant
 // "what you get" visual primitive on the landing, but every feature
-// here is Masaar-specific (GCC content types, bilingual Arabic, AI
-// Menu) — none are copied from getqr's generic 5.
+// here is Vertexa QR-specific (GCC content types, bilingual Arabic)
+// — none are copied from getqr's generic 5. The AI Menu Builder card
+// was dropped with the Menu vertical.
 //
-// Two features carry honest "Coming soon" badges (Bilingual + AI
-// Menu). Per STRATEGY.md and the brand-discipline guardrails, no
+// One feature carries an honest "Coming soon" badge (Bilingual). Per STRATEGY.md and the brand-discipline guardrails, no
 // roadmap item is shipped as "live" before its session lands.
 // B6 audit copy refinement — feature titles now match the
 // vocabulary a Saudi cafe owner actually uses ("Menu, WhatsApp,
@@ -522,12 +521,6 @@ const LANDING_FEATURES = [
     body: "Native RTL, IBM Plex Arabic — not translated as an afterthought.",
     soon: true,
   },
-  {
-    icon: UtensilsCrossed,
-    title: "AI Menu Builder",
-    body: "Upload a paper menu photo. AI extracts items, prices, bilingual fields.",
-    soon: true,
-  },
 ];
 
 function FeaturesGrid() {
@@ -542,12 +535,12 @@ function FeaturesGrid() {
             More than a QR generator
           </h2>
           <p className="mt-4 text-balance text-base leading-relaxed text-charcoal/65">
-            Five capabilities most generators don&apos;t ship — built around how
+            Four capabilities most generators don&apos;t ship — built around how
             GCC businesses actually use QR codes day to day.
           </p>
         </div>
 
-        <ul className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
+        <ul className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {LANDING_FEATURES.map(({ icon: Icon, title, body, soon }) => (
             <li
               key={title}
@@ -585,7 +578,7 @@ function FeaturesGrid() {
 // like getqr have 1,415 real Reviews.io entries and trying to match
 // scale theater would feel weaker than honest scarcity. Instead we
 // turn the absence of customer wins into a positioning statement:
-// Masaar is new, built for the GCC market, and the roadmap is honest.
+// Vertexa QR is new, built for the GCC market, and the roadmap is honest.
 //
 // Real testimonials = Sprint 3 task after 5-10 actual GCC wins land.
 // Until then this section carries the brand/origin/mission narrative.
@@ -620,17 +613,16 @@ function BuiltInRiyadh() {
             QR tools built for GCC businesses.
           </h2>
           <p className="mt-4 text-balance text-sm leading-relaxed text-charcoal/70 sm:text-base">
-            Masaar helps restaurants, cafés, retailers, and service
+            Vertexa QR helps restaurants, cafés, retailers, and service
             businesses create smart QR experiences for the way customers
             actually interact in this region —{" "}
             <span className="font-medium text-charcoal">menus, WhatsApp,
             vCards, WiFi, locations</span>, and more.
           </p>
           <p className="mt-3 text-balance text-sm leading-relaxed text-charcoal/70 sm:text-base">
-            Built with Saudi pricing, Arabic-ready interfaces, and GCC
-            business needs in mind, Masaar gives you a cleaner way to
-            launch, manage, and track every QR code from one simple
-            dashboard.
+            Free to use, with Arabic-ready interfaces and GCC business needs
+            in mind, Vertexa QR gives you a cleaner way to launch, manage,
+            and track every QR code from one simple dashboard.
           </p>
           <p className="mt-3 text-balance text-sm leading-relaxed text-charcoal/70 sm:text-base">
             Launching in 2026 with a focused, practical product for Saudi
@@ -639,16 +631,16 @@ function BuiltInRiyadh() {
 
           <ul className="mt-5 grid gap-3 sm:grid-cols-3">
             <CapabilityPill
-              label="Saudi-first pricing"
-              note="SAR, no surprise renewals"
+              label="Free to use"
+              note="No card needed"
             />
             <CapabilityPill
               label="Arabic-ready interface"
               note="Plex Arabic + RTL"
             />
             <CapabilityPill
-              label="F&B menu workflows"
-              note="Built for cafés + restaurants"
+              label="Built for F&B and retail"
+              note="Menus, WhatsApp, WiFi, vCard"
             />
           </ul>
         </div>
@@ -667,7 +659,7 @@ function BuiltInRiyadh() {
           <div className="relative h-full min-h-[260px] sm:min-h-[320px] lg:min-h-[400px]">
             <Image
               src="/landing/built-in-riyadh-map.png"
-              alt="GCC map showing Masaar QR codes radiating from Riyadh to locations across Saudi Arabia and the wider Gulf"
+              alt="GCC map showing Vertexa QR codes radiating from Riyadh to locations across Saudi Arabia and the wider Gulf"
               fill
               sizes="(max-width: 1024px) 100vw, 52vw"
               className="object-contain object-center"
@@ -693,69 +685,23 @@ function CapabilityPill({ label, note }: { label: string; note: string }) {
 
 // B6/Section 6 — Pricing Teaser (NEW).
 //
-// 3-card preview of the 5-tier table that lives on /pricing (built in
-// Phase 4). Borrows getqr's pricing card grid + "Most Popular"
-// highlight + "Save X%" badge patterns — but ships HONEST tiers:
-//
-// - No $1 trial trap (getqr's pattern; their FAQ is 6/13
-//   billing-defensive as a result — see design-targets/getqr-analysis.md)
-// - Tiers are differentiated by FEATURES, not just billing cadence
-// - SAR pricing upfront, no "prices may vary by country" geo-trick
-//
-// 5 full tiers per STRATEGY.md §5 (Free / Starter / Pro / Menu Pro /
-// Menu Pro + Ordering / Agency); this teaser surfaces the 3 most
-// representative — Free / Pro (Most Popular) / Menu Pro — and links
-// to /pricing for the full comparison matrix.
-// B6 audit fix — tier renames + "Best for" subheads + tighter CTAs.
-// Menu Pro -> Restaurant Pro (better F&B positioning, Usama-approved).
-// Each tier carries a one-line "Best for X" so a visitor self-selects
-// faster. CTA copy matches the tier's intent (Free = try, Pro =
-// business, Restaurant Pro = build a menu).
+// Vertexa QR is free (PAYMENTS_ENABLED stays false), so the teaser shows
+// the single Free plan and links to /pricing for the FAQ.
 const PRICING_PREVIEW = [
   {
     name: "Free",
     price: "SAR 0",
     cadence: "forever",
-    headline: "Try Masaar with no card.",
-    bestFor: "Best for testing QR campaigns",
+    headline: "Everything in Vertexa QR. No card needed.",
+    bestFor: "One plan for everyone",
     items: [
-      "5 dynamic QR codes",
-      "Basic scan analytics",
-      "PNG / SVG export",
+      "Up to 25 QR codes per account",
+      "Dynamic QR codes: change the destination any time",
+      "Scan analytics for every code",
+      "PDF up to 5 MB, images up to 2 MB",
+      "Videos: link to YouTube or Vimeo",
     ],
-    cta: "Start free",
-    href: "/create",
-    badge: null,
-  },
-  {
-    name: "Pro",
-    price: "SAR 99",
-    cadence: "per month",
-    headline: "Everything most businesses need.",
-    bestFor: "Best for active businesses tracking scans",
-    items: [
-      "Unlimited dynamic QRs",
-      "Full analytics + CSV export",
-      "Logo, colors, frames",
-      "15+ content types",
-    ],
-    cta: "Start Business plan",
-    href: "/create",
-    badge: "Most popular",
-  },
-  {
-    name: "Restaurant Pro",
-    price: "SAR 199",
-    cadence: "per month",
-    headline: "Built for Saudi cafés + restaurants.",
-    bestFor: "Best for cafés and restaurants with menus",
-    items: [
-      "Everything in Pro",
-      "Menu vertical + AI import",
-      "Photo CDN + allergen tags",
-      "Bilingual menu rendering",
-    ],
-    cta: "Build my digital menu",
+    cta: "Create a QR code",
     href: "/create",
     badge: null,
   },
@@ -770,15 +716,14 @@ function PricingTeaser() {
             Pricing
           </p>
           <h2 className="mt-3 text-balance font-display text-3xl font-bold tracking-tight sm:text-4xl">
-            Plans that grow with you
+            Free to use
           </h2>
           <p className="mt-4 text-balance text-base leading-relaxed text-charcoal/65">
-            SAR-priced, no surprise renewals. Start free, upgrade when scans
-            outgrow the limit.
+            No paid plans, no card, no trial period.
           </p>
         </div>
 
-        <ul className="mt-10 grid gap-5 lg:grid-cols-3">
+        <ul className="mx-auto mt-10 grid max-w-xl gap-5">
           {PRICING_PREVIEW.map((tier) => {
             const isPopular = tier.badge === "Most popular";
             return (
@@ -842,7 +787,7 @@ function PricingTeaser() {
             href="/pricing"
             className="inline-flex items-center gap-1 text-sm font-semibold text-deep-teal hover:underline"
           >
-            See all plans + the feature matrix
+            Pricing details and questions
             <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </div>
@@ -943,11 +888,11 @@ function BuiltForGCC() {
 const FAQS = [
   {
     q: "How is this different from a free QR generator?",
-    a: "Free generators give you a static image — print it, and the URL behind it is locked forever. Masaar codes are dynamic: you can re-point the destination anytime, see who scanned where, and add branding without losing the scan trail. The cost difference shows up the first time a printed campaign needs a URL change.",
+    a: "Free generators give you a static image — print it, and the URL behind it is locked forever. Vertexa QR codes are dynamic: you can re-point the destination anytime, see who scanned where, and add branding without losing the scan trail. That matters the first time a printed campaign needs a URL change.",
   },
   {
     q: "Can I use it for restaurant menus?",
-    a: "Yes — the Restaurant Pro tier is built around it. Upload a paper-menu photo and the AI menu builder extracts categories, items, prices, allergens, and bilingual fields in seconds. Each scan opens a fast, mobile-first hosted menu page that respects halal / dietary tags. AI menu builder rolls out next sprint; the underlying dynamic-QR layer ships today.",
+    a: "Yes. Upload your menu as a PDF, or link to your online menu, and print one dynamic QR for your tables. When prices or items change, upload the new menu or change the link in your dashboard. The printed code keeps working, so there is no reprint.",
   },
   {
     q: "Can I connect QR codes to WhatsApp?",
@@ -958,8 +903,8 @@ const FAQS = [
     a: "The dashboard already ships in English with brand-correct Arabic typography (IBM Plex Sans Arabic). Full Arabic UI with RTL layout rolls out next. Hosted scan-landing pages (menu, vCard) support Arabic + English side by side today.",
   },
   {
-    q: "Does it support Mada / STC Pay / Tap?",
-    a: "Not yet — payments are scaffolded but the actual gateway wiring lands next sprint. We're being deliberate: the GCC market needs Mada and Apple Pay first, not Stripe-only. Until then, activation is on a SAR-priced launch promo. We'll never charge a card you didn't put in.",
+    q: "Does it cost anything?",
+    a: "No. Vertexa QR is free to use and there is no paid plan. You don't need a card to sign up, and we never ask for payment details.",
   },
   {
     q: "Can I edit the destination after printing?",
@@ -971,23 +916,19 @@ const FAQS = [
   },
   {
     q: "Do I need technical skills?",
-    a: "No. The builder is a 3-step wizard: pick a content type, fill in the details, customize colors / logo. Most cafés have their first scannable QR in under a minute. The Arabic-ready interface and SAR pricing remove the usual friction of US-market tools.",
+    a: "No. The builder is a 3-step wizard: pick a content type, fill in the details, customize colors / logo. Most cafés have their first scannable QR in under a minute.",
   },
   {
     q: "Are scans tracked privately?",
     a: "We log country, city (Vercel-provided geo headers, no third-party IP service), device type, browser, and OS. IPs are SHA-256 hashed and truncated to 16 hex chars at write time — we never store raw addresses. Scans aren't tied to any user identity unless the QR is gated with a password.",
   },
   {
-    q: "Halal / SFDA badges for menus?",
-    a: "Halal flag and dietary tags (vegetarian, vegan, spicy, contains nuts) are first-class fields in our menu schema. They render with brand-correct iconography on the hosted menu page. The full Restaurant Pro builder ships next sprint.",
+    q: "Can my menu show halal and dietary details?",
+    a: "Yes, as part of your own menu. Vertexa QR doesn't build menus: put halal, allergen and dietary details in your menu PDF or on your menu website, and the QR opens it as it is.",
   },
   {
     q: "Where is my data stored?",
     a: "Supabase Postgres in ap-south-1 (Mumbai) — the closest AWS region to the GCC. We're evaluating a Riyadh / UAE region when AWS / Supabase land one; for now Mumbai gives us sub-100ms latency to most of the Gulf without compromising compliance.",
-  },
-  {
-    q: "What happens if I cancel?",
-    a: "Your existing QR codes stay valid — static ones keep working forever, dynamic ones either revert to a Masaar landing page (free tier) or stay live if you re-activate within 90 days. We don't auto-renew silently or send opaque \"I don't recognize this charge\" billing — every renewal is opt-in.",
   },
 ];
 
@@ -1087,8 +1028,8 @@ function SiteFooter() {
           <div>
             <Link href="/" className="flex items-center gap-2">
               <LogoMark className="h-8 w-8" />
-              <span className="text-lg font-bold tracking-tight">
-                Masaar <span className="font-arabic text-deep-teal">مسار</span>
+              <span className="text-lg font-display font-extrabold tracking-tight text-deep-teal">
+                Vertexa <span className="text-terracotta">QR</span>
               </span>
             </Link>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-charcoal/55">
@@ -1118,10 +1059,19 @@ function SiteFooter() {
 
         <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-charcoal/10 pt-6 text-sm text-charcoal/50 sm:flex-row">
           <p>
-            © {new Date().getFullYear()} Masaar{" "}
-            <span className="font-arabic">مسار</span>. All rights reserved.
+            © {new Date().getFullYear()} Vertexa QR. All rights reserved.
           </p>
-          <p>Built for the GCC</p>
+          <p>
+            Built for the GCC · Powered by{" "}
+            <a
+              href="https://www.vertechxa.ai"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-charcoal/70 underline-offset-2 transition-colors hover:text-deep-teal hover:underline"
+            >
+              Vertexa
+            </a>
+          </p>
         </div>
       </div>
     </footer>

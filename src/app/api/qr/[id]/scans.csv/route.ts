@@ -74,7 +74,7 @@ export async function GET(
 
   const today = new Date().toISOString().slice(0, 10);
   const slug = qr.short_id || qr.id.slice(0, 8);
-  const filename = `masaar-${slug}-${period}-${today}.csv`;
+  const filename = `vertexa-qr-${slug}-${period}-${today}.csv`;
 
   return new Response(header + body, {
     headers: {

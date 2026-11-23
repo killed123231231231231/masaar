@@ -26,8 +26,8 @@ export default function AuthAside() {
         <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-white p-1.5">
           <LogoMark className="h-full w-full" />
         </span>
-        <span className="text-lg font-bold tracking-tight">
-          Masaar <span className="font-arabic">مسار</span>
+        <span className="font-display text-lg font-extrabold tracking-tight text-white">
+          Vertexa <span className="text-terracotta-light">QR</span>
         </span>
       </Link>
 

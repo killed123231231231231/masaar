@@ -66,7 +66,7 @@ export default function LockScreen({
             href="/"
             className="mt-7 inline-flex w-full items-center justify-center rounded-lg border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal transition-colors hover:text-deep-teal"
           >
-            Make your own QR with Masaar
+            Make your own QR with Vertexa QR
           </Link>
         )}
       </div>

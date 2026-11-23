@@ -1,6 +1,6 @@
 import MarketingShell from "@/components/marketing-shell";
 
-export const metadata = { title: "Privacy Policy — Masaar" };
+export const metadata = { title: "Privacy Policy — Vertexa QR" };
 
 export default function PrivacyPage() {
   return (
@@ -9,7 +9,7 @@ export default function PrivacyPage() {
       intro="Placeholder policy — full legal copy is being prepared."
     >
       <p>
-        Masaar stores the data you enter to build QR codes and aggregated
+        Vertexa QR stores the data you enter to build QR codes and aggregated
         scan analytics (country, city, device, time). Scan IP addresses
         are hashed, never stored raw. We don’t sell personal data.
       </p>

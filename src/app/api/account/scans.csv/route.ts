@@ -41,7 +41,7 @@ export async function GET(request: Request) {
     return new Response(header, {
       headers: {
         "content-type": "text/csv; charset=utf-8",
-        "content-disposition": `attachment; filename="masaar-account-${period}-${new Date().toISOString().slice(0, 10)}.csv"`,
+        "content-disposition": `attachment; filename="vertexa-qr-account-${period}-${new Date().toISOString().slice(0, 10)}.csv"`,
         "cache-control": "no-store",
       },
     });
@@ -101,7 +101,7 @@ export async function GET(request: Request) {
     .join("\r\n");
 
   const today = new Date().toISOString().slice(0, 10);
-  const filename = `masaar-account-${period}-${today}.csv`;
+  const filename = `vertexa-qr-account-${period}-${today}.csv`;
 
   return new Response(header + body, {
     headers: {

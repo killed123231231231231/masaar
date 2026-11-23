@@ -88,8 +88,8 @@ function ResetClient() {
       <div className="mx-auto flex min-h-screen max-w-md flex-col items-stretch justify-center px-5 py-10">
         <Link href="/" className="mb-8 flex items-center justify-center gap-2">
           <LogoMark className="h-8 w-8" />
-          <span className="text-lg font-bold tracking-tight">
-            Masaar <span className="font-arabic text-deep-teal">مسار</span>
+          <span className="text-lg font-display font-extrabold tracking-tight text-deep-teal">
+            Vertexa <span className="text-terracotta">QR</span>
           </span>
         </Link>
 

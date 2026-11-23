@@ -37,12 +37,12 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { shortId } = await params;
   const qr = await resolve(shortId);
-  if (!qr) return { title: "Not found · Masaar" };
-  const title = qr.name || "Shared via Masaar";
-  const description = "Shared with a Masaar QR code.";
+  if (!qr) return { title: "Not found · Vertexa QR" };
+  const title = qr.name || "Shared via Vertexa QR";
+  const description = "Shared with a Vertexa QR code.";
   const isImage = qr.content_kind === "image" && !!qr.asset_url;
   return {
-    title: `${title} · Masaar`,
+    title: `${title} · Vertexa QR`,
     description,
     openGraph: {
       title,
@@ -130,7 +130,14 @@ export default async function HostedAssetPage({
           href="/"
           className="text-xs font-medium text-white/40 transition-colors hover:text-white/70"
         >
-          Powered by <span className="font-semibold">Masaar</span>
+          Made with <span className="font-semibold">Vertexa QR</span>
+        </Link>
+        <span aria-hidden className="mx-2 text-xs text-white/25">·</span>
+        <Link
+          href={`/contact?topic=abuse&qr=${encodeURIComponent(shortId)}`}
+          className="text-xs text-white/55 transition-colors hover:text-white/80"
+        >
+          Report abuse
         </Link>
       </footer>
     </main>

@@ -36,10 +36,10 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { shortId } = await params;
   const qr = await resolve(shortId);
-  if (!qr) return { title: "Not found · Masaar" };
+  if (!qr) return { title: "Not found · Vertexa QR" };
   const c = (qr.payload_json ?? {}) as Cfg;
   return {
-    title: `${c.headline || "Share your feedback"} · Masaar`,
+    title: `${c.headline || "Share your feedback"} · Vertexa QR`,
     description: "Tell us about your experience.",
   };
 }
@@ -75,7 +75,14 @@ export default async function FeedbackPage({
             href="/"
             className="text-xs font-medium text-charcoal/40 transition-colors hover:text-deep-teal"
           >
-            Powered by <span className="font-semibold">Masaar</span>
+            Made with <span className="font-semibold">Vertexa QR</span>
+          </Link>
+          <span aria-hidden className="mx-2 text-xs text-charcoal/25">·</span>
+          <Link
+            href={`/contact?topic=abuse&qr=${encodeURIComponent(shortId)}`}
+            className="text-xs text-charcoal/55 transition-colors hover:text-terracotta-dark"
+          >
+            Report abuse
           </Link>
         </footer>
       </div>

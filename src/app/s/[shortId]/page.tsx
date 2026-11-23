@@ -43,12 +43,12 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { shortId } = await params;
   const qr = await resolve(shortId);
-  if (!qr) return { title: "Not found · Masaar" };
+  if (!qr) return { title: "Not found · Vertexa QR" };
   const p = (qr.payload_json ?? {}) as SocialProfile;
   const title = p.display_name || qr.name || "Profile";
   return {
-    title: `${title} · Masaar`,
-    description: p.bio || "Find me on social — shared via Masaar.",
+    title: `${title} · Vertexa QR`,
+    description: p.bio || "Find me on social — shared via Vertexa QR.",
     openGraph: {
       title,
       description: p.bio || "Find me on social.",
@@ -139,7 +139,14 @@ export default async function SocialPage({
             href="/"
             className="text-xs font-medium text-charcoal/40 transition-colors hover:text-deep-teal"
           >
-            Powered by <span className="font-semibold">Masaar</span>
+            Made with <span className="font-semibold">Vertexa QR</span>
+          </Link>
+          <span aria-hidden className="mx-2 text-xs text-charcoal/25">·</span>
+          <Link
+            href={`/contact?topic=abuse&qr=${encodeURIComponent(shortId)}`}
+            className="text-xs text-charcoal/55 transition-colors hover:text-terracotta-dark"
+          >
+            Report abuse
           </Link>
         </footer>
       </div>

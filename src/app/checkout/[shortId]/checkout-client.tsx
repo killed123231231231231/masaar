@@ -243,8 +243,8 @@ function TopBar() {
       <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3">
         <Link href="/" className="flex items-center gap-2">
           <LogoMark className="h-7 w-7" />
-          <span className="text-sm font-bold tracking-tight">
-            Masaar <span className="font-arabic text-deep-teal">مسار</span>
+          <span className="text-sm font-display font-extrabold tracking-tight text-deep-teal">
+            Vertexa <span className="text-terracotta">QR</span>
           </span>
         </Link>
         <span className="text-[11px] uppercase tracking-wider text-charcoal/55">
@@ -309,7 +309,7 @@ function SocialProofCard({ count }: { count: number | null }) {
             </p>
             <p className="text-xs text-charcoal/55">
               {showRealNumber
-                ? "Join the businesses growing with Masaar."
+                ? "Join the businesses growing with Vertexa QR."
                 : "Early-access launch — your timing is perfect."}
             </p>
           </div>
@@ -614,7 +614,7 @@ function Testimonials() {
       <div className="flex items-end justify-between gap-4">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-deep-teal">
-            Why our customers choose Masaar
+            Why our customers choose Vertexa QR
           </p>
           <h2 className="mt-1 font-display text-xl font-bold tracking-tight sm:text-2xl">
             Real businesses, real scans

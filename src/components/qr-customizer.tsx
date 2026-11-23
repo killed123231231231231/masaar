@@ -128,10 +128,10 @@ export default function QrCustomizer({ initialShortId, onSave, saving, allowLogo
     }
   }, [content_kind, urlValue, textValue, vcard, wifi, email, sms, phone, whatsapp, appLink]);
 
-  // For dynamic URL QRs, the embedded value is the Masaar short link.
+  // For dynamic URL QRs, the embedded value is the Vertexa QR short link.
   // For static QRs, the embedded value is the raw destination itself.
   const previewData = useMemo(() => {
-    // Any dynamic QR encodes the Masaar short link (that's the point of
+    // Any dynamic QR encodes the Vertexa QR short link (that's the point of
     // dynamic — the printed code never changes).
     if (kind === "dynamic") {
       return `${appUrl()}/r/${shortId}`;
@@ -301,7 +301,7 @@ export default function QrCustomizer({ initialShortId, onSave, saving, allowLogo
           </div>
           <p className="mt-2 text-xs text-charcoal/55">
             {DYNAMIC_CAPABLE.includes(content_kind)
-              ? "Routes through your Masaar link — can be dynamic (editable, tracked) or static."
+              ? "Routes through your Vertexa QR link — can be dynamic (editable, tracked) or static."
               : `${CONTENT_TABS.find((t) => t.key === content_kind)?.label} is encoded directly into the QR — it's a static code (no redirect or tracking).`}
           </p>
 

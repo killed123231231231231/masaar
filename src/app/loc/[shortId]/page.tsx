@@ -43,10 +43,10 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { shortId } = await params;
   const qr = await resolve(shortId);
-  if (!qr) return { title: "Not found · Masaar" };
+  if (!qr) return { title: "Not found · Vertexa QR" };
   const p = (qr.payload_json ?? {}) as Loc;
   const title = (p.label || qr.name || "Location").trim();
-  return { title: `${title} · Masaar`, description: "Open this location in your maps app." };
+  return { title: `${title} · Vertexa QR`, description: "Open this location in your maps app." };
 }
 
 export default async function LocationPage({
@@ -108,7 +108,14 @@ export default async function LocationPage({
 
         <footer className="mt-10 text-center">
           <Link href="/" className="text-xs font-medium text-charcoal/40 transition-colors hover:text-deep-teal">
-            Powered by <span className="font-semibold">Masaar</span>
+            Made with <span className="font-semibold">Vertexa QR</span>
+          </Link>
+          <span aria-hidden className="mx-2 text-xs text-charcoal/25">·</span>
+          <Link
+            href={`/contact?topic=abuse&qr=${encodeURIComponent(shortId)}`}
+            className="text-xs text-charcoal/55 transition-colors hover:text-terracotta-dark"
+          >
+            Report abuse
           </Link>
         </footer>
       </div>
