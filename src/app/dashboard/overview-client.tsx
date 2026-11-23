@@ -124,13 +124,15 @@ function PageHeader({
                     : `/api/account/scans.csv?period=${bundle.period}`
                 }
                 className={OUTLINE_BTN}
+                aria-label="Export scans as CSV"
                 title={
                   filterQrId
                     ? "Download this QR code's scans in this period as CSV"
                     : "Download every scan in this period as CSV"
                 }
               >
-                <Download className="h-4 w-4" aria-hidden /> Export
+                <Download className="h-4 w-4" aria-hidden />
+                <span className="hidden sm:inline">Export</span>
               </a>
             </>
           ) : (
