@@ -142,7 +142,7 @@ export default function ProductTabs() {
               role="tab"
               type="button"
               aria-selected={selected}
-              aria-controls={`ppanel-${t.key}`}
+              aria-controls="ppanel"
               tabIndex={selected ? 0 : -1}
               onClick={() => setIndex(i)}
               className={`inline-flex h-10 shrink-0 snap-start items-center gap-2 rounded-full px-4 font-body text-base font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/30 ${
@@ -157,30 +157,37 @@ export default function ProductTabs() {
       </div>
 
       <PastelFrame tint={current.tint} className="mt-6 h-[400px] sm:h-[480px] md:mt-8 lg:h-[560px]">
-        {TABS.map((t, i) => {
-          const selected = i === index;
-          return (
-            <div
-              key={t.key}
-              id={`ppanel-${t.key}`}
-              role="tabpanel"
-              aria-labelledby={`ptab-${t.key}`}
-              aria-hidden={!selected}
-              className={`absolute inset-0 flex justify-center px-3 pt-6 transition-[opacity,transform] duration-[400ms] ease-[cubic-bezier(.22,1,.36,1)] sm:px-8 sm:pt-10 lg:px-[7%] lg:pt-14 ${
-                selected ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-3 opacity-0"
-              }`}
-            >
-              <p className="sr-only">{t.description}</p>
-              <AppWindow
-                active={t.active}
-                path={t.path}
-                className="h-[calc(100%+24px)] w-full max-w-[1000px] rounded-b-none"
-              >
-                {t.screen}
-              </AppWindow>
+        <div
+          id="ppanel"
+          role="tabpanel"
+          aria-labelledby={`ptab-${current.key}`}
+          className="absolute inset-0 flex justify-center px-3 pt-6 sm:px-8 sm:pt-10 lg:px-[7%] lg:pt-14"
+        >
+          <p className="sr-only">
+            {current.description}
+          </p>
+          <AppWindow
+            active={current.active}
+            path={current.path}
+            className="h-[calc(100%+24px)] w-full max-w-[1000px] rounded-b-none"
+          >
+            <div className="relative h-full">
+              {TABS.map((t, i) => {
+                const selected = i === index;
+                return (
+                  <div
+                    key={t.key}
+                    className={`absolute inset-0 transition-[opacity,transform] duration-[400ms] ease-[cubic-bezier(.22,1,.36,1)] ${
+                      selected ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-2 opacity-0"
+                    }`}
+                  >
+                    {t.screen}
+                  </div>
+                );
+              })}
             </div>
-          );
-        })}
+          </AppWindow>
+        </div>
       </PastelFrame>
     </div>
   );
