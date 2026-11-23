@@ -14,6 +14,12 @@ import {
 import type { QrCode } from "@/types/database";
 import { rateLimit, rateLimitedResponse } from "@/lib/rate-limit";
 import { ipHash as hashRequestIp } from "@/lib/ip-hash";
+import {
+  DEFAULT_QR_QUOTA,
+  isAdminEmail,
+  isQuotaError,
+  quotaExceededResponse,
+} from "@/lib/quota";
 
 // Boundary limits. A QR at error-correction level H can't encode much
 // more than ~1KB anyway, and structured payloads are tiny — so reject
@@ -46,6 +52,30 @@ function sizeError(body: {
   return null;
 }
 
+type ServerClient = Awaited<ReturnType<typeof createClient>>;
+
+// Pre-check the free-plan cap so the user gets a clean message even before
+// migration 031's enforce_qr_quota trigger exists. profiles.qr_quota is
+// added by 031; until then the select errors and the default applies.
+async function overQuota(supabase: ServerClient, userId: string): Promise<boolean> {
+  let quota = DEFAULT_QR_QUOTA;
+  const { data: prof, error: profErr } = await supabase
+    .from("profiles")
+    .select("qr_quota")
+    .eq("id", userId)
+    .maybeSingle();
+  if (!profErr) {
+    const q = (prof as { qr_quota?: number | null } | null)?.qr_quota;
+    if (typeof q === "number" && q > 0) quota = q;
+  }
+  const { count, error } = await supabase
+    .from("qr_codes")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId);
+  if (error || count == null) return false; // never block on a count failure
+  return count >= quota;
+}
+
 export async function POST(request: Request) {
   const supabase = await createClient();
   const {
@@ -64,6 +94,10 @@ export async function POST(request: Request) {
     rateLimit("qr_create_ip", ipKey, 60, 3600),
   ]);
   if (!byUser.ok || !byIp.ok) return rateLimitedResponse();
+
+  if (!isAdminEmail(user.email) && (await overQuota(supabase, user.id))) {
+    return quotaExceededResponse();
+  }
 
   const body = await request.json();
 
@@ -158,6 +192,7 @@ export async function POST(request: Request) {
   }
 
   if (error) {
+    if (isQuotaError(error)) return quotaExceededResponse();
     const collided = error.code === "23505";
     return NextResponse.json(
       {

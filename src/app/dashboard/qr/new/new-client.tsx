@@ -20,8 +20,8 @@ export default function NewQrClient() {
     if (!res.ok) {
       // toast (not alert) — matches the non-blocking error pattern used by
       // the wizard, list, and edit page; this was the last alert() in the app.
-      const { error } = await res.json().catch(() => ({ error: null }));
-      toast.error(error || "Couldn’t create the QR. Try again.");
+      const { error, message } = await res.json().catch(() => ({ error: null, message: null }));
+      toast.error(message || error || "Couldn’t create the QR. Try again.");
       return;
     }
     const row = await res.json().catch(() => null);

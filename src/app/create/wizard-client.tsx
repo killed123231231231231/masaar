@@ -224,8 +224,8 @@ export default function WizardClient({
       });
       setSaving(false);
       if (!res.ok) {
-        const { error: e } = await res.json().catch(() => ({ error: null }));
-        toast.error(e || "Couldn’t create the QR.");
+        const { error: e, message: m } = await res.json().catch(() => ({ error: null, message: null }));
+        toast.error(m || e || "Couldn’t create the QR.");
         return;
       }
       const row = await res.json().catch(() => null);
@@ -258,8 +258,8 @@ export default function WizardClient({
     });
     setSaving(false);
     if (!res.ok) {
-      const { error: e } = await res.json().catch(() => ({ error: null }));
-      toast.error(e || "Couldn’t create the QR.");
+      const { error: e, message: m } = await res.json().catch(() => ({ error: null, message: null }));
+      toast.error(m || e || "Couldn’t create the QR.");
       return;
     }
     const row = await res.json().catch(() => null);

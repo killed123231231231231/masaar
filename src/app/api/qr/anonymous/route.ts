@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { generateShortId, isValidShortId } from "@/lib/shortid";
 import { parseHttpUrl } from "@/lib/url";
+import { isQuotaError, quotaExceededResponse } from "@/lib/quota";
 import { ipHash as hashRequestIp } from "@/lib/ip-hash";
 
 // Anonymous QR creation for the public /create funnel. No auth. The
@@ -100,6 +101,7 @@ export async function POST(request: Request) {
   });
 
   if (error) {
+    if (isQuotaError(error)) return quotaExceededResponse();
     if (error.message?.includes("rate_limit_exceeded")) {
       return NextResponse.json(
         { error: "Too many QR codes created from this network. Try again later." },
