@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { generateShortId, isValidShortId } from "@/lib/shortid";
 import { parseHttpUrl } from "@/lib/url";
 import { checkDestination } from "@/lib/url-safety";
+import { isRedirectKind } from "@/lib/qr-target";
 import { isQuotaError, quotaExceededResponse } from "@/lib/quota";
 import { ipHash as hashRequestIp } from "@/lib/ip-hash";
 
@@ -59,7 +60,7 @@ export async function POST(request: Request) {
       { status: 400 }
     );
   }
-  if (kind === "dynamic" && (body.content_kind || "url") === "url") {
+  if (isRedirectKind(kind, body.content_kind || "url")) {
     const safe = checkDestination(body.destination);
     if (!safe.ok) {
       return NextResponse.json(

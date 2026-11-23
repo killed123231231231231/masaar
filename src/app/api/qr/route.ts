@@ -4,6 +4,7 @@ import { generateShortId, isValidShortId } from "@/lib/shortid";
 import bcrypt from "bcryptjs";
 import { parseHttpUrl } from "@/lib/url";
 import { checkDestination } from "@/lib/url-safety";
+import { isRedirectKind } from "@/lib/qr-target";
 import { qrCacheSet, qrCacheDelete, toCachedQr } from "@/lib/qr-edge-cache";
 import {
   cleanHexArray,
@@ -183,9 +184,10 @@ export async function POST(request: Request) {
       { status: 400 }
     );
   }
-  // Abuse guard for new website-link QRs: no credentials, private hosts or
-  // blocked domains (see lib/url-safety).
-  if (insert.kind === "dynamic" && insert.content_kind === "url") {
+  // Abuse guard for every new QR whose scan redirects to its destination
+  // (url, whatsapp, app_link, ...): no credentials, private hosts or blocked
+  // domains (see lib/url-safety).
+  if (isRedirectKind(insert.kind ?? "dynamic", insert.content_kind ?? "url")) {
     const safe = checkDestination(insert.destination);
     if (!safe.ok) {
       return NextResponse.json(
@@ -379,12 +381,12 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
   }
 
-  // Abuse guard ONLY when a website-link destination actually changes.
+  // Abuse guard ONLY when a redirect destination actually changes.
   // Unchanged destinations of existing printed QRs are never re-validated
   // (Rule 0) — an old link that predates these rules keeps working.
   const nextKind = patch.content_kind ?? cur.content_kind;
   if (
-    nextKind === "url" &&
+    isRedirectKind(cur.kind, nextKind) &&
     typeof patch.destination === "string" &&
     patch.destination !== cur.destination
   ) {
@@ -432,6 +434,18 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: "id required" }, { status: 400 });
   }
 
+  // Abuse takedown: an admin-locked QR can't be deleted by its owner
+  // (delete + re-create with the same short_id would undo the lock).
+  // select("*") so this works before migration 031 adds admin_locked.
+  const { data: curRow } = await supabase
+    .from("qr_codes")
+    .select("*")
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .maybeSingle();
+  const cur = curRow as { admin_locked?: boolean | null } | null;
+  if (cur?.admin_locked === true) return lockedResponse();
+
   // Owner-scoped delete (RLS qr_codes_owner_all + the explicit user_id
   // guard). The BEFORE DELETE trigger (migration 020) queues any hosted
   // asset for storage cleanup. scans cascade via their FK.
@@ -441,6 +455,8 @@ export async function DELETE(request: Request) {
     .eq("id", id)
     .eq("user_id", user.id);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  if (error) {
+    return guardErrorResponse(error) ?? NextResponse.json({ error: error.message }, { status: 400 });
+  }
   return NextResponse.json({ ok: true });
 }
