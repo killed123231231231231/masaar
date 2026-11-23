@@ -70,7 +70,7 @@ export default function OverviewClient({
             </div>
             <RightRail bundle={bundle} filterQrId={filterQrId} />
           </div>
-          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)]">
+          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
             <RecentActivity rows={bundle.recentScans} userQrs={bundle.userQrs} />
             <BestPerforming userQrs={bundle.userQrs} />
           </div>
@@ -255,6 +255,7 @@ function KpiRow({ bundle, filtered }: { bundle: AccountAnalyticsBundle; filtered
       <KpiCard
         icon={QrCode}
         tone="blush"
+        className="col-span-2 md:col-span-1"
         label="Active QR codes"
         value={bundle.activeQrCount.toLocaleString()}
         sub={
@@ -523,12 +524,13 @@ function location(s: AccountRecentScan): string {
 }
 
 function deviceLabel(s: AccountRecentScan): string {
-  const d = s.device_type ? s.device_type[0].toUpperCase() + s.device_type.slice(1) : "Unknown";
-  return s.os ? `${d} · ${s.os}` : d;
+  // The row icon already shows the device class, so prefer the OS name.
+  if (s.os) return s.os;
+  return s.device_type ? s.device_type[0].toUpperCase() + s.device_type.slice(1) : "Unknown";
 }
 
-const TH = "px-3 py-2.5 text-left font-body text-xs font-medium text-muted-3 whitespace-nowrap first:pl-5 last:pr-5";
-const TD = "px-3 py-3 align-middle first:pl-5 last:pr-5";
+const TH = "px-2.5 py-2.5 text-left font-body text-xs font-medium text-muted-3 whitespace-nowrap first:pl-5 last:pr-5";
+const TD = "px-2.5 py-3 align-middle first:pl-5 last:pr-5";
 
 function RecentActivity({
   rows,
@@ -553,7 +555,7 @@ function RecentActivity({
         <>
           {/* md+: table */}
           <div className="mt-3 hidden overflow-x-auto md:block">
-            <table className="w-full min-w-[640px] font-body text-[13px]">
+            <table className="w-full min-w-[600px] font-body text-[13px]">
               <thead className="border-y border-stone bg-cream">
                 <tr>
                   <th scope="col" className={TH}>QR code</th>
@@ -573,7 +575,7 @@ function RecentActivity({
                         {s.qr_id ? (
                           <Link
                             href={`/dashboard?qr=${s.qr_id}`}
-                            className={`flex max-w-[200px] items-center gap-2.5 rounded-lg font-medium text-ink hover:underline ${FOCUS}`}
+                            className={`flex max-w-[170px] items-center gap-2.5 rounded-lg font-medium text-ink hover:underline ${FOCUS}`}
                           >
                             <QrThumb qrId={s.qr_id} bgColor={q?.bg_color} size={28} className="rounded-md border border-stone-dark" />
                             <span className="truncate">{s.qr_name}</span>
@@ -582,10 +584,10 @@ function RecentActivity({
                           <span className="text-muted-3">Unknown</span>
                         )}
                       </td>
-                      <td className={`${TD} max-w-[200px] truncate text-muted-2`} title={q?.destination}>
+                      <td className={`${TD} max-w-[150px] truncate text-muted-2`} title={q?.destination}>
                         {destinationLabel(q?.destination)}
                       </td>
-                      <td className={`${TD} max-w-[180px] truncate text-muted-2`}>{location(s)}</td>
+                      <td className={`${TD} max-w-[150px] truncate text-muted-2`} title={location(s)}>{location(s)}</td>
                       <td className={`${TD} whitespace-nowrap text-muted-2`}>
                         <span className="inline-flex items-center gap-1.5">
                           <Dev className="h-3.5 w-3.5 text-ink" strokeWidth={1.75} aria-hidden />

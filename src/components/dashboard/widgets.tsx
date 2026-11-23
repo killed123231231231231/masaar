@@ -124,7 +124,9 @@ export function KpiCard({
   deltaLabel,
   today,
   sub,
+  className = "",
 }: {
+  className?: string;
   icon: LucideIcon;
   tone?: "stone" | "lime" | "lilac" | "sky" | "mint" | "blush";
   label: string;
@@ -138,13 +140,13 @@ export function KpiCard({
   sub?: React.ReactNode;
 }) {
   return (
-    <Card as="div" className="flex flex-col p-4 sm:p-5">
-      <div className="flex items-center gap-3">
-        <IconWell icon={icon} tone={tone} />
-        <p className="min-w-0 font-body text-[13px] leading-tight text-muted-2">{label}</p>
-      </div>
+    <Card as="div" className={`flex flex-col p-4 sm:p-5 ${className}`}>
+      <IconWell icon={icon} tone={tone} />
+      <p className="mt-3.5 truncate font-body text-[13px] leading-tight text-muted-2">{label}</p>
       <p
-        className="mt-4 truncate font-heading text-[26px] font-semibold leading-none tracking-[-0.02em] text-ink"
+        className={`mt-1.5 font-heading font-semibold leading-tight tracking-[-0.02em] text-ink ${
+          value.length > 9 ? "line-clamp-2 break-words text-lg" : "truncate text-2xl"
+        }`}
         title={valueTitle ?? value}
       >
         {value}
@@ -329,7 +331,7 @@ export function DonutCard({
   return (
     <Card className={`p-5 ${className}`}>
       <CardHeader title={title} note={note} />
-      <div className="mt-4 flex flex-wrap items-center gap-5 sm:flex-nowrap">
+      <div className="mt-4 flex flex-col items-center gap-5 sm:flex-row xl:flex-col 2xl:flex-row">
         {/* outline-none kills the square focus box recharts' Pie sectors show. */}
         <div className="relative mx-auto h-[132px] w-[132px] shrink-0 [&_:focus]:outline-none [&_svg]:outline-none">
           <ResponsiveContainer width="100%" height="100%">
