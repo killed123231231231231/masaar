@@ -13,7 +13,6 @@ import {
   Plus,
   QrCode,
   Settings,
-  UtensilsCrossed,
   X,
   type LucideIcon,
 } from "lucide-react";
@@ -62,7 +61,6 @@ export default function MobileDashboardNav({
   const nav: { label: string; icon: LucideIcon; href: string; active: boolean }[] = [
     { label: "Overview", icon: LayoutGrid, href: "/dashboard", active: current === "overview" },
     { label: "QR Codes", icon: QrCode, href: "/dashboard/qr-codes", active: current === "qrcodes" },
-    { label: "AI Menu Builder", icon: UtensilsCrossed, href: "/dashboard/menu", active: current === "menu" },
     { label: "Activity", icon: Activity, href: "/dashboard/activity", active: current === "activity" },
     { label: "Settings", icon: Settings, href: "/dashboard/settings", active: current === "settings" },
   ];

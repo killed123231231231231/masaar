@@ -3,21 +3,20 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
-  Activity, Crown, Home, LayoutGrid, LogOut, QrCode, Settings, UtensilsCrossed,
+  Activity, Crown, Home, LayoutGrid, LogOut, QrCode, Settings,
   type LucideIcon,
 } from "lucide-react";
 import LogoMark from "@/components/logo-mark";
 
-// B5/Fix 20 — sidebar nav slimmed to 5 items. Aspirational stubs
+// B5/Fix 20 — sidebar nav slimmed to 4 items. Aspirational stubs
 // (Campaigns / Destinations / Audience / Devices / Reports /
-// Integrations) removed entirely; AI Menu Builder is a real nav item
-// (placeholder page until Session F lands the actual builder); Activity
-// is the new home for what used to be the Overview's Recent Activity
-// table (Fix 23).
+// Integrations) removed entirely; the AI Menu Builder entry was dropped
+// with the Menu vertical (/dashboard/menu now redirects to /dashboard).
+// Activity is the new home for what used to be the Overview's Recent
+// Activity table (Fix 23).
 export type SidebarCurrent =
   | "overview"
   | "qrcodes"
-  | "menu"
   | "activity"
   | "settings"
   | "none";
@@ -59,7 +58,6 @@ export default function Sidebar({
   const nav: NavSpec[] = [
     { label: "Overview",        icon: LayoutGrid,      href: "/dashboard",            active: current === "overview" },
     { label: "QR Codes",        icon: QrCode,          href: "/dashboard/qr-codes",   active: current === "qrcodes" },
-    { label: "AI Menu Builder", icon: UtensilsCrossed, href: "/dashboard/menu",       active: current === "menu" },
     { label: "Activity",        icon: Activity,        href: "/dashboard/activity",   active: current === "activity" },
     { label: "Settings",        icon: Settings,        href: "/dashboard/settings",   active: current === "settings" },
   ];
