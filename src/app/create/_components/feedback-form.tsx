@@ -50,7 +50,7 @@ export default function FeedbackForm({
         </span>
       </label>
 
-      <p className="rounded-xl bg-stone/60 px-4 py-3 text-xs leading-relaxed text-muted-3">
+      <p className="rounded-xl bg-stone/60 px-4 py-3 text-xs leading-relaxed text-muted-2">
         Customers scan, pick a 1–5 star rating, and can add a comment
         {askEmail ? " and their email" : ""}. Responses land in your dashboard
         under <strong>Feedback</strong>.

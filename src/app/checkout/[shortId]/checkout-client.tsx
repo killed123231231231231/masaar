@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Check, ChevronLeft, ChevronRight, CreditCard, Star, Timer, Users } from "lucide-react";
+import { Check, CreditCard, Timer } from "lucide-react";
 import QrPreview from "@/components/qr-preview";
 import LogoMark from "@/components/logo-mark";
 import type { QrStyle } from "@/lib/qr";
@@ -25,10 +25,10 @@ interface CheckoutQr {
   logo_url: string | null;
 }
 
-// SAR pricing — strikethrough teases STRATEGY.md §5 (Pro at SAR 99/mo) but
-// the launch trial is the 7-day SAR 5 hook. Real billing arrives Sprint 3+.
-const PRICE_NOW = 5;        // SAR — discounted, what the user pays today
-const PRICE_ORIG = 40.99;   // SAR — strikethrough "regular" price
+// SAR pricing — only shown when PAYMENTS_ENABLED is on. While it is off,
+// activation is free and the page says so plainly (no strike-through
+// "regular" price, no promo code, no urgency timer).
+const PRICE_NOW = 5;        // SAR — what the user pays today once billing is live
 const RECURRING = 99;       // SAR/mo — what we'll bill after trial
 const TRIAL_DAYS = 7;
 
@@ -169,7 +169,13 @@ export default function CheckoutClient({
 
   return (
     <main className="min-h-screen bg-paper font-body text-ink">
-      <CountdownBanner secondsLeft={secondsLeft} expired={expired} />
+      {paymentsEnabled ? (
+        <CountdownBanner secondsLeft={secondsLeft} expired={expired} />
+      ) : (
+        <div className="bg-ink px-5 py-2.5 text-center text-xs font-semibold text-white sm:text-sm">
+          Free during launch. No card needed.
+        </div>
+      )}
       <TopBar />
 
       <div className="mx-auto max-w-6xl px-5 pb-28 pt-8 lg:pb-12">
@@ -185,8 +191,6 @@ export default function CheckoutClient({
             expired={expired}
           />
         </div>
-
-        <Testimonials />
       </div>
 
       <MobilePayBar
@@ -296,63 +300,18 @@ function SocialProofCard({ count }: { count: number | null }) {
   const showRealNumber = count != null && count >= 100;
   return (
     <div className="rounded-card border border-stone-dark bg-white p-6 shadow-card">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <AvatarCluster />
-          <div>
-            <p className="font-heading text-base font-bold text-ink">
-              {showRealNumber ? (
-                <>{formatCount(count!)} QR codes created today</>
-              ) : (
-                <>Be among the first to create your QR</>
-              )}
-            </p>
-            <p className="text-xs text-muted-3">
-              {showRealNumber
-                ? "Join the businesses growing with Vertexa QR."
-                : "Early-access launch — your timing is perfect."}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-ink/10 pt-4">
-        <div className="flex items-center gap-0.5">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <Star
-              key={i}
-              className="h-4 w-4 fill-ink text-ink"
-              strokeWidth={0}
-            />
-          ))}
-        </div>
-        <p className="text-xs font-medium text-muted-2">
-          Trusted by GCC businesses ·{" "}
-          <span className="text-[10px] uppercase tracking-wider text-muted-3">
-            Example
-          </span>
-        </p>
-      </div>
-    </div>
-  );
-}
-
-function AvatarCluster() {
-  const tints = ["bg-ink", "bg-muted", "bg-muted-2", "bg-ink-soft"];
-  const letters = ["A", "F", "K", "L"];
-  return (
-    <div className="flex -space-x-2" aria-hidden>
-      {letters.map((l, i) => (
-        <span
-          key={l}
-          className={`grid h-8 w-8 place-items-center rounded-full border-2 border-white text-xs font-bold text-white ${tints[i]}`}
-        >
-          {l}
-        </span>
-      ))}
-      <span className="grid h-8 w-8 place-items-center rounded-full border-2 border-white bg-stone text-[10px] font-bold text-muted-2">
-        <Users className="h-3.5 w-3.5" strokeWidth={2.25} />
-      </span>
+      <p className="font-heading text-base font-bold text-ink">
+        {showRealNumber ? (
+          <>{formatCount(count!)} QR codes created in the last 24 hours</>
+        ) : (
+          <>Early access</>
+        )}
+      </p>
+      <p className="mt-1 text-xs text-muted-2">
+        {showRealNumber
+          ? "Counted live from Vertexa QR."
+          : "Vertexa QR has just launched. Your feedback shapes what we build next."}
+      </p>
     </div>
   );
 }
@@ -402,28 +361,23 @@ function RightColumn({
         ))}
       </ul>
 
-      <div className="mt-6 rounded-xl border border-ink/20 bg-stone/60 px-4 py-3 text-xs font-semibold text-ink">
-        Promo <span className="rounded bg-lime/50 px-1.5 py-0.5">MASAAR-LAUNCH</span>{" "}
-        applied — you save{" "}
-        {Math.round(((PRICE_ORIG - PRICE_NOW) / PRICE_ORIG) * 100)}%
-      </div>
-
-      <div className="mt-5 flex items-end justify-between border-y border-ink/10 py-4">
+      <div className="mt-6 flex items-end justify-between gap-4 border-y border-ink/10 py-4">
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-3">
             Total due today
           </p>
           <p className="mt-1 font-heading text-3xl font-bold text-ink">
-            SAR {PRICE_NOW.toFixed(2)}
+            {paymentsEnabled ? `SAR ${PRICE_NOW.toFixed(2)}` : "Free"}
           </p>
-          <p className="text-xs text-muted-3">
-            <span className="line-through">SAR {PRICE_ORIG.toFixed(2)}</span>
-            {" "}was the regular price
-          </p>
+          {!paymentsEnabled && (
+            <p className="text-xs text-muted-3">Free during launch</p>
+          )}
         </div>
-        <p className="max-w-[140px] text-right text-[10px] text-muted-3">
-          {TRIAL_DAYS}-day trial, then SAR {RECURRING}/mo. Cancel anytime.
-        </p>
+        {paymentsEnabled && (
+          <p className="max-w-[140px] text-right text-[10px] text-muted-3">
+            {TRIAL_DAYS}-day trial, then SAR {RECURRING}/mo. Cancel anytime.
+          </p>
+        )}
       </div>
 
       <div className="mt-5 space-y-2.5">
@@ -440,11 +394,11 @@ function RightColumn({
 
       {!paymentsEnabled && (
         <p className="mt-3 text-center text-[11px] text-muted-3">
-          Launch promo: activation is free this week. Real billing starts next sprint.
+          Activation is free during launch. You will not be charged.
         </p>
       )}
 
-      {expired && (
+      {paymentsEnabled && expired && (
         <p className="mt-3 text-center text-[11px] text-muted-3">
           The countdown expired — you can still activate at the trial rate above.
         </p>
@@ -469,8 +423,12 @@ function RightColumn({
         <Link href="/terms" className="underline hover:text-muted">Terms</Link>{" "}
         and{" "}
         <Link href="/privacy" className="underline hover:text-muted">Privacy Policy</Link>.
-        Get a {TRIAL_DAYS}-day trial for SAR {PRICE_NOW}. After trial,
-        we&apos;ll charge SAR {RECURRING} every month until you cancel.
+        {paymentsEnabled && (
+          <>
+            {" "}Get a {TRIAL_DAYS}-day trial for SAR {PRICE_NOW}. After trial,
+            we&apos;ll charge SAR {RECURRING} every month until you cancel.
+          </>
+        )}
       </p>
     </section>
   );
@@ -551,144 +509,6 @@ function CardButton({
   );
 }
 
-/* ─────────────────────────── TESTIMONIALS ─────────────────────────── */
-
-interface Testimonial {
-  name: string;
-  city: string;
-  rating: number;     // 1–5
-  body: string;
-  when: string;       // "2 weeks ago"
-  initial: string;
-  tint: string;       // bg-* class
-}
-
-const TESTIMONIALS: Testimonial[] = [
-  {
-    name: "Ahmed Al-Saud",
-    city: "Riyadh",
-    rating: 5,
-    body: "Saved me hours on menu setup. Changing the destination after print is the killer feature.",
-    when: "2 weeks ago",
-    initial: "A",
-    tint: "bg-ink",
-  },
-  {
-    name: "Fatima Hassan",
-    city: "Jeddah",
-    rating: 5,
-    body: "Beautiful, fast, and just works. Customers can finally see what they're scanning.",
-    when: "1 month ago",
-    initial: "F",
-    tint: "bg-muted",
-  },
-  {
-    name: "Khalid Bin Rashid",
-    city: "Dubai",
-    rating: 5,
-    body: "Customer experience went from clunky printed PDFs to seamless mobile. Worth every riyal.",
-    when: "3 weeks ago",
-    initial: "K",
-    tint: "bg-muted-2",
-  },
-  {
-    name: "Layla Mansour",
-    city: "Kuwait City",
-    rating: 4,
-    body: "Setup took under a minute. Analytics tells me exactly which posters are pulling weight.",
-    when: "1 week ago",
-    initial: "L",
-    tint: "bg-ink-soft",
-  },
-];
-
-function Testimonials() {
-  // Snap-x scroller — native swipe on mobile, arrow controls on desktop.
-  function scroll(dir: 1 | -1) {
-    const el = document.getElementById("testimonial-track");
-    if (!el) return;
-    el.scrollBy({ left: dir * (el.clientWidth * 0.85), behavior: "smooth" });
-  }
-  return (
-    <section className="mt-14">
-      <div className="flex items-end justify-between gap-4">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-ink">
-            Why our customers choose Vertexa QR
-          </p>
-          <h2 className="mt-1 font-heading text-2xl font-medium tracking-tight sm:text-2xl">
-            Real businesses, real scans
-          </h2>
-        </div>
-        <div className="hidden gap-2 sm:flex">
-          <button
-            type="button"
-            onClick={() => scroll(-1)}
-            aria-label="Previous testimonials"
-            className="grid h-9 w-9 place-items-center rounded-full border border-ink/15 bg-white text-muted hover:bg-stone hover:text-ink"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </button>
-          <button
-            type="button"
-            onClick={() => scroll(1)}
-            aria-label="Next testimonials"
-            className="grid h-9 w-9 place-items-center rounded-full border border-ink/15 bg-white text-muted hover:bg-stone hover:text-ink"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </button>
-        </div>
-      </div>
-
-      <div
-        id="testimonial-track"
-        className="-mx-5 mt-5 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-      >
-        {TESTIMONIALS.map((t) => (
-          <article
-            key={t.name}
-            className="relative shrink-0 snap-start rounded-card border border-stone-dark bg-white p-5 shadow-card w-[280px] sm:w-[320px]"
-          >
-            <span className="absolute right-4 top-4 rounded-md bg-stone px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-widest text-muted-3">
-              Example
-            </span>
-            <div className="flex items-center gap-1">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Star
-                  key={i}
-                  className={`h-3.5 w-3.5 ${
-                    i < t.rating
-                      ? "fill-ink text-ink"
-                      : "text-muted-4"
-                  }`}
-                  strokeWidth={0}
-                />
-              ))}
-            </div>
-            <p className="mt-3 text-sm leading-relaxed text-muted">
-              “{t.body}”
-            </p>
-            <div className="mt-4 flex items-center gap-3 border-t border-ink/5 pt-3">
-              <span
-                className={`grid h-9 w-9 place-items-center rounded-full text-sm font-bold text-white ${t.tint}`}
-                aria-hidden
-              >
-                {t.initial}
-              </span>
-              <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-ink">{t.name}</p>
-                <p className="truncate text-[11px] text-muted-3">
-                  {t.city} · {t.when}
-                </p>
-              </div>
-            </div>
-          </article>
-        ))}
-      </div>
-    </section>
-  );
-}
-
 /* ─────────────────────────── MOBILE STICKY BAR ─────────────────────────── */
 
 function MobilePayBar({
@@ -708,10 +528,7 @@ function MobilePayBar({
             Today
           </p>
           <p className="font-heading text-base font-bold text-ink">
-            SAR {PRICE_NOW.toFixed(2)}{" "}
-            <span className="text-xs font-normal text-muted-3 line-through">
-              SAR {PRICE_ORIG.toFixed(2)}
-            </span>
+            {paymentsEnabled ? `SAR ${PRICE_NOW.toFixed(2)}` : "Free"}
           </p>
         </div>
         <button

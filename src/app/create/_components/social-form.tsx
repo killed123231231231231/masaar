@@ -71,7 +71,7 @@ export default function SocialForm({
         <button
           type="button"
           onClick={() => fileRef.current?.click()}
-          className="relative grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-full border border-ink/15 bg-stone/60 text-muted-3 transition hover:border-ink/40"
+          className="relative grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-full border border-ink/15 bg-stone/60 text-muted-2 transition hover:border-ink/40"
           aria-label="Upload profile photo"
         >
           {form.avatar_url ? (

@@ -4,7 +4,7 @@ import {
   useCallback, useEffect, useMemo, useRef, useState,
   type Dispatch, type MutableRefObject, type ReactNode, type SetStateAction,
 } from "react";
-import { ChevronDown, Download } from "lucide-react";
+import { AlertTriangle, ChevronDown, Download, Pizza } from "lucide-react";
 import QrPreview from "@/components/qr-preview";
 import FramedQr from "./framed-qr";
 import { FRAMES } from "../_lib/frames";
@@ -515,7 +515,7 @@ export default function Step3Customize({
                 )}
               </>
             ) : (
-              <p className="mt-3 rounded-xl bg-stone/60 p-2.5 text-xs text-muted-3">
+              <p className="mt-3 rounded-xl bg-stone/60 p-2.5 text-xs text-muted-2">
                 Multi-color dots &amp; custom corner colors are available once you
                 have an account — create this QR, then style it from your
                 dashboard.
@@ -538,7 +538,7 @@ export default function Step3Customize({
           <Acc title="Logo" defaultOpen={false}>
             {previewData.startsWith("WIFI:") && c.logo_url && (
               <p className="mb-3 rounded-xl border border-amber-300 bg-amber-50 p-2.5 text-xs text-amber-700">
-                ⚠️ WiFi QR codes are small — a logo can cover too much and make
+                <AlertTriangle className="mr-1 inline h-3.5 w-3.5 -translate-y-px" aria-hidden />WiFi QR codes are small — a logo can cover too much and make
                 them <strong>unscannable</strong>. For WiFi we recommend removing
                 the logo (or keeping it very small).
               </p>
@@ -600,13 +600,13 @@ export default function Step3Customize({
                     className="mt-3 block min-h-[44px] w-full rounded-xl border border-stone-dark bg-white px-3.5 py-2 text-[15px] text-ink outline-none hover:border-ink/25 focus:border-ink focus:ring-2 focus:ring-ink/20"
                   />
                 )}
-                <p className="mt-2 rounded-xl bg-stone/60 p-2 text-xs text-muted-3">
+                <p className="mt-2 rounded-xl bg-stone/60 p-2 text-xs text-muted-2">
                   Scanners enter this password before the QR opens. Stored
                   hashed (bcrypt) — we never keep the plaintext.
                 </p>
               </>
             ) : (
-              <p className="rounded-xl bg-stone/60 p-3 text-xs text-muted-3">
+              <p className="rounded-xl bg-stone/60 p-3 text-xs text-muted-2">
                 Password protection is available once you have an account —
                 create this QR, then add a password from your dashboard.
               </p>
@@ -941,7 +941,7 @@ function StylePresets({
           onClick={() => apply(PIZZA_CAMPAIGN)}
           className="rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100"
         >
-          🍕 Pizza Campaign
+          <Pizza className="mr-1 inline h-3.5 w-3.5 -translate-y-px" aria-hidden />Pizza Campaign
         </button>
         {Object.entries(saved).map(([name, p]) => (
           <span

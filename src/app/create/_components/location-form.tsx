@@ -171,12 +171,12 @@ export default function LocationForm({
             className="h-56 w-full"
             loading="lazy"
           />
-          <p className="bg-stone/60 px-3 py-2 text-xs text-muted-3">
+          <p className="bg-stone/60 px-3 py-2 text-xs text-muted-2">
             {lat.toFixed(5)}, {lng.toFixed(5)}
           </p>
         </div>
       ) : (
-        <div className="grid h-40 place-items-center rounded-xl border border-dashed border-ink/20 bg-stone/60 text-sm text-muted-3">
+        <div className="grid h-40 place-items-center rounded-xl border border-dashed border-ink/20 bg-stone/60 text-sm text-muted-2">
           Pick a location to preview the map
         </div>
       )}

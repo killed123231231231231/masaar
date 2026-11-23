@@ -132,7 +132,7 @@ export default function ContactClient({
               <div className="rounded-[26px] border border-stone-dark bg-white p-5 sm:p-8">
               {isAbuse && reportedQr && (
                 <div className="mb-5 rounded-xl bg-stone px-4 py-3 text-sm">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-3">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-2">
                     QR code being reported
                   </span>
                   <p className="mt-0.5 break-all font-mono text-ink">{reportedQr}</p>

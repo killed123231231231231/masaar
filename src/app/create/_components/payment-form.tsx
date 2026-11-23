@@ -48,7 +48,7 @@ export default function PaymentForm({
     <div className="rounded-2xl border border-ink/10 bg-stone/60 p-8 text-center">
       <span className="relative mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-lime/40 text-ink">
         <Wallet className="h-7 w-7" strokeWidth={1.75} />
-        <span className="absolute -top-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-ink/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-3">
+        <span className="absolute -top-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-ink/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-2">
           Coming soon
         </span>
       </span>

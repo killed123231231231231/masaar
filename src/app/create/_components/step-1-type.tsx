@@ -73,7 +73,7 @@ export default function Step1Type({
                     {c.badge && (
                       <span
                         className={`inline-flex h-5 items-center whitespace-nowrap rounded-full px-2 font-body text-[10px] font-semibold uppercase tracking-wider ${
-                          soon ? "bg-stone text-muted-3" : "bg-lime text-ink"
+                          soon ? "bg-stone text-muted-2" : "bg-lime text-ink"
                         }`}
                       >
                         {c.badge}

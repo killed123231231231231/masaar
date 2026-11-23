@@ -10,9 +10,6 @@ import EditQrClient from "./edit-client";
 
 export const dynamic = "force-dynamic";
 
-const pillCls =
-  "inline-flex w-fit items-center gap-1.5 rounded-full bg-stone px-4 py-2 text-sm font-medium text-ink transition-colors hover:bg-stone-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-ink/30";
-
 // Edit a single QR. B5/Item 6 — migrated off the legacy DashboardShell
 // onto the new deep-teal Sidebar shell so the sidebar is locked on every
 // authed surface (Overview, Analytics, QR Codes, this edit page).
@@ -45,7 +42,7 @@ export default async function EditQrPage({
   if (!qr) redirect("/dashboard");
 
   return (
-    <div className="min-h-screen bg-paper font-body text-ink">
+    <div className="min-h-screen bg-[#F6F4EE] text-charcoal">
       <div className="flex">
         <Sidebar
           me={me}
@@ -61,17 +58,17 @@ export default async function EditQrPage({
               button family ("View analytics" right next door). */}
           <Link
             href="/dashboard/qr-codes"
-            className={pillCls}
+            className="inline-flex w-fit items-center gap-1.5 rounded-lg border border-charcoal/15 bg-white px-3 py-1.5 text-sm font-medium text-charcoal/75 hover:bg-sand-light hover:text-deep-teal"
           >
             <ArrowLeft className="h-4 w-4" /> Back to QR codes
           </Link>
 
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <h1 className="font-heading text-[28px] font-medium leading-tight tracking-[-0.02em] text-ink sm:text-[34px]">
+              <h1 className="font-display text-2xl font-bold tracking-tight">
                 Edit “{qr.name}”
               </h1>
-              <p className="mt-1.5 text-sm capitalize text-muted-2">
+              <p className="mt-1 text-sm text-charcoal/55 capitalize">
                 {qr.kind} · {qr.content_kind}
                 {qr.short_id ? ` · /r/${qr.short_id}` : ""}
               </p>
@@ -80,14 +77,14 @@ export default async function EditQrPage({
               {qr.content_kind === "feedback" && (
                 <Link
                   href={`/dashboard/qr/${qr.id}/feedback`}
-                  className={pillCls}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-charcoal/15 bg-white px-3 py-1.5 text-sm font-medium text-charcoal/75 hover:bg-sand-light hover:text-deep-teal"
                 >
                   <MessageSquare className="h-4 w-4" /> View feedback
                 </Link>
               )}
               <Link
                 href={`/dashboard?qr=${qr.id}`}
-                className={pillCls}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-charcoal/15 bg-white px-3 py-1.5 text-sm font-medium text-charcoal/75 hover:bg-sand-light hover:text-deep-teal"
               >
                 <BarChart3 className="h-4 w-4" /> View analytics
               </Link>

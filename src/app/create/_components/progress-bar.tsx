@@ -52,7 +52,7 @@ export default function ProgressBar({
                         ? "bg-white/15 text-white"
                         : done
                           ? "bg-lime text-ink"
-                          : "bg-stone text-muted-3"
+                          : "bg-stone text-muted-2"
                     }`}
                   >
                     {done ? (
