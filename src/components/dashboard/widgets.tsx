@@ -70,7 +70,7 @@ export function useSetParam() {
 export function PeriodPills({ current }: { current: Period }) {
   const setParam = useSetParam();
   return (
-    <div role="group" aria-label="Period" className="inline-flex max-w-full flex-wrap gap-1 rounded-full bg-stone p-1">
+    <div role="group" aria-label="Period" className="grid w-full grid-cols-4 gap-1 rounded-full bg-stone p-1 sm:inline-flex sm:w-auto">
       {PERIODS.map((p) => {
         const active = p.id === current;
         return (
@@ -79,7 +79,7 @@ export function PeriodPills({ current }: { current: Period }) {
             type="button"
             aria-pressed={active}
             onClick={() => setParam("period", p.id)}
-            className={`h-8 rounded-full px-3.5 font-body text-[13px] font-medium transition-colors ${FOCUS} ${
+            className={`h-8 whitespace-nowrap rounded-full px-1.5 font-body text-[12px] font-medium transition-colors sm:px-3.5 sm:text-[13px] ${FOCUS} ${
               active ? "bg-white text-ink shadow-card" : "text-muted-2 hover:text-ink"
             }`}
           >

@@ -11,6 +11,18 @@ export const dynamic = "force-dynamic";
 
 // Edit a single QR. B5/Item 6 — uses the dashboard sidebar shell so the
 // sidebar is on every authed surface (Overview, QR Codes, this edit page).
+// Friendly type name for the subtitle ("url" reads as "Website").
+const CONTENT_LABELS: Record<string, string> = {
+  url: "Website", vcard: "vCard", wifi: "WiFi", sms: "SMS", app_link: "App link",
+  whatsapp: "WhatsApp", email: "Email", phone: "Phone", text: "Text",
+  location: "Location", feedback: "Feedback", social: "Social media",
+  pdf: "PDF", image: "Image", video: "Video",
+};
+function contentLabel(kind: string): string {
+  const k = kind.replace(/_/g, " ");
+  return CONTENT_LABELS[kind] ?? k.charAt(0).toUpperCase() + k.slice(1);
+}
+
 export default async function EditQrPage({
   params,
 }: {
@@ -52,8 +64,8 @@ export default async function EditQrPage({
       <PageTitle
         title={<>Edit “{qr.name}”</>}
         sub={
-          <span className="capitalize">
-            {qr.kind} · {qr.content_kind.replace(/_/g, " ")}
+          <span>
+            <span className="capitalize">{qr.kind}</span> · {contentLabel(qr.content_kind)}
             {qr.short_id ? ` · /r/${qr.short_id}` : ""}
           </span>
         }

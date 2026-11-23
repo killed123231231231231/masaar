@@ -530,7 +530,7 @@ export default function Step3Customize({
                 className="block min-h-[44px] w-full rounded-xl border border-stone-dark bg-white px-3.5 py-2 text-[15px] text-ink outline-none hover:border-ink/25 focus:border-ink focus:ring-2 focus:ring-ink/20"
               />
               <span className="mt-1 block text-xs text-muted-3">
-                Shows under the QR for frames with a text region (Session I).
+                Shows under the QR for frames with a text region.
               </span>
             </label>
           </Acc>

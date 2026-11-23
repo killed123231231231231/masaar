@@ -139,7 +139,7 @@ export default function MobileDashboardNav({
   );
 
   return (
-    <div className="-mx-4 -mt-5 mb-5 flex items-center justify-between gap-2 border-b border-stone-dark/70 bg-paper/90 px-4 py-3 backdrop-blur sm:-mx-6 sm:-mt-6 sm:px-6 lg:hidden">
+    <div className="sticky top-0 z-40 -mx-4 -mt-5 mb-5 flex items-center justify-between gap-2 border-b border-stone-dark/70 bg-paper/90 px-4 py-3 backdrop-blur sm:-mx-6 sm:-mt-6 sm:px-6 lg:hidden">
       <Link
         href="/dashboard"
         className="inline-flex items-center gap-2 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-ink/30"

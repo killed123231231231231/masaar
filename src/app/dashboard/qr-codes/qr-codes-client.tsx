@@ -64,6 +64,7 @@ const TYPE_META: Record<string, { label: string; icon: LucideIcon }> = {
   whatsapp: { label: "WhatsApp", icon: WhatsAppIcon },
   app_link: { label: "App Link", icon: Smartphone },
   location: { label: "Location", icon: MapPin },
+  feedback: { label: "Feedback", icon: ReviewsIcon },
 };
 
 function typeMeta(k: string): { label: string; icon: LucideIcon } {
@@ -355,8 +356,10 @@ function ListRow({
       </Link>
 
       {/* Name + edit shortcut. Tappable on the whole block for fast access. */}
-      <div className="min-w-0 flex-[1.4]">
-        <p className="text-xs text-muted-3">
+      {/* Phones: name takes the rest of the first line (beside the
+          thumbnail) and the actions wrap to a second line under it. */}
+      <div className="min-w-0 basis-[calc(100%-90px)] sm:basis-auto sm:flex-[1.4]">
+        <p className="hidden text-xs text-muted-3 sm:block">
           QR name
         </p>
         <div className="mt-0.5 flex items-center gap-1.5">
@@ -381,6 +384,10 @@ function ListRow({
             </Link>
           )}
         </div>
+        <p className="inline-flex items-center gap-1.5 text-xs text-muted-3 sm:hidden">
+          <TypeIcon className="h-3.5 w-3.5" aria-hidden />
+          {tm.label}
+        </p>
         {adminLocked && (
           // Phone widths hide the status column, so say it here too.
           <p className="mt-0.5 inline-flex items-center gap-1 text-[11px] font-medium text-ink md:hidden">
@@ -483,7 +490,7 @@ function ListRow({
       {/* Scans — prominent pill (getqr style: "163 scans" / "2.2K scans"). */}
       <Link
         href={`/dashboard?qr=${q.id}`}
-        className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-lime px-3 text-xs font-medium text-ink transition hover:bg-lime-deep ${FOCUS} ${lockCls}`}
+        className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-lime px-3 max-sm:ml-[90px] text-xs font-medium text-ink transition hover:bg-lime-deep ${FOCUS} ${lockCls}`}
         title={locked ? "Inactive. Reactivate to view analytics" : "Open analytics"}
         tabIndex={locked ? -1 : undefined}
         aria-disabled={locked || undefined}

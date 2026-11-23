@@ -1,12 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
-  BarChart3, Download, Globe, Globe2, List, Monitor, Moon, MoreHorizontal,
-  Pencil, QrCode, ScanLine, Smartphone, Sparkles, Sun, Sunrise, Sunset, Users, X,
+  BarChart3, Download, Globe, Globe2, Monitor, Moon,
+  QrCode, ScanLine, Smartphone, Sparkles, Sun, Sunrise, Sunset, Users, X,
   type LucideIcon,
 } from "lucide-react";
 import QrThumb from "@/components/qr-thumb";
@@ -73,10 +72,11 @@ export default function OverviewClient({
             {/* At xl the side column takes the height of the chart column:
                 its content is absolutely filled, so "Best performing codes"
                 stretches down to the last chart and lists as many codes as
-                fit. Below xl it is ordinary stacked flow. */}
+                fit (scrolling inside only there). Below xl it is ordinary
+                stacked flow with no inner scroll, so touch scrolling never
+                gets trapped. */}
             <div className="xl:relative xl:min-h-[640px]">
               <div className="flex flex-col gap-6 xl:absolute xl:inset-0">
-                <RightRail bundle={bundle} filterQrId={filterQrId} />
                 <BestPerforming userQrs={bundle.userQrs} />
               </div>
             </div>
@@ -109,7 +109,7 @@ function PageHeader({
         title="Analytics Overview"
         sub={
           filterQrName
-            ? "Scan activity for one QR code. Pick another on the right to switch."
+            ? "Scan activity for one QR code. Use the QR filter to switch."
             : `${firstName ? `Welcome back, ${firstName}. ` : ""}Scans across all your QR codes.`
         }
         right={
@@ -351,208 +351,6 @@ function WidgetsRow({ bundle }: { bundle: AccountAnalyticsBundle }) {
   );
 }
 
-/* ────────────────────────── RIGHT RAIL ────────────────────────── */
-
-function RightRail({
-  bundle,
-  filterQrId,
-}: {
-  bundle: AccountAnalyticsBundle;
-  filterQrId: string | null;
-}) {
-  // Four rows visible; more scroll inside the card with a soft fade.
-  const hasOverflow = bundle.userQrs.length > 4;
-  const router = useRouter();
-  const params = useSearchParams();
-  // Clicking a QR sets ?qr=<id> on the Overview (router.replace, no
-  // scroll-jump). The rail keeps listing every QR with the active one marked.
-  function selectQr(id: string) {
-    const sp = new URLSearchParams(Array.from(params.entries()));
-    sp.set("qr", id);
-    router.replace(`?${sp.toString()}`, { scroll: false });
-  }
-  return (
-    <Card as="aside" aria-label="Your QR codes" className="shrink-0 p-5">
-      <CardHeader
-        title="Your QR codes"
-        note="Sorted by all-time scans"
-        right={
-          <Link
-            href="/dashboard/qr-codes"
-            className={`rounded-full font-body text-[13px] font-medium text-ink underline decoration-lime decoration-2 underline-offset-4 hover:decoration-ink ${FOCUS}`}
-          >
-            View all
-          </Link>
-        }
-      />
-      <div className="relative mt-4">
-        <ul
-          className={`-mx-1 space-y-1 px-1 ${
-            hasOverflow ? "overflow-y-auto [scroll-behavior:smooth] [scrollbar-width:thin]" : ""
-          }`}
-          style={{ maxHeight: hasOverflow ? "248px" : undefined }}
-        >
-          {bundle.userQrs.map((q) => (
-            <RailRow key={q.id} q={q} active={q.id === filterQrId} onSelect={() => selectQr(q.id)} />
-          ))}
-        </ul>
-        {hasOverflow && (
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-white to-transparent" aria-hidden />
-        )}
-      </div>
-    </Card>
-  );
-}
-
-function RailRow({
-  q,
-  active,
-  onSelect,
-}: {
-  q: AccountUserQr;
-  active: boolean;
-  onSelect: () => void;
-}) {
-  const [open, setOpen] = useState(false);
-  // The rail list can scroll on its own, which would clip an absolutely
-  // positioned dropdown. The menu is portalled to <body> and placed with
-  // fixed coordinates from the trigger, opening upward when there is no
-  // room below.
-  const [pos, setPos] = useState<{ top?: number; bottom?: number; right: number } | null>(null);
-  const rootRef = useRef<HTMLLIElement | null>(null);
-  const triggerRef = useRef<HTMLButtonElement | null>(null);
-  const menuRef = useRef<HTMLDivElement | null>(null);
-  useEffect(() => {
-    if (!open) return;
-    function onDown(e: MouseEvent) {
-      const t = e.target as Node;
-      if (!rootRef.current?.contains(t) && !menuRef.current?.contains(t)) setOpen(false);
-    }
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") {
-        setOpen(false);
-        triggerRef.current?.focus();
-      }
-    }
-    // Fixed coordinates go stale on scroll/resize; close rather than drift.
-    function onMove() {
-      setOpen(false);
-    }
-    document.addEventListener("mousedown", onDown);
-    document.addEventListener("keydown", onKey);
-    window.addEventListener("scroll", onMove, true);
-    window.addEventListener("resize", onMove);
-    return () => {
-      document.removeEventListener("mousedown", onDown);
-      document.removeEventListener("keydown", onKey);
-      window.removeEventListener("scroll", onMove, true);
-      window.removeEventListener("resize", onMove);
-    };
-  }, [open]);
-
-  function toggleMenu() {
-    if (open) {
-      setOpen(false);
-      return;
-    }
-    const r = triggerRef.current?.getBoundingClientRect();
-    if (r) {
-      const MENU_H = 150;
-      const right = Math.max(8, window.innerWidth - r.right);
-      setPos(
-        window.innerHeight - r.bottom < MENU_H + 12 && r.top > MENU_H + 12
-          ? { bottom: window.innerHeight - r.top + 4, right }
-          : { top: r.bottom + 4, right }
-      );
-    }
-    setOpen(true);
-  }
-
-  const inactive = q.status !== "active";
-  return (
-    <li ref={rootRef} className="relative">
-      <div
-        className={`flex items-center gap-1 rounded-2xl transition-colors ${
-          active ? "bg-lime/50 ring-1 ring-inset ring-ink/10" : "hover:bg-cream"
-        }`}
-      >
-        <button
-          type="button"
-          onClick={onSelect}
-          aria-pressed={active}
-          title={`Show analytics for ${q.name}`}
-          className={`flex min-w-0 flex-1 items-center gap-3 rounded-2xl p-2 text-left ${FOCUS}`}
-        >
-          <QrThumb
-            qrId={q.id}
-            bgColor={q.bg_color}
-            size={44}
-            className="rounded-xl border border-stone-dark p-0.5"
-          />
-          <span className="min-w-0 flex-1">
-            <span className="block truncate font-body text-sm font-medium text-ink">{q.name}</span>
-            <span className="block truncate font-body text-xs text-muted-3">
-              {q.kind === "dynamic" ? "Dynamic" : "Static"}
-              {inactive && <> · {q.status.replace(/_/g, " ")}</>}
-            </span>
-            <span className="block font-body text-xs tabular-nums text-muted-2">
-              {q.scan_count.toLocaleString()} {q.scan_count === 1 ? "scan" : "scans"}
-            </span>
-          </span>
-        </button>
-        <button
-          type="button"
-          ref={triggerRef}
-          onClick={toggleMenu}
-          aria-haspopup="menu"
-          aria-expanded={open}
-          aria-label={`More actions for ${q.name}`}
-          className={`mr-1 grid h-9 w-9 shrink-0 place-items-center rounded-full text-muted-2 hover:bg-white hover:text-ink ${FOCUS}`}
-        >
-          <MoreHorizontal className="h-4 w-4" />
-        </button>
-      </div>
-      {open && pos && createPortal(
-        <div
-          ref={menuRef}
-          role="menu"
-          style={{ position: "fixed", top: pos.top, bottom: pos.bottom, right: pos.right }}
-          className="z-50 w-48 overflow-hidden rounded-2xl border border-stone-dark bg-white p-1.5 font-body shadow-float"
-        >
-          <button
-            type="button"
-            role="menuitem"
-            onClick={() => {
-              setOpen(false);
-              onSelect();
-            }}
-            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-ink hover:bg-stone focus:outline-none focus-visible:ring-2 focus-visible:ring-ink/30"
-          >
-            <BarChart3 className="h-4 w-4" aria-hidden /> Show analytics
-          </button>
-          <Link
-            href={`/dashboard/qr/${q.id}`}
-            role="menuitem"
-            onClick={() => setOpen(false)}
-            className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-ink hover:bg-stone focus:outline-none focus-visible:ring-2 focus-visible:ring-ink/30"
-          >
-            <Pencil className="h-4 w-4" aria-hidden /> Edit QR code
-          </Link>
-          <Link
-            href="/dashboard/qr-codes"
-            role="menuitem"
-            onClick={() => setOpen(false)}
-            className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-ink hover:bg-stone focus:outline-none focus-visible:ring-2 focus-visible:ring-ink/30"
-          >
-            <List className="h-4 w-4" aria-hidden /> All QR codes
-          </Link>
-        </div>,
-        document.body,
-      )}
-    </li>
-  );
-}
-
 /* ────────────────────────── BEST PERFORMING ────────────────────────── */
 
 function BestPerforming({ userQrs }: { userQrs: AccountUserQr[] }) {
@@ -562,7 +360,7 @@ function BestPerforming({ userQrs }: { userQrs: AccountUserQr[] }) {
   const allScans = userQrs.reduce((s, q) => s + q.scan_count, 0);
   const max = Math.max(1, ...top.map((q) => q.scan_count));
   return (
-    <Card className="flex min-h-[320px] flex-1 flex-col overflow-hidden">
+    <Card className="flex flex-1 flex-col overflow-hidden xl:min-h-[320px]">
       <CardHeader title="Best performing codes" note="All-time scans, share of your total" className="px-5 pt-5" />
       {top.length === 0 ? (
         <EmptyState
@@ -572,7 +370,7 @@ function BestPerforming({ userQrs }: { userQrs: AccountUserQr[] }) {
           className="flex-1 py-10"
         />
       ) : (
-        <ol className="mt-3 min-h-0 flex-1 divide-y divide-stone overflow-y-auto border-t border-stone font-body [scrollbar-width:thin]">
+        <ol className="mt-3 min-h-0 flex-1 divide-y divide-stone border-t border-stone font-body xl:overflow-y-auto xl:[scrollbar-width:thin]">
           {top.map((q, i) => (
             <li key={q.id}>
               <Link

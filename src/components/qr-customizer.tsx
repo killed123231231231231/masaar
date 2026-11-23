@@ -521,7 +521,7 @@ function useDebouncedValue<T>(value: T, delay: number): T {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-3">{title}</h3>
+      <h3 className="font-heading text-base font-semibold text-ink">{title}</h3>
       <div className="mt-3">{children}</div>
     </div>
   );
