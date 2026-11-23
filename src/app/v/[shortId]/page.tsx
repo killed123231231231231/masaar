@@ -130,7 +130,14 @@ export default async function HostedAssetPage({
           href="/"
           className="text-xs font-medium text-white/40 transition-colors hover:text-white/70"
         >
-          Powered by <span className="font-semibold">Masaar</span>
+          Made with <span className="font-semibold">Vertexa QR</span>
+        </Link>
+        <span aria-hidden className="mx-2 text-xs text-white/25">·</span>
+        <Link
+          href={`/contact?topic=abuse&qr=${encodeURIComponent(shortId)}`}
+          className="text-xs text-white/55 transition-colors hover:text-white/80"
+        >
+          Report abuse
         </Link>
       </footer>
     </main>

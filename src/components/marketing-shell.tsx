@@ -124,6 +124,23 @@ export default async function MarketingShell({
           </div>
         )}
       </section>
+
+      <footer className="border-t border-charcoal/10 bg-sand-light">
+        <div className="mx-auto flex max-w-7xl flex-col gap-2 px-6 py-5 text-sm text-charcoal/60 sm:flex-row sm:items-center sm:justify-between">
+          <p>© {new Date().getFullYear()} Vertexa QR</p>
+          <p>
+            Powered by{" "}
+            <a
+              href="https://www.vertechxa.ai"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-charcoal/80 underline-offset-2 transition-colors hover:text-deep-teal hover:underline"
+            >
+              Vertexa
+            </a>
+          </p>
+        </div>
+      </footer>
     </main>
   );
 }

@@ -1120,7 +1120,17 @@ function SiteFooter() {
           <p>
             © {new Date().getFullYear()} Vertexa QR. All rights reserved.
           </p>
-          <p>Built for the GCC</p>
+          <p>
+            Built for the GCC · Powered by{" "}
+            <a
+              href="https://www.vertechxa.ai"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-charcoal/70 underline-offset-2 transition-colors hover:text-deep-teal hover:underline"
+            >
+              Vertexa
+            </a>
+          </p>
         </div>
       </div>
     </footer>
