@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { rateLimit, rateLimitedResponse } from "@/lib/rate-limit";
 
 // Change account email. Re-verifies the current password via
 // signInWithPassword before calling auth.updateUser({ email }) so a
@@ -15,6 +16,9 @@ export async function POST(request: Request) {
   } = await supabase.auth.getUser();
   if (!user || !user.email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  if (!(await rateLimit("account_email_user", user.id, 5, 3600)).ok) {
+    return rateLimitedResponse();
   }
 
   const body = (await request.json().catch(() => null)) as {

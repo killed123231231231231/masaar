@@ -12,6 +12,8 @@ import {
   CORNER_COUNT,
 } from "@/lib/palette";
 import type { QrCode } from "@/types/database";
+import { rateLimit, rateLimitedResponse } from "@/lib/rate-limit";
+import { ipHash as hashRequestIp } from "@/lib/ip-hash";
 
 // Boundary limits. A QR at error-correction level H can't encode much
 // more than ~1KB anyway, and structured payloads are tiny — so reject
@@ -54,6 +56,14 @@ export async function POST(request: Request) {
   if (bodyTooLarge(request)) {
     return NextResponse.json({ error: "Request body too large." }, { status: 413 });
   }
+
+  // Free public plan: 30 creates/hour per account AND 60/hour per network.
+  const ipKey = await hashRequestIp(request);
+  const [byUser, byIp] = await Promise.all([
+    rateLimit("qr_create_user", user.id, 30, 3600),
+    rateLimit("qr_create_ip", ipKey, 60, 3600),
+  ]);
+  if (!byUser.ok || !byIp.ok) return rateLimitedResponse();
 
   const body = await request.json();
 
@@ -177,6 +187,10 @@ export async function PATCH(request: Request) {
 
   if (bodyTooLarge(request)) {
     return NextResponse.json({ error: "Request body too large." }, { status: 413 });
+  }
+
+  if (!(await rateLimit("qr_update_user", user.id, 120, 3600)).ok) {
+    return rateLimitedResponse();
   }
 
   const body = await request.json();

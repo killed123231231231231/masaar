@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { randomBytes } from "crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendWelcomeEmail } from "@/lib/email";
+import { rateLimit, rateLimitedResponse } from "@/lib/rate-limit";
 import { ipHash as hashRequestIp } from "@/lib/ip-hash";
 
 // Email-holding frictionless checkout (spec §2). Node runtime — needs
@@ -17,6 +18,12 @@ const PROD = "https://quickqrcode.live";
 
 
 export async function POST(request: Request) {
+  // Generic limiter on top of the claim-count check below (fails open
+  // until migration 031 adds hit_rate_limit).
+  if (!(await rateLimit("checkout_anon_ip", await hashRequestIp(request), 5, 3600)).ok) {
+    return rateLimitedResponse();
+  }
+
   const body = await request.json().catch(() => null);
   if (!body) return NextResponse.json({ error: "invalid_body" }, { status: 400 });
 
