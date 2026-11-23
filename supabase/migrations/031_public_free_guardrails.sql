@@ -34,6 +34,9 @@ returns boolean
 language plpgsql security definer set search_path = public as $$
 declare n int;
 begin
+  -- Serialise count-then-insert per (bucket, subject) so a parallel burst
+  -- can't all read n < p_max and all pass.
+  perform pg_advisory_xact_lock(hashtextextended(p_bucket || ':' || p_subject, 0));
   select count(*) into n from public.rate_events
    where bucket = p_bucket and subject = p_subject
      and created_at > now() - make_interval(secs => p_window_seconds);
@@ -48,7 +51,9 @@ revoke execute on function public.hit_rate_limit(text, text, int, int) from anon
 grant execute on function public.hit_rate_limit(text, text, int, int) to service_role;
 
 -- ── 3. Per-user QR quota (free plan = 25), enforced in the DB ──────────────
--- Applies to NEW inserts only. profiles.qr_quota NULL = default 25; set a
+-- Applies to NEW inserts and to ownership changes (claim_draft_qrs adopting an
+-- anonymous draft sets user_id via UPDATE). Rows that keep their owner are
+-- never checked, so no existing QR is affected. profiles.qr_quota NULL = default 25; set a
 -- higher number per user (e.g. the owner account) to exempt.
 alter table public.profiles add column if not exists qr_quota integer;
 
@@ -57,6 +62,11 @@ returns trigger language plpgsql security definer set search_path = public as $$
 declare n int; q int;
 begin
   if new.user_id is null then return new; end if;
+  if tg_op = 'UPDATE' and new.user_id is not distinct from old.user_id then
+    return new;
+  end if;
+  -- Serialise per owner so concurrent creates/claims can't overshoot.
+  perform pg_advisory_xact_lock(hashtextextended(new.user_id::text, 0));
   select coalesce(qr_quota, 25) into q from public.profiles where id = new.user_id;
   q := coalesce(q, 25);
   select count(*) into n from public.qr_codes where user_id = new.user_id;
@@ -68,6 +78,11 @@ end $$;
 drop trigger if exists trg_enforce_qr_quota on public.qr_codes;
 create trigger trg_enforce_qr_quota before insert on public.qr_codes
   for each row execute function public.enforce_qr_quota();
+drop trigger if exists trg_enforce_qr_quota_owner_change on public.qr_codes;
+create trigger trg_enforce_qr_quota_owner_change before update of user_id on public.qr_codes
+  for each row
+  when (new.user_id is not null and new.user_id is distinct from old.user_id)
+  execute function public.enforce_qr_quota();
 
 -- profiles has an owner UPDATE policy (profiles_self_update, migration 001),
 -- so without this guard any signed-in user could raise their own qr_quota
@@ -107,9 +122,11 @@ begin
   if new.admin_locked is distinct from old.admin_locked then
     raise exception 'admin_only_field' using errcode = 'P0001';
   end if;
-  if old.admin_locked and (new.status is distinct from old.status
-                           or new.destination is distinct from old.destination
-                           or new.content_kind is distinct from old.content_kind) then
+  -- A locked row is frozen for end users: any column change (payload_json,
+  -- asset_url, is_active, password_hash, status, destination, ...) is refused.
+  -- updated_at is ignored because qr_codes_set_updated_at fires first.
+  if old.admin_locked
+     and (to_jsonb(new) - 'updated_at') is distinct from (to_jsonb(old) - 'updated_at') then
     raise exception 'qr_locked_by_admin' using errcode = 'P0001';
   end if;
   return new;
@@ -117,6 +134,49 @@ end $$;
 drop trigger if exists trg_guard_qr_update on public.qr_codes;
 create trigger trg_guard_qr_update before update on public.qr_codes
   for each row execute function public.guard_qr_update();
+
+-- A locked row can't be deleted by its owner either (otherwise delete +
+-- re-create with the same short_id would undo the takedown). If the service
+-- role does delete a locked row, its short_id is retired so it can never be
+-- reused by a new QR.
+create table if not exists public.retired_short_ids (
+  short_id text primary key,
+  retired_at timestamptz not null default now()
+);
+alter table public.retired_short_ids enable row level security; -- no policies: service role only
+
+create or replace function public.guard_qr_delete()
+returns trigger language plpgsql set search_path = public as $$
+begin
+  if not old.admin_locked then return old; end if;
+  if current_setting('request.jwt.claim.role', true) = 'service_role'
+     or current_user in ('postgres', 'service_role', 'supabase_admin') then
+    if old.short_id is not null then
+      insert into public.retired_short_ids(short_id) values (old.short_id)
+        on conflict (short_id) do nothing;
+    end if;
+    return old;
+  end if;
+  raise exception 'qr_locked_by_admin' using errcode = 'P0001';
+end $$;
+drop trigger if exists trg_guard_qr_delete on public.qr_codes;
+create trigger trg_guard_qr_delete before delete on public.qr_codes
+  for each row execute function public.guard_qr_delete();
+
+-- New QRs can't take a retired short_id. Raised as unique_violation (23505)
+-- so POST /api/qr and create_anon_qr regenerate an id and retry.
+create or replace function public.guard_qr_short_id_retired()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  if new.short_id is not null
+     and exists (select 1 from public.retired_short_ids r where r.short_id = new.short_id) then
+    raise exception 'short_id_retired' using errcode = '23505';
+  end if;
+  return new;
+end $$;
+drop trigger if exists trg_guard_qr_short_id_retired on public.qr_codes;
+create trigger trg_guard_qr_short_id_retired before insert on public.qr_codes
+  for each row execute function public.guard_qr_short_id_retired();
 
 -- ── 5. Upload caps for NEW files (existing files are untouched) ────────────
 update storage.buckets set file_size_limit = 5242880  where id = 'qr-pdfs';   -- 5 MB
