@@ -116,6 +116,18 @@ export default function MobileNav({
             Create QR code
             <ChevronRight className="h-4 w-4" aria-hidden />
           </Link>
+          {isAuthed && (
+            // Same POST sign-out the dashboard uses; the avatar menu is
+            // hidden on phones, so the sheet carries it.
+            <form action="/auth/signout" method="post">
+              <button
+                type="submit"
+                className={`flex h-12 w-full items-center justify-center rounded-full bg-stone px-5 text-base font-medium text-ink transition-colors hover:bg-stone-dark ${ring}`}
+              >
+                Sign out
+              </button>
+            </form>
+          )}
           {!isAuthed && (
             <button
               type="button"

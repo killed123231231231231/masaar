@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import Reveal from "@/components/motion/reveal";
 import { SecondaryButton } from "@/components/site/buttons";
 import { Container, SectionTitle, focusRing } from "@/components/site/section";
+import FaqCard from "@/components/site/home/faq-card";
 
 const FAQS: { q: string; a: ReactNode }[] = [
   {
@@ -58,19 +59,10 @@ export default function Faq() {
       <Container>
         <SectionTitle id="faq-title">Questions, answered</SectionTitle>
 
-        <div className="mt-10 columns-1 gap-5 md:mt-14 md:columns-2 lg:columns-3">
+        <div className="mt-8 columns-1 gap-5 md:mt-14 md:columns-2 lg:columns-3">
           {FAQS.map((f, i) => (
-            <Reveal key={f.q} delay={(i % 3) * 80} className="mb-5 break-inside-avoid">
-              <article className="relative overflow-hidden rounded-card border border-stone-dark bg-white p-6 transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-card md:p-7">
-                <span
-                  aria-hidden
-                  className="pointer-events-none absolute -right-1 -top-6 select-none font-heading text-[128px] font-semibold leading-none text-ink/[0.04]"
-                >
-                  ?
-                </span>
-                <h3 className="relative pr-8 font-heading text-lg font-medium leading-[1.3] text-ink">{f.q}</h3>
-                <p className="relative mt-3 font-body text-base leading-[1.45] text-muted-2">{f.a}</p>
-              </article>
+            <Reveal key={f.q} delay={(i % 3) * 80} className="mb-3 break-inside-avoid md:mb-5">
+              <FaqCard q={f.q}>{f.a}</FaqCard>
             </Reveal>
           ))}
         </div>

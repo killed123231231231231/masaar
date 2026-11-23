@@ -79,10 +79,12 @@ export function AppWindow({
           <span className="h-2.5 w-2.5 rounded-full bg-stone-dark" />
           <span className="h-2.5 w-2.5 rounded-full bg-stone-dark" />
         </div>
-        <div className="mx-auto flex h-6 min-w-0 max-w-[260px] flex-1 items-center justify-center truncate rounded-md bg-white px-3 text-[11px] text-muted-3 ring-1 ring-ink/[0.05]">
-          {path}
+        <div className="mx-auto flex h-6 min-w-0 max-w-[260px] flex-1 items-center justify-center rounded-md bg-white px-3 text-[11px] text-muted-3 ring-1 ring-ink/[0.05]">
+          {/* The span truncates; truncating the centring flex box itself
+              clipped both ends on phones ("uickqrcode.live/dashboard/c"). */}
+          <span className="min-w-0 truncate">{path}</span>
         </div>
-        <div className="w-[42px]" />
+        <div className="hidden w-[42px] sm:block" />
       </div>
       <div className="flex min-h-0 flex-1">
         {sidebar && (

@@ -70,7 +70,7 @@ export default function Orbit() {
                         className="-translate-x-1/2 -translate-y-1/2"
                       >
                         <div
-                          className="grid h-[60px] w-[60px] animate-spin-slow place-items-center rounded-full border border-stone-dark bg-white shadow-card"
+                          className="grid h-[84px] w-[84px] animate-spin-slow place-items-center rounded-full border border-stone-dark bg-white shadow-card sm:h-[60px] sm:w-[60px]"
                           style={
                             {
                               animationDuration: ring.duration,
@@ -79,7 +79,7 @@ export default function Orbit() {
                           }
                           title={label}
                         >
-                          <Icon className="h-6 w-6 text-ink" />
+                          <Icon className="h-9 w-9 text-ink sm:h-6 sm:w-6" />
                         </div>
                       </div>
                     </div>

@@ -28,7 +28,7 @@ export function Wordmark({ className = "" }: { className?: string }) {
   return (
     <span className={`flex items-center gap-2.5 ${className}`}>
       <LogoMark className="h-8 w-8 shrink-0" />
-      <span className="font-heading text-[22px] font-extrabold leading-none tracking-[-0.03em] text-ink sm:text-[26px]">
+      <span className="whitespace-nowrap font-heading text-[22px] font-extrabold leading-none tracking-[-0.03em] text-ink sm:text-[26px]">
         Vertexa QR
       </span>
     </span>
@@ -75,7 +75,11 @@ export default function SiteHeader({
               <PrimaryButton href="/create" className="hidden sm:inline-flex">
                 Create QR code
               </PrimaryButton>
-              <HeaderProfileMenu email={userEmail} />
+              {/* Phones: the account lives in the menu sheet, so the bar
+                  keeps room for the logo and the Create button. */}
+              <div className="hidden sm:block">
+                <HeaderProfileMenu email={userEmail} />
+              </div>
             </>
           ) : (
             <>

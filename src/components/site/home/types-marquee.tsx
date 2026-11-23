@@ -50,10 +50,10 @@ function Row({ items, hidden = false }: { items: Item[]; hidden?: boolean }) {
       {items.map(({ label, icon: Icon, well }) => (
         <li
           key={label}
-          className="flex shrink-0 items-center gap-3.5 rounded-full border border-stone-dark/70 bg-white py-2 pl-2 pr-6 font-heading text-lg font-medium text-ink shadow-card transition-transform duration-300 ease-out hover:-translate-y-1 motion-reduce:transition-none motion-reduce:hover:translate-y-0 md:text-xl"
+          className="flex shrink-0 items-center gap-2.5 rounded-full border border-stone-dark/70 bg-white py-1.5 pl-1.5 pr-4 font-heading text-base font-medium md:gap-3.5 md:py-2 md:pl-2 md:pr-6 md:text-lg text-ink shadow-card transition-transform duration-300 ease-out hover:-translate-y-1 motion-reduce:transition-none motion-reduce:hover:translate-y-0 md:text-xl"
         >
-          <span className={`grid h-14 w-14 shrink-0 place-items-center rounded-full ${well}`}>
-            <Icon className="h-6 w-6 text-ink" strokeWidth={1.9} aria-hidden />
+          <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-full md:h-14 md:w-14 ${well}`}>
+            <Icon className="h-5 w-5 text-ink md:h-6 md:w-6" strokeWidth={1.9} aria-hidden />
           </span>
           {label}
         </li>

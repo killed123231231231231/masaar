@@ -415,7 +415,10 @@ export function DesignStudioScreen() {
         {samples.map((s, i) => (
           <div
             key={s.label}
-            className={`rounded-xl p-1.5 ${i === 1 ? "ring-2 ring-ink" : "ring-1 ring-ink/[0.07]"}`}
+            className={`rounded-xl p-1.5 ${i === 1 ? "ring-2 ring-ink" : "ring-1 ring-ink/[0.07]"} ${
+              // Phones show one full row; a half-cut second row looked broken.
+              i >= 3 ? "hidden sm:block" : ""
+            }`}
           >
             <div className={`grid place-items-center rounded-lg p-2.5 sm:p-3 ${s.tile}`}>{s.node}</div>
             <div className="mt-1.5 flex items-center justify-between px-1 text-[11px] font-medium">

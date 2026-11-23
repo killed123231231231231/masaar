@@ -128,7 +128,7 @@ export default function ProductTabs() {
         role="tablist"
         aria-label="Product preview"
         onKeyDown={onKeyDown}
-        className="-mx-4 flex snap-x gap-1.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:justify-center sm:px-0 [&::-webkit-scrollbar]:hidden"
+        className="grid grid-cols-5 gap-1 sm:flex sm:justify-center sm:gap-1.5"
       >
         {TABS.map((t, i) => {
           const selected = i === index;
@@ -146,12 +146,12 @@ export default function ProductTabs() {
               aria-controls="ppanel"
               tabIndex={selected ? 0 : -1}
               onClick={() => setIndex(i)}
-              className={`inline-flex h-10 shrink-0 snap-start items-center gap-2 rounded-full px-4 font-body text-base font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/30 ${
+              className={`inline-flex min-w-0 shrink-0 flex-col items-center justify-center gap-1 rounded-2xl px-1 py-2 font-body text-[11px] font-medium transition-colors duration-200 sm:h-10 sm:flex-row sm:gap-2 sm:rounded-full sm:px-4 sm:py-0 sm:text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/30 ${
                 selected ? "bg-stone text-ink" : "text-muted hover:bg-stone/60 hover:text-ink"
               }`}
             >
-              <Icon className="h-[18px] w-[18px]" strokeWidth={2} aria-hidden />
-              {t.label}
+              <Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={2} aria-hidden />
+              <span className="max-w-full truncate">{t.label}</span>
             </button>
           );
         })}
