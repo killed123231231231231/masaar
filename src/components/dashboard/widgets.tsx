@@ -12,6 +12,7 @@ import {
 import { PERIODS, type Bucket, type Period } from "@/lib/analytics";
 import { Card, CardHeader, FOCUS, IconWell } from "@/components/dashboard/ui";
 import SelectMenu from "@/components/dashboard/select-menu";
+import { GRANULARITY_LABEL, bucketTrend, type TrendPoint } from "@/components/dashboard/trend-buckets";
 
 // Chart palette for the 2026-11 redesign: ink, lime, lilac, sky, mint, blush.
 export const PALETTE = ["#1A1A1A", "#DBFC74", "#E3B8FF", "#A9CCFF", "#8EF0B9", "#FFC2E2"];
@@ -211,7 +212,7 @@ export function TrendCard({
   title?: string;
 }) {
   const gid = useId().replace(/:/g, "");
-  const data = series.map((b) => ({ date: shortDay(b.label), count: b.count }));
+  const { granularity, points: data } = bucketTrend(series, period);
   const hasData = data.some((d) => d.count > 0);
   const showDots = data.length <= 31;
   return (
@@ -224,9 +225,17 @@ export function TrendCard({
           </span>
         }
         right={
-          <span className="inline-flex h-8 items-center rounded-full bg-stone px-3 font-body text-xs font-medium text-ink">
-            Daily
-          </span>
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Granularity follows the range: daily up to 30 days, weekly
+                for 90 days, weekly or monthly for all time. */}
+            <span
+              className="inline-flex h-8 items-center rounded-full bg-stone px-3 font-body text-xs font-medium text-ink"
+              title={`One point per ${granularity}`}
+            >
+              {GRANULARITY_LABEL[granularity]}
+            </span>
+            <PeriodSelect current={period} size="sm" align="right" />
+          </div>
         }
       />
       <div className="mt-5 h-64 w-full sm:h-72">
@@ -283,13 +292,13 @@ function TrendTooltip({
 }: {
   active?: boolean;
   label?: string | number;
-  payload?: { value?: number | string }[];
+  payload?: { value?: number | string; payload?: TrendPoint }[];
 }) {
   if (!active || !payload?.length) return null;
   const count = Number(payload[0]?.value ?? 0);
   return (
     <div className="rounded-2xl border border-stone-dark bg-white px-3 py-2 font-body shadow-float">
-      <p className="text-[11px] text-muted-3">{label}</p>
+      <p className="text-[11px] text-muted-3">{payload[0]?.payload?.full ?? label}</p>
       <p className="mt-0.5 text-xs text-muted-2">
         Scans <span className="ml-1 font-heading text-sm font-semibold text-ink">{count.toLocaleString()}</span>
       </p>
