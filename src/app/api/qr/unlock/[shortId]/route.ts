@@ -2,17 +2,10 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { signUnlock, unlockCookieName, UNLOCK_TTL_MS } from "@/lib/unlock-token";
+import { ipHash as hashRequestIp } from "@/lib/ip-hash";
 
 export const runtime = "nodejs";
 
-async function sha256_16(input: string): Promise<string> {
-  const bytes = new TextEncoder().encode(input);
-  const digest = await crypto.subtle.digest("SHA-256", bytes);
-  return Array.from(new Uint8Array(digest))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("")
-    .slice(0, 16);
-}
 
 export async function POST(
   request: Request,
@@ -39,11 +32,7 @@ export async function POST(
     return NextResponse.json({ error: "not_protected" }, { status: 404 });
   }
 
-  const ip =
-    request.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
-    request.headers.get("x-real-ip") ||
-    "0.0.0.0";
-  const ipHash = await sha256_16(ip);
+  const ipHash = await hashRequestIp(request);
 
   // Lockout: 5 wrong attempts per (shortId, ip) in 15 minutes.
   const since = new Date(Date.now() - 15 * 60 * 1000).toISOString();

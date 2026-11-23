@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { ipHash as hashRequestIp } from "@/lib/ip-hash";
 
 export const runtime = "nodejs";
 
@@ -16,14 +16,6 @@ const ALLOWED_MIME = new Set(["image/png", "image/jpeg", "image/svg+xml"]);
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-async function sha256_16(input: string): Promise<string> {
-  const bytes = new TextEncoder().encode(input);
-  const digest = await crypto.subtle.digest("SHA-256", bytes);
-  return Array.from(new Uint8Array(digest))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("")
-    .slice(0, 16);
-}
 
 function extFromMime(mime: string): string {
   if (mime === "image/png") return "png";
@@ -65,17 +57,17 @@ export async function POST(request: Request) {
     );
   }
 
-  // Rate-limit by IP via the SECURITY DEFINER RPC. Uses the regular
-  // server client (RPC is anon-grant-execute) — doesn't need the
-  // admin client.
-  const ip =
-    request.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
-    request.headers.get("x-real-ip") ||
-    "0.0.0.0";
-  const ipHash = await sha256_16(ip);
+  // Rate-limit by IP via the SECURITY DEFINER RPC, called with the service
+  // role and a server-computed hash (migration 031 revokes anon execute).
+  const ipHash = await hashRequestIp(request);
 
-  const supa = await createClient();
-  const { error: rlErr } = await supa.rpc("record_anon_logo_upload", {
+  let admin;
+  try {
+    admin = createAdminClient();
+  } catch {
+    return NextResponse.json({ error: "upload_unavailable" }, { status: 503 });
+  }
+  const { error: rlErr } = await admin.rpc("record_anon_logo_upload", {
     p_ip_hash: ipHash,
     p_draft_token: draftToken,
   });
@@ -92,17 +84,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: rlErr.message }, { status: 400 });
   }
 
-  // Storage upload via service-role admin client — bypasses anon-write
+  // Storage upload via the same service-role client — bypasses anon-write
   // RLS so we don't need a public-anon-INSERT policy on storage.objects.
-  let admin;
-  try {
-    admin = createAdminClient();
-  } catch {
-    return NextResponse.json(
-      { error: "render_unavailable" },
-      { status: 503 }
-    );
-  }
 
   const ext = extFromMime(file.type);
   const path = `anon/${draftToken}/${crypto.randomUUID()}.${ext}`;

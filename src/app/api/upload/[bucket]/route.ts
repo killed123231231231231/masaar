@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { ipHash as hashRequestIp } from "@/lib/ip-hash";
 
 export const runtime = "nodejs";
 
@@ -38,14 +39,6 @@ const BUCKETS: Record<
   },
 };
 
-async function sha256_16(input: string): Promise<string> {
-  const bytes = new TextEncoder().encode(input);
-  const digest = await crypto.subtle.digest("SHA-256", bytes);
-  return Array.from(new Uint8Array(digest))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("")
-    .slice(0, 16);
-}
 
 export async function POST(
   request: Request,
@@ -103,12 +96,16 @@ export async function POST(
   // authed), via the dedicated record_file_upload limiter (migration 023).
   // This caps both anonymous floods and logged-in abuse — videos are the
   // priciest payload, so this count cap pairs with the 25 MB size cap.
-  const ip =
-    request.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
-    request.headers.get("x-real-ip") ||
-    "0.0.0.0";
-  const ipHash = await sha256_16(ip);
-  const { error: rlErr } = await supa.rpc("record_file_upload", {
+  const ipHash = await hashRequestIp(request);
+  // Service role: migration 031 revokes anon/authenticated execute on the
+  // limiter so a caller can't pass its own p_ip_hash.
+  let admin;
+  try {
+    admin = createAdminClient();
+  } catch {
+    return NextResponse.json({ error: "upload_unavailable" }, { status: 503 });
+  }
+  const { error: rlErr } = await admin.rpc("record_file_upload", {
     p_ip_hash: ipHash,
     p_user_id: user?.id ?? null,
   });
@@ -126,12 +123,6 @@ export async function POST(
   }
 
   // Service-role upload — the buckets have no client-write policy.
-  let admin;
-  try {
-    admin = createAdminClient();
-  } catch {
-    return NextResponse.json({ error: "upload_unavailable" }, { status: 503 });
-  }
 
   const path = `${prefix}/${crypto.randomUUID()}.${ext}`;
   const bytes = new Uint8Array(await file.arrayBuffer());
