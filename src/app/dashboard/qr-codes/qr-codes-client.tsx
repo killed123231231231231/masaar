@@ -8,13 +8,14 @@ import {
   Wifi, Trash2, QrCode as QrCodeIcon, type LucideIcon,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import StyledQr from "@/components/styled-qr";
 import { createQr } from "@/lib/qr";
 import { appUrl } from "@/lib/utils";
 import type { SidebarMe } from "@/components/dashboard/sidebar";
 import DashboardFrame from "@/components/dashboard/frame";
+import Pagination from "@/components/dashboard/pagination";
 import {
   Card, EmptyState as EmptyBlock, FOCUS, PageTitle, PrimaryButton,
 } from "@/components/dashboard/ui";
@@ -119,6 +120,8 @@ function PageHeader({ total }: { total: number }) {
 
 /* ───────────────────────────── LIST ───────────────────────────── */
 
+const PAGE_SIZE = 10;
+
 function ListBlock({
   qrs,
   counts,
@@ -126,7 +129,8 @@ function ListBlock({
   qrs: QrCardData[];
   counts: Record<string, number>;
 }) {
-  const [query, setQuery] = useState("");
+  const params = useSearchParams();
+  const [query, setQuery] = useState(() => params.get("q") ?? "");
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return qrs;
@@ -138,16 +142,50 @@ function ListBlock({
     );
   }, [qrs, query]);
 
+  // ?page= drives pagination, ?q= keeps the search across reloads and back.
+  // Both are written with the History API (Next keeps useSearchParams in
+  // sync) so paging and typing never trigger a server round trip.
+  const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const page = Math.min(pages, Math.max(1, Number.parseInt(params.get("page") ?? "1", 10) || 1));
+  const visible = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const listTop = useRef<HTMLDivElement | null>(null);
+
+  function writeParams(mutate: (sp: URLSearchParams) => void, mode: "push" | "replace") {
+    const sp = new URLSearchParams(Array.from(params.entries()));
+    mutate(sp);
+    const qs = sp.toString();
+    const url = qs ? `?${qs}` : window.location.pathname;
+    if (mode === "push") window.history.pushState(null, "", url);
+    else window.history.replaceState(null, "", url);
+  }
+
+  function onSearch(v: string) {
+    setQuery(v);
+    writeParams((sp) => {
+      if (v.trim()) sp.set("q", v);
+      else sp.delete("q");
+      sp.delete("page");
+    }, "replace");
+  }
+
+  function goTo(p: number) {
+    writeParams((sp) => {
+      if (p <= 1) sp.delete("page");
+      else sp.set("page", String(p));
+    }, "push");
+    listTop.current?.scrollIntoView({ block: "start" });
+  }
+
   return (
     <>
-      <div className="flex flex-wrap items-center gap-2">
+      <div ref={listTop} className="flex scroll-mt-6 flex-wrap items-center gap-2">
         <label className="relative min-w-[200px] max-w-md flex-1">
           <span className="sr-only">Search QR codes</span>
           <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-3" aria-hidden />
           <input
             type="search"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => onSearch(e.target.value)}
             placeholder="Search by name, short link or destination"
             className="h-11 w-full rounded-full border border-stone-dark bg-white pl-10 pr-4 font-body text-sm text-ink placeholder:text-muted-4 outline-none transition-colors focus:border-ink/40 focus:ring-2 focus:ring-ink/10"
           />
@@ -172,15 +210,25 @@ function ListBlock({
               absolutely positioned dropdown, and clipping it to the list
               box cut the menu off on the last/only row. Corner rounding is
               handled per row (first:/last:) so the card still looks clipped. */}
-          {filtered.map((q, i) => (
+          {visible.map((q, i) => (
             <ListRow
               key={q.id}
               q={q}
               scans={counts[q.id] ?? 0}
-              isLast={i === filtered.length - 1}
+              isLast={i === visible.length - 1}
             />
           ))}
         </ul>
+      )}
+
+      {pages > 1 && (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="font-body text-[13px] text-muted-3">
+            Showing {(page - 1) * PAGE_SIZE + 1} to {Math.min(page * PAGE_SIZE, filtered.length)} of{" "}
+            {filtered.length}
+          </p>
+          <Pagination page={page} pages={pages} onChange={goTo} label="QR code pages" />
+        </div>
       )}
     </>
   );
