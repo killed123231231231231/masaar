@@ -54,12 +54,12 @@ export default function SiteHeader({
           <Wordmark />
         </Link>
 
-        <nav aria-label="Main" className="hidden items-center gap-1 lg:flex">
+        <nav aria-label="Main" className="hidden items-center gap-0.5 lg:flex xl:gap-1">
           {SITE_NAV.map((item) => (
             <Link
               key={item.label}
               href={item.href}
-              className={`rounded-full px-3.5 py-2 font-body text-base font-medium text-ink transition-colors duration-200 hover:bg-stone ${focusRing}`}
+              className={`whitespace-nowrap rounded-full px-2.5 py-2 font-body text-base font-medium text-ink xl:px-3.5 transition-colors duration-200 hover:bg-stone ${focusRing}`}
             >
               {item.label}
             </Link>
