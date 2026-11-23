@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import TurnstileWidget, { turnstileEnabled } from "@/components/turnstile-widget";
 import Link from "next/link";
 import { Check, Mail, MessageSquare, Phone, User } from "lucide-react";
 import LogoMark from "@/components/logo-mark";
@@ -18,9 +19,27 @@ export default function ContactPage() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+  const [captcha, setCaptcha] = useState<string | null>(null);
+  const [captchaReset, setCaptchaReset] = useState(0);
+  const [abuseReport, setAbuseReport] = useState(false);
+
+  // Abuse reports: scan pages link to /contact?topic=abuse&qr=<shortId>.
+  // Read from window (not useSearchParams) so the page needs no Suspense.
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    if (q.get("topic") !== "abuse") return;
+    const shortId = (q.get("qr") ?? "").trim();
+    const safeId = /^[A-Za-z0-9_-]{1,32}$/.test(shortId) ? shortId : "";
+    setAbuseReport(true);
+    setMessage((m) => m || (safeId ? `Reporting QR code ${safeId} for abuse: ` : "Reporting a QR code for abuse: "));
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (turnstileEnabled && !captcha) {
+      setErr("Please complete the verification below.");
+      return;
+    }
     setLoading(true);
     setErr(null);
     try {
@@ -34,11 +53,13 @@ export default function ContactPage() {
           phone: phone.trim() === "+966" ? "" : phone,
           message,
           preferred_time: preferred,
+          turnstile_token: captcha,
         }),
       });
       const data = await res.json().catch(() => null);
       if (!res.ok) {
         setErr(data?.message || data?.error || "Couldn’t submit your request.");
+        setCaptchaReset((n) => n + 1); // tokens are single-use
         setLoading(false);
         return;
       }
@@ -128,6 +149,12 @@ export default function ContactPage() {
                 />
               </div>
 
+              {abuseReport && (
+                <p className="mt-5 text-sm text-charcoal/65">
+                  Reports are reviewed by the Vertexa QR team.
+                </p>
+              )}
+
               <label className="mt-5 block">
                 <span className="mb-1.5 inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-charcoal/55">
                   <MessageSquare className="h-3.5 w-3.5" /> What do you want to discuss?
@@ -142,6 +169,12 @@ export default function ContactPage() {
                   className="w-full rounded-lg border border-charcoal/15 px-3 py-2.5 text-sm outline-none focus:border-deep-teal focus:ring-2 focus:ring-deep-teal/20"
                 />
               </label>
+
+              <TurnstileWidget
+                className="mt-5"
+                onToken={setCaptcha}
+                resetKey={captchaReset}
+              />
 
               {err && (
                 <p className="mt-4 rounded-md border border-terracotta/25 bg-terracotta/5 p-3 text-sm text-terracotta-dark">

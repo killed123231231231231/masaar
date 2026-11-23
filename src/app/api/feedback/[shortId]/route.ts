@@ -1,19 +1,12 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { ipHash as hashRequestIp } from "@/lib/ip-hash";
 
 export const runtime = "nodejs";
 
 // Session D — anonymous feedback submission. Resolves the shortId to a
 // feedback QR, hashes the IP, and inserts via the SECURITY DEFINER
 // submit_feedback RPC (which enforces the per-IP-per-QR rate limit).
-async function sha256_16(input: string): Promise<string> {
-  const bytes = new TextEncoder().encode(input);
-  const digest = await crypto.subtle.digest("SHA-256", bytes);
-  return Array.from(new Uint8Array(digest))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("")
-    .slice(0, 16);
-}
 
 export async function POST(
   request: Request,
@@ -45,11 +38,7 @@ export async function POST(
     .maybeSingle();
   if (!qr) return NextResponse.json({ error: "not_found" }, { status: 404 });
 
-  const ip =
-    request.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
-    request.headers.get("x-real-ip") ||
-    "0.0.0.0";
-  const ipHash = await sha256_16(ip);
+  const ipHash = await hashRequestIp(request);
 
   const { error } = await admin.rpc("submit_feedback", {
     p_qr_code_id: qr.id,

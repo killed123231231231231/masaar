@@ -172,11 +172,15 @@ export default function QrCustomizer({ initialShortId, onSave, saving, allowLogo
 
   async function handleLogo(file: File) {
     setLogoErr(null);
-    const okType = ["image/png", "image/jpeg", "image/svg+xml"].includes(
-      file.type
-    );
-    if (!okType) {
-      setLogoErr("PNG, JPG or SVG only.");
+    // SVG is refused: the `logos` bucket is public and SVG can carry script
+    // (migration 031 enforces the same list on the bucket).
+    const logoExt: Record<string, string> = {
+      "image/png": "png",
+      "image/jpeg": "jpg",
+      "image/webp": "webp",
+    };
+    if (!logoExt[file.type]) {
+      setLogoErr("PNG, JPG or WebP only.");
       return;
     }
     if (file.size > 500 * 1024) {
@@ -193,7 +197,7 @@ export default function QrCustomizer({ initialShortId, onSave, saving, allowLogo
         setLogoErr("Sign in to upload a logo.");
         return;
       }
-      const ext = file.name.split(".").pop()?.toLowerCase() || "png";
+      const ext = logoExt[file.type];
       // Path must start with the uploader's auth.uid() — the
       // logos_owner_upload storage policy checks foldername[1].
       const path = `${user.id}/${shortId}/${crypto.randomUUID()}.${ext}`;
@@ -451,7 +455,7 @@ export default function QrCustomizer({ initialShortId, onSave, saving, allowLogo
                   {logoBusy ? "Uploading…" : logoUrl ? "Replace" : "Upload logo"}
                   <input
                     type="file"
-                    accept="image/png,image/jpeg,image/svg+xml"
+                    accept="image/png,image/jpeg,image/webp"
                     className="hidden"
                     disabled={logoBusy}
                     onChange={(e) => {
@@ -475,7 +479,7 @@ export default function QrCustomizer({ initialShortId, onSave, saving, allowLogo
                 <p className="mt-1 text-xs text-red-600">{logoErr}</p>
               )}
               <p className="mt-1 text-xs text-charcoal/45">
-                PNG, JPG or SVG · under 500 KB · embedded in the QR center
+                PNG, JPG or WebP · under 500 KB · embedded in the QR center
               </p>
             </div>
           )}

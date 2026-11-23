@@ -1,17 +1,11 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { sendContactNotification } from "@/lib/email";
+import { clientIp, ipHash as hashRequestIp } from "@/lib/ip-hash";
+import { verifyTurnstile } from "@/lib/turnstile";
 
 export const runtime = "nodejs";
 
-async function sha256_16(input: string): Promise<string> {
-  const bytes = new TextEncoder().encode(input);
-  const digest = await crypto.subtle.digest("SHA-256", bytes);
-  return Array.from(new Uint8Array(digest))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("")
-    .slice(0, 16);
-}
 
 // Receives the /contact form, validates, hashes the IP, hands off to the
 // submit_contact_request SECURITY DEFINER RPC (which enforces a 3/hr per
@@ -25,6 +19,7 @@ export async function POST(request: Request) {
     phone?: string;
     message?: string;
     preferred_time?: string;
+    turnstile_token?: string;
   } | null;
   try {
     body = await request.json();
@@ -50,13 +45,24 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "field_too_long" }, { status: 400 });
   }
 
-  const ip =
-    request.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
-    request.headers.get("x-real-ip") ||
-    "0.0.0.0";
-  const ipHash = await sha256_16(ip);
+  // Bot check (no-op until TURNSTILE_SECRET_KEY is set).
+  if (!(await verifyTurnstile(body?.turnstile_token, clientIp(request)))) {
+    return NextResponse.json(
+      { error: "captcha_failed", message: "Please complete the verification and try again." },
+      { status: 400 }
+    );
+  }
 
-  const supabase = await createClient();
+  const ipHash = await hashRequestIp(request);
+
+  // Service role: migration 031 revokes anon execute on this limiter so a
+  // caller can't rotate p_ip_hash. The hash is computed server-side above.
+  let supabase;
+  try {
+    supabase = createAdminClient();
+  } catch {
+    return NextResponse.json({ error: "unavailable" }, { status: 503 });
+  }
   const { error } = await supabase.rpc("submit_contact_request", {
     p_name: name,
     p_email: email,

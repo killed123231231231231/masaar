@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { ipHash as hashRequestIp } from "@/lib/ip-hash";
 
 export const runtime = "nodejs";
 
@@ -21,40 +22,53 @@ const BUCKETS: Record<
   string,
   { mime: Record<string, string>; max: number; label: string }
 > = {
+  // Free-plan caps (migration 031 sets the same bucket limits).
   "qr-pdfs": {
     mime: { "application/pdf": "pdf" },
-    max: 10 * 1024 * 1024,
-    label: "PDF, up to 10 MB",
+    max: 5 * 1024 * 1024,
+    label: "PDF, up to 5 MB",
   },
   "qr-images": {
     mime: { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" },
-    max: 5 * 1024 * 1024,
-    label: "JPG, PNG or WebP, up to 5 MB",
-  },
-  "qr-videos": {
-    mime: { "video/mp4": "mp4", "video/webm": "webm", "video/quicktime": "mov" },
-    max: 40 * 1024 * 1024,
-    label: "MP4, WebM or MOV, up to 40 MB",
+    max: 2 * 1024 * 1024,
+    label: "JPG, PNG or WebP, up to 2 MB",
   },
 };
 
-async function sha256_16(input: string): Promise<string> {
-  const bytes = new TextEncoder().encode(input);
-  const digest = await crypto.subtle.digest("SHA-256", bytes);
-  return Array.from(new Uint8Array(digest))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("")
-    .slice(0, 16);
-}
+// Multipart framing (boundaries, part headers, the draft_token field) on top
+// of the file bytes. Used only for the early Content-Length reject.
+const MULTIPART_OVERHEAD = 64 * 1024;
+
 
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ bucket: string }> }
 ) {
   const { bucket } = await params;
+  // No new video uploads on the free plan. Existing video QRs keep playing
+  // from the qr-videos bucket (Rule 0); only new writes are refused.
+  if (bucket === "qr-videos") {
+    return NextResponse.json(
+      {
+        error: "video_disabled",
+        message:
+          "Video uploads aren't available on the free plan. Paste a YouTube or Vimeo link instead.",
+      },
+      { status: 403 }
+    );
+  }
   const cfg = BUCKETS[bucket];
   if (!cfg) {
     return NextResponse.json({ error: "unknown_bucket" }, { status: 404 });
+  }
+
+  // Reject oversized bodies before buffering the multipart payload.
+  const len = Number(request.headers.get("content-length") ?? "");
+  if (Number.isFinite(len) && len > cfg.max + MULTIPART_OVERHEAD) {
+    return NextResponse.json(
+      { error: "too_large", message: `File exceeds the limit (${cfg.label}).` },
+      { status: 413 }
+    );
   }
 
   let form: FormData;
@@ -101,14 +115,18 @@ export async function POST(
 
   // Rate-limit EVERY upload: 10/hour per IP (always) AND per user (when
   // authed), via the dedicated record_file_upload limiter (migration 023).
-  // This caps both anonymous floods and logged-in abuse — videos are the
-  // priciest payload, so this count cap pairs with the 25 MB size cap.
-  const ip =
-    request.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
-    request.headers.get("x-real-ip") ||
-    "0.0.0.0";
-  const ipHash = await sha256_16(ip);
-  const { error: rlErr } = await supa.rpc("record_file_upload", {
+  // This caps both anonymous floods and logged-in abuse; the count cap pairs
+  // with the per-bucket size caps above.
+  const ipHash = await hashRequestIp(request);
+  // Service role: migration 031 revokes anon/authenticated execute on the
+  // limiter so a caller can't pass its own p_ip_hash.
+  let admin;
+  try {
+    admin = createAdminClient();
+  } catch {
+    return NextResponse.json({ error: "upload_unavailable" }, { status: 503 });
+  }
+  const { error: rlErr } = await admin.rpc("record_file_upload", {
     p_ip_hash: ipHash,
     p_user_id: user?.id ?? null,
   });
@@ -126,12 +144,6 @@ export async function POST(
   }
 
   // Service-role upload — the buckets have no client-write policy.
-  let admin;
-  try {
-    admin = createAdminClient();
-  } catch {
-    return NextResponse.json({ error: "upload_unavailable" }, { status: 503 });
-  }
 
   const path = `${prefix}/${crypto.randomUUID()}.${ext}`;
   const bytes = new Uint8Array(await file.arrayBuffer());

@@ -116,8 +116,8 @@ export default function EditQrClient({ initial }: { initial: QrCode }) {
     });
     setSaving(false);
     if (!res.ok) {
-      const { error } = await res.json().catch(() => ({ error: null }));
-      toast.error(error || "Couldn’t save changes. Try again.");
+      const { error, message } = await res.json().catch(() => ({ error: null, message: null }));
+      toast.error(message || error || "Couldn’t save changes. Try again.");
       return;
     }
     toast.success(convertToUrl ? "Converted to a website link" : "Changes saved");

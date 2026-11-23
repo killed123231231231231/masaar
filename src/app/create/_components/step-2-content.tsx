@@ -37,7 +37,7 @@ const FORM_COPY: Partial<Record<WizardType, { subtitle: string }>> = {
   app_link: { subtitle: "Send scanners to your app on the right store automatically" },
   pdf: { subtitle: "Upload a PDF — scanners open it on a clean hosted page" },
   image: { subtitle: "Upload an image — scanners see it full-screen" },
-  video: { subtitle: "Upload a video — it plays right after the scan" },
+  video: { subtitle: "Share a video with a YouTube or Vimeo link" },
 };
 
 export default function Step2Content({
@@ -218,6 +218,7 @@ export default function Step2Content({
               form={form}
               setForm={setForm}
               draftToken={draftToken}
+              onBackToTypes={onBackToTypes}
             />
           )}
 

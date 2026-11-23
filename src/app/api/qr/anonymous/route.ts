@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { generateShortId, isValidShortId } from "@/lib/shortid";
 import { parseHttpUrl } from "@/lib/url";
+import { checkDestination } from "@/lib/url-safety";
+import { isRedirectKind } from "@/lib/qr-target";
+import { isQuotaError, quotaExceededResponse } from "@/lib/quota";
+import { ipHash as hashRequestIp } from "@/lib/ip-hash";
 
 // Anonymous QR creation for the public /create funnel. No auth. The
 // insert runs through the SECURITY DEFINER create_anon_qr RPC (migration
@@ -14,14 +18,6 @@ const MAX_PAYLOAD_BYTES = 8 * 1024;
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-async function sha256_16(input: string): Promise<string> {
-  const bytes = new TextEncoder().encode(input);
-  const digest = await crypto.subtle.digest("SHA-256", bytes);
-  return Array.from(new Uint8Array(digest))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("")
-    .slice(0, 16);
-}
 
 export async function POST(request: Request) {
   const len = request.headers.get("content-length");
@@ -64,6 +60,15 @@ export async function POST(request: Request) {
       { status: 400 }
     );
   }
+  if (isRedirectKind(kind, body.content_kind || "url")) {
+    const safe = checkDestination(body.destination);
+    if (!safe.ok) {
+      return NextResponse.json(
+        { error: "unsafe_destination", message: safe.reason },
+        { status: 400 }
+      );
+    }
+  }
 
   const shortId =
     kind === "dynamic"
@@ -74,13 +79,16 @@ export async function POST(request: Request) {
         ? body.short_id
         : generateShortId();
 
-  const ip =
-    request.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
-    request.headers.get("x-real-ip") ||
-    "0.0.0.0";
-  const ipHash = await sha256_16(ip);
+  const ipHash = await hashRequestIp(request);
 
-  const supabase = await createClient();
+  // Service role + server-computed hash (migration 031 makes the RPC
+  // service-role only so anon can't rotate p_ip_hash past the limiter).
+  let supabase;
+  try {
+    supabase = createAdminClient();
+  } catch {
+    return NextResponse.json({ error: "unavailable" }, { status: 503 });
+  }
   const { data, error } = await supabase.rpc("create_anon_qr", {
     p_name: body.name || "Untitled",
     p_kind: kind,
@@ -104,6 +112,7 @@ export async function POST(request: Request) {
   });
 
   if (error) {
+    if (isQuotaError(error)) return quotaExceededResponse();
     if (error.message?.includes("rate_limit_exceeded")) {
       return NextResponse.json(
         { error: "Too many QR codes created from this network. Try again later." },

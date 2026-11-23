@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { randomBytes } from "crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendWelcomeEmail } from "@/lib/email";
+import { rateLimit, rateLimitedResponse } from "@/lib/rate-limit";
+import { ipHash as hashRequestIp } from "@/lib/ip-hash";
 
 // Email-holding frictionless checkout (spec §2). Node runtime — needs
 // the service-role admin client + email send. Payment is stubbed while
@@ -14,15 +16,14 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PLANS = ["starter", "pro", "menu_pro"];
 const PROD = "https://quickqrcode.live";
 
-async function sha256_16(s: string): Promise<string> {
-  const d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
-  return Array.from(new Uint8Array(d))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("")
-    .slice(0, 16);
-}
 
 export async function POST(request: Request) {
+  // Generic limiter on top of the claim-count check below (fails open
+  // until migration 031 adds hit_rate_limit).
+  if (!(await rateLimit("checkout_anon_ip", await hashRequestIp(request), 5, 3600)).ok) {
+    return rateLimitedResponse();
+  }
+
   const body = await request.json().catch(() => null);
   if (!body) return NextResponse.json({ error: "invalid_body" }, { status: 400 });
 
@@ -78,11 +79,7 @@ export async function POST(request: Request) {
   // Approximate per-IP rate limit (5 successful anon checkouts / hour),
   // reusing creator_ip_hash — no new table (anti-fraud hardening in
   // BACKLOG). Best-effort: never block a legit first checkout.
-  const ip =
-    request.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
-    request.headers.get("x-real-ip") ||
-    "0.0.0.0";
-  const ipHash = await sha256_16(ip);
+  const ipHash = await hashRequestIp(request);
   const since = new Date(Date.now() - 3600_000).toISOString();
   const { count: recentClaims } = await admin
     .from("qr_codes")

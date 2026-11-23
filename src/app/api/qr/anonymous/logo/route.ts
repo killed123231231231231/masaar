@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { ipHash as hashRequestIp } from "@/lib/ip-hash";
 
 export const runtime = "nodejs";
 
@@ -8,31 +8,35 @@ export const runtime = "nodejs";
 // including custom logos; the only gate is payment. File lands in the
 // existing public `logos` bucket under `anon/<draft_token>/<uuid>.<ext>`
 // via the service-role admin client (no anon-write storage policy
-// needed). 500 KB / png|jpg|svg limit; 5-uploads-per-hour-per-IP via
+// needed). 500 KB / png|jpg|webp limit; 5-uploads-per-hour-per-IP via
 // the record_anon_logo_upload SECURITY DEFINER RPC (migration 012).
+// SVG is rejected: `logos` is a public bucket, and an SVG served from it
+// can carry script (stored XSS). Migration 031 sets the same bucket rule.
 
 const MAX_BYTES = 500 * 1024;
-const ALLOWED_MIME = new Set(["image/png", "image/jpeg", "image/svg+xml"]);
+const MULTIPART_OVERHEAD = 16 * 1024;
+const ALLOWED_MIME = new Set(["image/png", "image/jpeg", "image/webp"]);
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-async function sha256_16(input: string): Promise<string> {
-  const bytes = new TextEncoder().encode(input);
-  const digest = await crypto.subtle.digest("SHA-256", bytes);
-  return Array.from(new Uint8Array(digest))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("")
-    .slice(0, 16);
-}
 
 function extFromMime(mime: string): string {
   if (mime === "image/png") return "png";
   if (mime === "image/jpeg") return "jpg";
-  if (mime === "image/svg+xml") return "svg";
+  if (mime === "image/webp") return "webp";
   return "bin";
 }
 
 export async function POST(request: Request) {
+  // Reject oversized bodies before buffering the multipart payload.
+  const len = Number(request.headers.get("content-length") ?? "");
+  if (Number.isFinite(len) && len > MAX_BYTES + MULTIPART_OVERHEAD) {
+    return NextResponse.json(
+      { error: "too_large", message: "Logo must be under 500 KB." },
+      { status: 413 }
+    );
+  }
+
   let form: FormData;
   try {
     form = await request.formData();
@@ -54,7 +58,7 @@ export async function POST(request: Request) {
   }
   if (!ALLOWED_MIME.has(file.type)) {
     return NextResponse.json(
-      { error: "unsupported_mime", message: "PNG, JPG or SVG only." },
+      { error: "unsupported_mime", message: "PNG, JPG or WebP only." },
       { status: 400 }
     );
   }
@@ -65,17 +69,17 @@ export async function POST(request: Request) {
     );
   }
 
-  // Rate-limit by IP via the SECURITY DEFINER RPC. Uses the regular
-  // server client (RPC is anon-grant-execute) — doesn't need the
-  // admin client.
-  const ip =
-    request.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
-    request.headers.get("x-real-ip") ||
-    "0.0.0.0";
-  const ipHash = await sha256_16(ip);
+  // Rate-limit by IP via the SECURITY DEFINER RPC, called with the service
+  // role and a server-computed hash (migration 031 revokes anon execute).
+  const ipHash = await hashRequestIp(request);
 
-  const supa = await createClient();
-  const { error: rlErr } = await supa.rpc("record_anon_logo_upload", {
+  let admin;
+  try {
+    admin = createAdminClient();
+  } catch {
+    return NextResponse.json({ error: "upload_unavailable" }, { status: 503 });
+  }
+  const { error: rlErr } = await admin.rpc("record_anon_logo_upload", {
     p_ip_hash: ipHash,
     p_draft_token: draftToken,
   });
@@ -92,17 +96,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: rlErr.message }, { status: 400 });
   }
 
-  // Storage upload via service-role admin client — bypasses anon-write
+  // Storage upload via the same service-role client — bypasses anon-write
   // RLS so we don't need a public-anon-INSERT policy on storage.objects.
-  let admin;
-  try {
-    admin = createAdminClient();
-  } catch {
-    return NextResponse.json(
-      { error: "render_unavailable" },
-      { status: 503 }
-    );
-  }
 
   const ext = extFromMime(file.type);
   const path = `anon/${draftToken}/${crypto.randomUUID()}.${ext}`;

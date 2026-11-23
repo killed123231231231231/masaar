@@ -40,6 +40,10 @@ export async function GET(request: NextRequest) {
     const shortId = Array.isArray(data) ? data[0]?.short_id : undefined;
     if (!error && shortId) {
       target = `/checkout/${shortId}`;
+    } else if (error?.message?.includes("qr_quota_exceeded")) {
+      // Free-plan cap (migration 031) — land on the dashboard with a flag
+      // instead of a checkout for a draft that couldn't be adopted.
+      target = "/dashboard?error=quota_exceeded";
     }
   }
 

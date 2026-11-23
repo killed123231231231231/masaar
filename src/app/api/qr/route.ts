@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { generateShortId, isValidShortId } from "@/lib/shortid";
 import bcrypt from "bcryptjs";
 import { parseHttpUrl } from "@/lib/url";
+import { checkDestination } from "@/lib/url-safety";
+import { isRedirectKind } from "@/lib/qr-target";
 import { qrCacheSet, qrCacheDelete, toCachedQr } from "@/lib/qr-edge-cache";
 import {
   cleanHexArray,
@@ -12,6 +14,14 @@ import {
   CORNER_COUNT,
 } from "@/lib/palette";
 import type { QrCode } from "@/types/database";
+import { rateLimit, rateLimitedResponse } from "@/lib/rate-limit";
+import { ipHash as hashRequestIp } from "@/lib/ip-hash";
+import {
+  DEFAULT_QR_QUOTA,
+  isAdminEmail,
+  isQuotaError,
+  quotaExceededResponse,
+} from "@/lib/quota";
 
 // Boundary limits. A QR at error-correction level H can't encode much
 // more than ~1KB anyway, and structured payloads are tiny — so reject
@@ -44,6 +54,50 @@ function sizeError(body: {
   return null;
 }
 
+const LOCKED_MESSAGE =
+  "This QR code was disabled by an administrator. Contact support.";
+
+function lockedResponse() {
+  return NextResponse.json({ error: "locked", message: LOCKED_MESSAGE }, { status: 403 });
+}
+
+// Map the migration-031 guard_qr_update() exceptions to clean 403s.
+function guardErrorResponse(err: { message?: string } | null) {
+  const m = err?.message ?? "";
+  if (m.includes("qr_locked_by_admin")) return lockedResponse();
+  if (m.includes("immutable_field") || m.includes("admin_only_field")) {
+    return NextResponse.json(
+      { error: "forbidden_field", message: "That field can't be changed." },
+      { status: 403 }
+    );
+  }
+  return null;
+}
+
+type ServerClient = Awaited<ReturnType<typeof createClient>>;
+
+// Pre-check the free-plan cap so the user gets a clean message even before
+// migration 031's enforce_qr_quota trigger exists. profiles.qr_quota is
+// added by 031; until then the select errors and the default applies.
+async function overQuota(supabase: ServerClient, userId: string): Promise<boolean> {
+  let quota = DEFAULT_QR_QUOTA;
+  const { data: prof, error: profErr } = await supabase
+    .from("profiles")
+    .select("qr_quota")
+    .eq("id", userId)
+    .maybeSingle();
+  if (!profErr) {
+    const q = (prof as { qr_quota?: number | null } | null)?.qr_quota;
+    if (typeof q === "number" && q > 0) quota = q;
+  }
+  const { count, error } = await supabase
+    .from("qr_codes")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId);
+  if (error || count == null) return false; // never block on a count failure
+  return count >= quota;
+}
+
 export async function POST(request: Request) {
   const supabase = await createClient();
   const {
@@ -53,6 +107,18 @@ export async function POST(request: Request) {
 
   if (bodyTooLarge(request)) {
     return NextResponse.json({ error: "Request body too large." }, { status: 413 });
+  }
+
+  // Free public plan: 30 creates/hour per account AND 60/hour per network.
+  const ipKey = await hashRequestIp(request);
+  const [byUser, byIp] = await Promise.all([
+    rateLimit("qr_create_user", user.id, 30, 3600),
+    rateLimit("qr_create_ip", ipKey, 60, 3600),
+  ]);
+  if (!byUser.ok || !byIp.ok) return rateLimitedResponse();
+
+  if (!isAdminEmail(user.email) && (await overQuota(supabase, user.id))) {
+    return quotaExceededResponse();
   }
 
   const body = await request.json();
@@ -118,6 +184,18 @@ export async function POST(request: Request) {
       { status: 400 }
     );
   }
+  // Abuse guard for every new QR whose scan redirects to its destination
+  // (url, whatsapp, app_link, ...): no credentials, private hosts or blocked
+  // domains (see lib/url-safety).
+  if (isRedirectKind(insert.kind ?? "dynamic", insert.content_kind ?? "url")) {
+    const safe = checkDestination(insert.destination);
+    if (!safe.ok) {
+      return NextResponse.json(
+        { error: "unsafe_destination", message: safe.reason },
+        { status: 400 }
+      );
+    }
+  }
 
   if (insert.kind === "dynamic") {
     // Trust the client-generated shortId only if it's well-formed (so the
@@ -148,6 +226,7 @@ export async function POST(request: Request) {
   }
 
   if (error) {
+    if (isQuotaError(error)) return quotaExceededResponse();
     const collided = error.code === "23505";
     return NextResponse.json(
       {
@@ -179,11 +258,29 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Request body too large." }, { status: 413 });
   }
 
+  if (!(await rateLimit("qr_update_user", user.id, 120, 3600)).ok) {
+    return rateLimitedResponse();
+  }
+
   const body = await request.json();
   if (!body.id) return NextResponse.json({ error: "id required" }, { status: 400 });
 
   const sizeErr = sizeError(body);
   if (sizeErr) return NextResponse.json({ error: sizeErr }, { status: 400 });
+
+  // Read the live row first (owner-scoped). select("*") so the route works
+  // both before and after migration 031 adds admin_locked.
+  const { data: curRow } = await supabase
+    .from("qr_codes")
+    .select("*")
+    .eq("id", body.id)
+    .eq("user_id", user.id)
+    .maybeSingle();
+  const cur = curRow as (QrCode & { admin_locked?: boolean | null }) | null;
+  if (!cur) return NextResponse.json({ error: "not_found" }, { status: 404 });
+  // Abuse takedown: an admin-locked QR can't be edited or re-activated by
+  // its owner. admin_locked is undefined until migration 031 → not locked.
+  if (cur.admin_locked === true) return lockedResponse();
 
   // Explicit allow-list. Spreading the request body let a client set any
   // column (kind, is_active, password_hash, payload_json, created_at, ...).
@@ -251,13 +348,7 @@ export async function PATCH(request: Request) {
   // /r resolves changes. Guarded on the LIVE row's kind (never the client's
   // claim) and requires a valid http(s) destination.
   if (body.content_kind === "url") {
-    const { data: cur } = await supabase
-      .from("qr_codes")
-      .select("kind, content_kind")
-      .eq("id", body.id)
-      .eq("user_id", user.id)
-      .maybeSingle();
-    if (cur && cur.kind === "dynamic" && cur.content_kind !== "url") {
+    if (cur.kind === "dynamic" && cur.content_kind !== "url") {
       const u = parseHttpUrl(
         typeof body.destination === "string" ? body.destination : ""
       );
@@ -290,6 +381,24 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
   }
 
+  // Abuse guard ONLY when a redirect destination actually changes.
+  // Unchanged destinations of existing printed QRs are never re-validated
+  // (Rule 0) — an old link that predates these rules keeps working.
+  const nextKind = patch.content_kind ?? cur.content_kind;
+  if (
+    isRedirectKind(cur.kind, nextKind) &&
+    typeof patch.destination === "string" &&
+    patch.destination !== cur.destination
+  ) {
+    const safe = checkDestination(patch.destination);
+    if (!safe.ok) {
+      return NextResponse.json(
+        { error: "unsafe_destination", message: safe.reason },
+        { status: 400 }
+      );
+    }
+  }
+
   const { data, error } = await supabase
     .from("qr_codes")
     .update(patch)
@@ -298,7 +407,9 @@ export async function PATCH(request: Request) {
     .select()
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  if (error) {
+    return guardErrorResponse(error) ?? NextResponse.json({ error: error.message }, { status: 400 });
+  }
   // Keep the /r edge cache truthful the moment an edit/toggle lands — a
   // destination change or Active⇄Inactive flip must not wait for the
   // next scan's revalidate to take effect.
@@ -323,6 +434,18 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: "id required" }, { status: 400 });
   }
 
+  // Abuse takedown: an admin-locked QR can't be deleted by its owner
+  // (delete + re-create with the same short_id would undo the lock).
+  // select("*") so this works before migration 031 adds admin_locked.
+  const { data: curRow } = await supabase
+    .from("qr_codes")
+    .select("*")
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .maybeSingle();
+  const cur = curRow as { admin_locked?: boolean | null } | null;
+  if (cur?.admin_locked === true) return lockedResponse();
+
   // Owner-scoped delete (RLS qr_codes_owner_all + the explicit user_id
   // guard). The BEFORE DELETE trigger (migration 020) queues any hosted
   // asset for storage cleanup. scans cascade via their FK.
@@ -332,6 +455,8 @@ export async function DELETE(request: Request) {
     .eq("id", id)
     .eq("user_id", user.id);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  if (error) {
+    return guardErrorResponse(error) ?? NextResponse.json({ error: error.message }, { status: 400 });
+  }
   return NextResponse.json({ ok: true });
 }
