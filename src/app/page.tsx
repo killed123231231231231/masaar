@@ -2,6 +2,8 @@ import SiteHeader from "@/components/site/site-header";
 import SiteFooter from "@/components/site/site-footer";
 import Hero from "@/components/site/home/hero";
 import ProductTabs from "@/components/site/home/product-tabs";
+import FeatureCards from "@/components/site/home/feature-cards";
+import TypesMarquee from "@/components/site/home/types-marquee";
 import Reveal from "@/components/motion/reveal";
 import { Container } from "@/components/site/section";
 import { createClient } from "@/lib/supabase/server";
@@ -37,6 +39,10 @@ export default async function LandingPage() {
           </Reveal>
         </Container>
       </section>
+
+      <FeatureCards />
+      <TypesMarquee />
+
       <SiteFooter />
     </main>
   );
