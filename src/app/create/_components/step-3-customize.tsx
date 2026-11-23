@@ -165,11 +165,11 @@ export default function Step3Customize({
     );
     const a = document.createElement("a");
     a.href = dataUrl;
-    a.download = `masaar-qr.${format}`;
+    a.download = `vertexa-qr.${format}`;
     a.click();
   }
 
-  // Print-ready PDF (A4): the framed QR centered + a Masaar footer. Done
+  // Print-ready PDF (A4): the framed QR centered + a Vertexa QR footer. Done
   // client-side so it works before the QR is saved (no id needed).
   async function downloadPdf() {
     const node = previewRef.current;
@@ -195,7 +195,7 @@ export default function Step3Customize({
     const h = (png.height / png.width) * w;
     page.drawImage(png, { x: (A4.w - w) / 2, y: (A4.h - h) / 2 + 30, width: w, height: h });
     const font = await pdf.embedFont(StandardFonts.Helvetica);
-    const footer = "Created with Masaar · masaar.sa";
+    const footer = "Created with Vertexa QR · quickqrcode.live";
     const fs = 10;
     const tw = font.widthOfTextAtSize(footer, fs);
     page.drawText(footer, { x: (A4.w - tw) / 2, y: 64, size: fs, font, color: rgb(0.42, 0.42, 0.42) });
@@ -205,7 +205,7 @@ export default function Step3Customize({
     );
     const a = document.createElement("a");
     a.href = url;
-    a.download = "masaar-qr.pdf";
+    a.download = "vertexa-qr.pdf";
     a.click();
     URL.revokeObjectURL(url);
   }

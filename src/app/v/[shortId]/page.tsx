@@ -37,12 +37,12 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { shortId } = await params;
   const qr = await resolve(shortId);
-  if (!qr) return { title: "Not found · Masaar" };
-  const title = qr.name || "Shared via Masaar";
-  const description = "Shared with a Masaar QR code.";
+  if (!qr) return { title: "Not found · Vertexa QR" };
+  const title = qr.name || "Shared via Vertexa QR";
+  const description = "Shared with a Vertexa QR code.";
   const isImage = qr.content_kind === "image" && !!qr.asset_url;
   return {
-    title: `${title} · Masaar`,
+    title: `${title} · Vertexa QR`,
     description,
     openGraph: {
       title,

@@ -6,7 +6,7 @@ import { Check, Mail, MessageSquare, Phone, User } from "lucide-react";
 import LogoMark from "@/components/logo-mark";
 
 // /contact — real demo-request page that replaces the old
-// mailto:hello@masaar.sa link from Session B's landing. Server form
+// old mailto link from Session B's landing. Server form
 // POSTs to /api/contact, which calls submit_contact_request (migration
 // 011, SECURITY DEFINER, 3/hr per IP) and fires a Resend notification.
 export default function ContactPage() {
@@ -56,8 +56,8 @@ export default function ContactPage() {
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <Link href="/" className="flex items-center gap-2">
             <LogoMark className="h-8 w-8" />
-            <span className="text-lg font-bold tracking-tight">
-              Masaar <span className="font-arabic text-deep-teal">مسار</span>
+            <span className="text-lg font-display font-extrabold tracking-tight text-deep-teal">
+              Vertexa <span className="text-terracotta">QR</span>
             </span>
           </Link>
           <Link

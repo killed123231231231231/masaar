@@ -36,10 +36,10 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { shortId } = await params;
   const qr = await resolve(shortId);
-  if (!qr) return { title: "Not found · Masaar" };
+  if (!qr) return { title: "Not found · Vertexa QR" };
   const c = (qr.payload_json ?? {}) as Cfg;
   return {
-    title: `${c.headline || "Share your feedback"} · Masaar`,
+    title: `${c.headline || "Share your feedback"} · Vertexa QR`,
     description: "Tell us about your experience.",
   };
 }

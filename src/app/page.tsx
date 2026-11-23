@@ -106,8 +106,8 @@ function SiteHeader({
       <div className="mx-auto flex h-[76px] max-w-6xl items-center justify-between px-6 sm:h-20">
         <Link href="/" className="flex items-center gap-2">
           <LogoMark className="h-8 w-8" />
-          <span className="text-lg font-bold tracking-tight">
-            Masaar <span className="font-arabic text-deep-teal">مسار</span>
+          <span className="text-lg font-display font-extrabold tracking-tight text-deep-teal">
+            Vertexa <span className="text-terracotta">QR</span>
           </span>
         </Link>
 
@@ -257,13 +257,13 @@ function HeroPreview() {
           <span className="h-2.5 w-2.5 rounded-full bg-sand-dark" />
           <span className="h-2.5 w-2.5 rounded-full bg-deep-teal/35" />
           <span className="ml-3 hidden text-[10px] font-medium text-charcoal/40 sm:inline">
-            masaar.app / dashboard
+            quickqrcode.live / dashboard
           </span>
         </div>
         <div className="overflow-hidden rounded-xl">
           <Image
             src="/landing/dashboard-preview.png"
-            alt="Masaar dashboard preview — account-wide scan analytics, KPI row, trend chart, and recent activity"
+            alt="Vertexa QR dashboard preview — account-wide scan analytics, KPI row, trend chart, and recent activity"
             width={1672}
             height={941}
             priority
@@ -441,7 +441,7 @@ function HowItWorks() {
           One code. Endless destinations.
         </h2>
         <p className="mt-4 text-balance text-base leading-relaxed text-charcoal/65">
-          Print once, change forever. Masaar separates the code from where it
+          Print once, change forever. Vertexa QR separates the code from where it
           points, so a campaign can evolve without a single reprint.
         </p>
       </div>
@@ -487,7 +487,7 @@ function HowItWorks() {
 // Replaces the old AnalyticsPreview section. Borrows getqr.com's
 // `lg:grid-cols-5` icon+h3+body card pattern as the dominant
 // "what you get" visual primitive on the landing, but every feature
-// here is Masaar-specific (GCC content types, bilingual Arabic, AI
+// here is Vertexa QR-specific (GCC content types, bilingual Arabic, AI
 // Menu) — none are copied from getqr's generic 5.
 //
 // Two features carry honest "Coming soon" badges (Bilingual + AI
@@ -585,7 +585,7 @@ function FeaturesGrid() {
 // like getqr have 1,415 real Reviews.io entries and trying to match
 // scale theater would feel weaker than honest scarcity. Instead we
 // turn the absence of customer wins into a positioning statement:
-// Masaar is new, built for the GCC market, and the roadmap is honest.
+// Vertexa QR is new, built for the GCC market, and the roadmap is honest.
 //
 // Real testimonials = Sprint 3 task after 5-10 actual GCC wins land.
 // Until then this section carries the brand/origin/mission narrative.
@@ -620,7 +620,7 @@ function BuiltInRiyadh() {
             QR tools built for GCC businesses.
           </h2>
           <p className="mt-4 text-balance text-sm leading-relaxed text-charcoal/70 sm:text-base">
-            Masaar helps restaurants, cafés, retailers, and service
+            Vertexa QR helps restaurants, cafés, retailers, and service
             businesses create smart QR experiences for the way customers
             actually interact in this region —{" "}
             <span className="font-medium text-charcoal">menus, WhatsApp,
@@ -628,7 +628,7 @@ function BuiltInRiyadh() {
           </p>
           <p className="mt-3 text-balance text-sm leading-relaxed text-charcoal/70 sm:text-base">
             Built with Saudi pricing, Arabic-ready interfaces, and GCC
-            business needs in mind, Masaar gives you a cleaner way to
+            business needs in mind, Vertexa QR gives you a cleaner way to
             launch, manage, and track every QR code from one simple
             dashboard.
           </p>
@@ -667,7 +667,7 @@ function BuiltInRiyadh() {
           <div className="relative h-full min-h-[260px] sm:min-h-[320px] lg:min-h-[400px]">
             <Image
               src="/landing/built-in-riyadh-map.png"
-              alt="GCC map showing Masaar QR codes radiating from Riyadh to locations across Saudi Arabia and the wider Gulf"
+              alt="GCC map showing Vertexa QR codes radiating from Riyadh to locations across Saudi Arabia and the wider Gulf"
               fill
               sizes="(max-width: 1024px) 100vw, 52vw"
               className="object-contain object-center"
@@ -716,7 +716,7 @@ const PRICING_PREVIEW = [
     name: "Free",
     price: "SAR 0",
     cadence: "forever",
-    headline: "Try Masaar with no card.",
+    headline: "Try Vertexa QR with no card.",
     bestFor: "Best for testing QR campaigns",
     items: [
       "5 dynamic QR codes",
@@ -943,7 +943,7 @@ function BuiltForGCC() {
 const FAQS = [
   {
     q: "How is this different from a free QR generator?",
-    a: "Free generators give you a static image — print it, and the URL behind it is locked forever. Masaar codes are dynamic: you can re-point the destination anytime, see who scanned where, and add branding without losing the scan trail. The cost difference shows up the first time a printed campaign needs a URL change.",
+    a: "Free generators give you a static image — print it, and the URL behind it is locked forever. Vertexa QR codes are dynamic: you can re-point the destination anytime, see who scanned where, and add branding without losing the scan trail. The cost difference shows up the first time a printed campaign needs a URL change.",
   },
   {
     q: "Can I use it for restaurant menus?",
@@ -987,7 +987,7 @@ const FAQS = [
   },
   {
     q: "What happens if I cancel?",
-    a: "Your existing QR codes stay valid — static ones keep working forever, dynamic ones either revert to a Masaar landing page (free tier) or stay live if you re-activate within 90 days. We don't auto-renew silently or send opaque \"I don't recognize this charge\" billing — every renewal is opt-in.",
+    a: "Your existing QR codes stay valid — static ones keep working forever, dynamic ones either revert to a Vertexa QR landing page (free tier) or stay live if you re-activate within 90 days. We don't auto-renew silently or send opaque \"I don't recognize this charge\" billing — every renewal is opt-in.",
   },
 ];
 
@@ -1087,8 +1087,8 @@ function SiteFooter() {
           <div>
             <Link href="/" className="flex items-center gap-2">
               <LogoMark className="h-8 w-8" />
-              <span className="text-lg font-bold tracking-tight">
-                Masaar <span className="font-arabic text-deep-teal">مسار</span>
+              <span className="text-lg font-display font-extrabold tracking-tight text-deep-teal">
+                Vertexa <span className="text-terracotta">QR</span>
               </span>
             </Link>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-charcoal/55">
@@ -1118,8 +1118,7 @@ function SiteFooter() {
 
         <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-charcoal/10 pt-6 text-sm text-charcoal/50 sm:flex-row">
           <p>
-            © {new Date().getFullYear()} Masaar{" "}
-            <span className="font-arabic">مسار</span>. All rights reserved.
+            © {new Date().getFullYear()} Vertexa QR. All rights reserved.
           </p>
           <p>Built for the GCC</p>
         </div>

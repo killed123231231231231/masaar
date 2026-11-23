@@ -24,7 +24,7 @@ const TIERS: Tier[] = [
     name: "Free",
     monthly: 0,
     annual: 0,
-    blurb: "Try Masaar with no card.",
+    blurb: "Try Vertexa QR with no card.",
     cta: "Start free",
     href: "/create",
   },
@@ -205,7 +205,7 @@ const PRICING_FAQS = [
   },
   {
     q: "Can I cancel anytime?",
-    a: "Yes — one click in Settings → Plan. Your existing QR codes stay valid: static ones forever, dynamic ones either revert to a Masaar landing page (Free tier) or stay live if you re-activate within 90 days. No auto-renewal surprises, no \"I don't recognize this charge\" surprise.",
+    a: "Yes — one click in Settings → Plan. Your existing QR codes stay valid: static ones forever, dynamic ones either revert to a Vertexa QR landing page (Free tier) or stay live if you re-activate within 90 days. No auto-renewal surprises, no \"I don't recognize this charge\" surprise.",
   },
   {
     q: "Do I need to talk to sales for the Agency tier?",

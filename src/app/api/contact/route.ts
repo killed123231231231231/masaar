@@ -15,7 +15,7 @@ async function sha256_16(input: string): Promise<string> {
 
 // Receives the /contact form, validates, hashes the IP, hands off to the
 // submit_contact_request SECURITY DEFINER RPC (which enforces a 3/hr per
-// IP rate limit), then fires a Resend notification to hello@masaar.sa.
+// IP rate limit), then fires a Resend notification to the RESEND_NOTIFY_TO inbox.
 // Email failure does NOT fail the request — the row is already saved,
 // and we'd rather degrade silently than 500 on the user.
 export async function POST(request: Request) {

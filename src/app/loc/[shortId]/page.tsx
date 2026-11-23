@@ -43,10 +43,10 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { shortId } = await params;
   const qr = await resolve(shortId);
-  if (!qr) return { title: "Not found · Masaar" };
+  if (!qr) return { title: "Not found · Vertexa QR" };
   const p = (qr.payload_json ?? {}) as Loc;
   const title = (p.label || qr.name || "Location").trim();
-  return { title: `${title} · Masaar`, description: "Open this location in your maps app." };
+  return { title: `${title} · Vertexa QR`, description: "Open this location in your maps app." };
 }
 
 export default async function LocationPage({

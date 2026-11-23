@@ -76,8 +76,8 @@ export default function Sidebar({
         <span className="grid h-8 w-8 place-items-center rounded-md bg-white p-1">
           <LogoMark className="h-full w-full" />
         </span>
-        <span className="font-display text-base font-bold">
-          Masaar <span className="font-arabic text-deep-teal-light">مسار</span>
+        <span className="font-display text-base font-extrabold tracking-tight text-white">
+          Vertexa <span className="text-terracotta-light">QR</span>
         </span>
       </Link>
 

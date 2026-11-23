@@ -2,7 +2,7 @@ import MarketingShell from "@/components/marketing-shell";
 import PricingClient from "./pricing-client";
 
 export const metadata = {
-  title: "Pricing — Masaar",
+  title: "Pricing — Vertexa QR",
   description:
     "SAR-priced plans for GCC businesses. Free tier ships real value, no $1 trial trap, no auto-renewal surprises.",
 };

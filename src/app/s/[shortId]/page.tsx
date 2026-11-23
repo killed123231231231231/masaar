@@ -43,12 +43,12 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { shortId } = await params;
   const qr = await resolve(shortId);
-  if (!qr) return { title: "Not found · Masaar" };
+  if (!qr) return { title: "Not found · Vertexa QR" };
   const p = (qr.payload_json ?? {}) as SocialProfile;
   const title = p.display_name || qr.name || "Profile";
   return {
-    title: `${title} · Masaar`,
-    description: p.bio || "Find me on social — shared via Masaar.",
+    title: `${title} · Vertexa QR`,
+    description: p.bio || "Find me on social — shared via Vertexa QR.",
     openGraph: {
       title,
       description: p.bio || "Find me on social.",

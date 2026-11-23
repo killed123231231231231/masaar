@@ -12,11 +12,11 @@ const plexArabic = IBM_Plex_Sans_Arabic({
 });
 
 export const metadata: Metadata = {
-  title: "Masaar — Branded QR codes with live tracking",
+  title: "Vertexa QR — Free QR code generator with scan analytics",
   description:
     "Generate dynamic QR codes with logos, colors, and analytics. Edit destinations after printing. Built for GCC businesses.",
   openGraph: {
-    title: "Masaar | مسار",
+    title: "Vertexa QR",
     description: "One QR. Every scan, tracked.",
     type: "website",
   },

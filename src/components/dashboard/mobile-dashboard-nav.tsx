@@ -80,8 +80,8 @@ export default function MobileDashboardNav({
       />
       <div className="absolute left-0 top-0 flex h-full w-[82%] max-w-xs flex-col bg-deep-teal text-white shadow-xl">
         <div className="flex items-center justify-between px-5 py-4">
-          <span className="font-display text-base font-bold">
-            Masaar <span className="font-arabic text-deep-teal-light">مسار</span>
+          <span className="font-display text-base font-extrabold tracking-tight text-white">
+            Vertexa <span className="text-terracotta-light">QR</span>
           </span>
           <button
             type="button"

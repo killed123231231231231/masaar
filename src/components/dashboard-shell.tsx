@@ -22,8 +22,8 @@ export default async function DashboardShell({
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
           <Link href="/dashboard" className="flex items-center gap-2">
             <LogoMark className="h-8 w-8" />
-            <span className="font-bold tracking-tight">
-              Masaar <span className="text-deep-teal font-arabic">مسار</span>
+            <span className="font-display font-extrabold tracking-tight text-deep-teal">
+              Vertexa <span className="text-terracotta">QR</span>
             </span>
           </Link>
 

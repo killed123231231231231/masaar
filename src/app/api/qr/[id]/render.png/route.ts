@@ -80,7 +80,7 @@ export async function GET(
     outBuf = await compositeLogo(qrBuf, qr.logo_url, width, bg);
   }
 
-  const safeName = (qr.name || "masaar-qr")
+  const safeName = (qr.name || "vertexa-qr")
     .replace(/[^a-z0-9_-]+/gi, "-")
     .slice(0, 60);
   const filename = `${safeName}-${qr.short_id || id.slice(0, 8)}.png`;

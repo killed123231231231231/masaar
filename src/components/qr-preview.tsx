@@ -74,7 +74,7 @@ export default function QrPreview({
 
   async function download(ext: "png" | "svg" | "jpeg") {
     if (!qrRef.current) return;
-    await qrRef.current.download({ name: "masaar-qr", extension: ext });
+    await qrRef.current.download({ name: "vertexa-qr", extension: ext });
   }
 
   return (
