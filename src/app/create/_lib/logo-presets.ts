@@ -11,7 +11,7 @@ function dataUrl(svg: string): string {
 // White rounded tile so the glyph reads against the QR; teal stroked glyph.
 function tile(glyph: string): string {
   return dataUrl(
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="15" fill="#ffffff"/><g fill="none" stroke="#0F5B55" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round">${glyph}</g></svg>`
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="15" fill="#ffffff"/><g fill="none" stroke="#1A1A1A" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round">${glyph}</g></svg>`
   );
 }
 

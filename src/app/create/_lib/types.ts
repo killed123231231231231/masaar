@@ -125,7 +125,7 @@ export const DEFAULT_CUSTOMIZATION: Customization = {
   logo_scale: 0.3,
   password: "",
   frame_style: "none",
-  frame_color: "#0F5B55",
+  frame_color: "#1A1A1A",
   text_color: "#FFFFFF",
   dot_palette: null,
   corner_colors: null,

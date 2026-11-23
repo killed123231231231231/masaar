@@ -21,7 +21,7 @@ export default function FramedQr({
   const def = frameDef(frame);
   if (def.key === "none") return <>{children}</>;
 
-  const fc = frameColor || "#0F5B55";
+  const fc = frameColor || "#1A1A1A";
   const tc = textColor || "#FFFFFF";
   const label = (text || def.defaultText || "SCAN ME").trim();
   const hasLabel = def.labelPos !== "none" && !!label;
