@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import TurnstileWidget, { turnstileEnabled } from "@/components/turnstile-widget";
 import Link from "next/link";
 import { Check, Mail, MessageSquare, Phone, User } from "lucide-react";
@@ -21,6 +21,18 @@ export default function ContactPage() {
   const [done, setDone] = useState(false);
   const [captcha, setCaptcha] = useState<string | null>(null);
   const [captchaReset, setCaptchaReset] = useState(0);
+  const [abuseReport, setAbuseReport] = useState(false);
+
+  // Abuse reports: scan pages link to /contact?topic=abuse&qr=<shortId>.
+  // Read from window (not useSearchParams) so the page needs no Suspense.
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    if (q.get("topic") !== "abuse") return;
+    const shortId = (q.get("qr") ?? "").trim();
+    const safeId = /^[A-Za-z0-9_-]{1,32}$/.test(shortId) ? shortId : "";
+    setAbuseReport(true);
+    setMessage((m) => m || (safeId ? `Reporting QR code ${safeId} for abuse: ` : "Reporting a QR code for abuse: "));
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -136,6 +148,12 @@ export default function ContactPage() {
                   placeholder="e.g. Tuesday 2pm Riyadh time"
                 />
               </div>
+
+              {abuseReport && (
+                <p className="mt-5 text-sm text-charcoal/65">
+                  Reports are reviewed by the Vertexa QR team.
+                </p>
+              )}
 
               <label className="mt-5 block">
                 <span className="mb-1.5 inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-charcoal/55">
