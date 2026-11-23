@@ -4,6 +4,7 @@ import Hero from "@/components/site/home/hero";
 import ProductTabs from "@/components/site/home/product-tabs";
 import FeatureCards from "@/components/site/home/feature-cards";
 import TypesMarquee from "@/components/site/home/types-marquee";
+import StackedPanels from "@/components/site/home/stacked-panels";
 import Reveal from "@/components/motion/reveal";
 import { Container } from "@/components/site/section";
 import { createClient } from "@/lib/supabase/server";
@@ -42,6 +43,7 @@ export default async function LandingPage() {
 
       <FeatureCards />
       <TypesMarquee />
+      <StackedPanels />
 
       <SiteFooter />
     </main>
