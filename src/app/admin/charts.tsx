@@ -27,15 +27,15 @@ export function DailyBarChart({
 
   return (
     <div>
-      <p className="text-sm text-charcoal/70">
-        <span className="font-display text-lg font-bold text-charcoal">
+      <p className="text-sm text-muted-2">
+        <span className="font-heading text-lg font-semibold text-ink">
           {total.toLocaleString("en-US")}
         </span>{" "}
         in 30 days
       </p>
       <div className="mt-3 h-56 w-full">
         {total === 0 ? (
-          <div className="grid h-full place-items-center rounded-lg border border-dashed border-charcoal/15 text-sm text-charcoal/60">
+          <div className="grid h-full place-items-center rounded-2xl bg-cream text-sm text-muted-2">
             Nothing in the last 30 days
           </div>
         ) : (
@@ -43,24 +43,24 @@ export function DailyBarChart({
             <BarChart data={rows} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
               <XAxis
                 dataKey="label"
-                tick={{ fontSize: 11, fill: "#1B1B1D99" }}
+                tick={{ fontSize: 11, fill: "#71717A" }}
                 axisLine={false}
                 tickLine={false}
                 interval="preserveStartEnd"
                 minTickGap={16}
               />
               <YAxis
-                tick={{ fontSize: 11, fill: "#1B1B1D99" }}
+                tick={{ fontSize: 11, fill: "#71717A" }}
                 axisLine={false}
                 tickLine={false}
                 allowDecimals={false}
                 width={36}
               />
               <Tooltip
-                cursor={{ fill: "#0F5B5510" }}
+                cursor={{ fill: "#F0EEEB" }}
                 content={<DayTooltip seriesLabel={seriesLabel} />}
               />
-              <Bar dataKey="count" fill={color} radius={[3, 3, 0, 0]} maxBarSize={18} />
+              <Bar dataKey="count" fill={color} radius={[6, 6, 0, 0]} maxBarSize={18} />
             </BarChart>
           </ResponsiveContainer>
         )}
@@ -83,11 +83,11 @@ function DayTooltip({
   if (!active || !payload?.length) return null;
   const count = Number(payload[0]?.value ?? 0);
   return (
-    <div className="rounded-lg border border-charcoal/10 bg-white px-3 py-2 shadow-[0_4px_16px_rgba(0,0,0,0.08)]">
-      <p className="text-[11px] text-charcoal/60">{label}</p>
+    <div className="rounded-2xl border border-stone-dark bg-white px-3 py-2 font-body shadow-float">
+      <p className="text-[11px] text-muted-3">{label}</p>
       <p className="mt-0.5 text-xs">
-        <span className="text-charcoal/70">{seriesLabel}:</span>{" "}
-        <span className="font-display text-sm font-bold text-deep-teal">
+        <span className="text-muted-2">{seriesLabel}:</span>{" "}
+        <span className="font-heading text-sm font-semibold text-ink">
           {count.toLocaleString("en-US")}
         </span>
       </p>
@@ -104,7 +104,7 @@ export function QrTypeList({
 }) {
   const total = kinds.dynamic + kinds.static;
   if (total === 0) {
-    return <p className="text-sm text-charcoal/60">No QR codes yet.</p>;
+    return <p className="text-sm text-muted-2">No QR codes yet.</p>;
   }
   const max = Math.max(...types.map((t) => t.count), 1);
   const dynPct = Math.round((kinds.dynamic / total) * 100);
@@ -118,14 +118,14 @@ export function QrTypeList({
             <li key={t.label}>
               <div className="flex items-baseline justify-between gap-3 text-sm">
                 <span className="min-w-0 truncate font-medium">{t.label}</span>
-                <span className="shrink-0 tabular-nums text-charcoal/70">
+                <span className="shrink-0 tabular-nums text-muted-2">
                   {t.count.toLocaleString("en-US")}
-                  <span className="ml-1.5 text-xs text-charcoal/50">{pct}%</span>
+                  <span className="ml-1.5 text-xs text-muted-3">{pct}%</span>
                 </span>
               </div>
-              <div className="mt-1.5 h-2 rounded-full bg-sand-light">
+              <div className="mt-1.5 h-2 rounded-full bg-stone">
                 <div
-                  className="h-2 rounded-full bg-deep-teal"
+                  className="h-2 rounded-full bg-ink"
                   style={{ width: `${Math.max((t.count / max) * 100, 2)}%` }}
                 />
               </div>
@@ -135,33 +135,33 @@ export function QrTypeList({
       </ul>
 
       <div>
-        <h3 className="text-xs font-semibold uppercase tracking-wider text-charcoal/60">
+        <h3 className="font-heading text-sm font-semibold text-ink">
           Dynamic vs static
         </h3>
         <div
-          className="mt-3 flex h-3 overflow-hidden rounded-full bg-sand-light"
+          className="mt-3 flex h-3 overflow-hidden rounded-full bg-stone"
           role="img"
           aria-label={`${kinds.dynamic} dynamic, ${kinds.static} static`}
         >
-          <div className="h-3 bg-deep-teal" style={{ width: `${dynPct}%` }} />
-          <div className="h-3 bg-terracotta" style={{ width: `${100 - dynPct}%` }} />
+          <div className="h-3 bg-ink" style={{ width: `${dynPct}%` }} />
+          <div className="h-3 bg-lime" style={{ width: `${100 - dynPct}%` }} />
         </div>
         <dl className="mt-4 space-y-2 text-sm">
           <div className="flex items-center justify-between gap-3">
             <dt className="inline-flex items-center gap-2">
-              <span className="h-2.5 w-2.5 rounded-sm bg-deep-teal" aria-hidden />
+              <span className="h-2.5 w-2.5 rounded-full bg-ink" aria-hidden />
               Dynamic
             </dt>
-            <dd className="tabular-nums text-charcoal/70">
+            <dd className="tabular-nums text-muted-2">
               {kinds.dynamic.toLocaleString("en-US")} ({dynPct}%)
             </dd>
           </div>
           <div className="flex items-center justify-between gap-3">
             <dt className="inline-flex items-center gap-2">
-              <span className="h-2.5 w-2.5 rounded-sm bg-terracotta" aria-hidden />
+              <span className="h-2.5 w-2.5 rounded-full bg-lime ring-1 ring-inset ring-ink/20" aria-hidden />
               Static
             </dt>
-            <dd className="tabular-nums text-charcoal/70">
+            <dd className="tabular-nums text-muted-2">
               {kinds.static.toLocaleString("en-US")} ({100 - dynPct}%)
             </dd>
           </div>

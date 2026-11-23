@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 // Account-wide grid of the user's QR codes. Lives at /dashboard/qr-codes —
 // /dashboard itself is now the Overview page. The actual card UI lives in
-// the client component so we can share the deep-teal sidebar shell.
+// the client component so we can share the dashboard sidebar shell.
 export default async function QrCodesPage() {
   const supabase = await createClient();
   const {
