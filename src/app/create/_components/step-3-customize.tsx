@@ -1032,16 +1032,22 @@ function LogoUpload({
   const [err, setErr] = useState<string | null>(null);
   const [warn, setWarn] = useState<string | null>(null);
 
-  // Anon path caps at 500 KB (server-enforced via /api/qr/anonymous/logo);
-  // authed path is the existing 5 MB direct-to-storage upload.
-  const maxBytes = isAuthed ? 5 * 1024 * 1024 : 500 * 1024;
-  const maxLabel = isAuthed ? "5 MB" : "500 KB";
+  // Free plan: 500 KB, PNG/JPG/WebP for everyone (server-enforced by
+  // /api/qr/anonymous/logo and the `logos` bucket rules in migration 031).
+  // SVG is refused — the bucket is public and SVG can carry script.
+  const maxBytes = 500 * 1024;
+  const maxLabel = "500 KB";
+  const LOGO_EXT: Record<string, string> = {
+    "image/png": "png",
+    "image/jpeg": "jpg",
+    "image/webp": "webp",
+  };
 
   async function handle(file: File) {
     setErr(null);
     setWarn(null);
-    if (!["image/png", "image/jpeg", "image/svg+xml"].includes(file.type)) {
-      setErr("PNG, JPG or SVG only.");
+    if (!LOGO_EXT[file.type]) {
+      setErr("PNG, JPG or WebP only.");
       return;
     }
     if (file.size > maxBytes) {
@@ -1049,13 +1055,12 @@ function LogoUpload({
       return;
     }
     // Quality hint (non-blocking): an enlarged logo looks soft mainly when
-    // the SOURCE is low-res — we never downscale it. SVG is vector → always
-    // crisp, so skip the check for it.
-    if (file.type !== "image/svg+xml") {
+    // the SOURCE is low-res — we never downscale it.
+    {
       const dims = await readImageSize(file).catch(() => null);
       if (dims && Math.min(dims.w, dims.h) < 512) {
         setWarn(
-          `Heads up: this logo is ${dims.w}×${dims.h}px, so it can look soft at larger sizes. For crisp print, use 512×512 or larger — or upload an SVG.`
+          `Heads up: this logo is ${dims.w}×${dims.h}px, so it can look soft at larger sizes. For crisp print, use 512×512 or larger.`
         );
       }
     }
@@ -1069,7 +1074,8 @@ function LogoUpload({
           setErr("Sign in to upload a logo.");
           return;
         }
-        const ext = file.name.split(".").pop()?.toLowerCase() || "png";
+        // Extension from the validated MIME, never the user's filename.
+        const ext = LOGO_EXT[file.type];
         const path = `${user.id}/${shortId}/${crypto.randomUUID()}.${ext}`;
         const { error: e } = await sb.storage
           .from("logos")
@@ -1115,7 +1121,7 @@ function LogoUpload({
           {busy ? "Uploading…" : value ? "Replace" : "Upload logo"}
           <input
             type="file"
-            accept="image/png,image/jpeg,image/svg+xml"
+            accept="image/png,image/jpeg,image/webp"
             className="hidden"
             disabled={busy}
             onChange={(e) => {
@@ -1134,7 +1140,7 @@ function LogoUpload({
       {err && <p className="mt-1 text-xs text-red-600">{err}</p>}
       {warn && <p className="mt-1 text-xs text-amber-600">{warn}</p>}
       <p className="mt-1 text-xs text-charcoal/45">
-        PNG/JPG/SVG · under {maxLabel} · 512×512+ or SVG for best quality
+        PNG, JPG or WebP · under {maxLabel} · 512×512 or larger for best quality
       </p>
     </div>
   );

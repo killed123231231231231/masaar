@@ -8,11 +8,14 @@ export const runtime = "nodejs";
 // including custom logos; the only gate is payment. File lands in the
 // existing public `logos` bucket under `anon/<draft_token>/<uuid>.<ext>`
 // via the service-role admin client (no anon-write storage policy
-// needed). 500 KB / png|jpg|svg limit; 5-uploads-per-hour-per-IP via
+// needed). 500 KB / png|jpg|webp limit; 5-uploads-per-hour-per-IP via
 // the record_anon_logo_upload SECURITY DEFINER RPC (migration 012).
+// SVG is rejected: `logos` is a public bucket, and an SVG served from it
+// can carry script (stored XSS). Migration 031 sets the same bucket rule.
 
 const MAX_BYTES = 500 * 1024;
-const ALLOWED_MIME = new Set(["image/png", "image/jpeg", "image/svg+xml"]);
+const MULTIPART_OVERHEAD = 16 * 1024;
+const ALLOWED_MIME = new Set(["image/png", "image/jpeg", "image/webp"]);
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -20,11 +23,20 @@ const UUID_RE =
 function extFromMime(mime: string): string {
   if (mime === "image/png") return "png";
   if (mime === "image/jpeg") return "jpg";
-  if (mime === "image/svg+xml") return "svg";
+  if (mime === "image/webp") return "webp";
   return "bin";
 }
 
 export async function POST(request: Request) {
+  // Reject oversized bodies before buffering the multipart payload.
+  const len = Number(request.headers.get("content-length") ?? "");
+  if (Number.isFinite(len) && len > MAX_BYTES + MULTIPART_OVERHEAD) {
+    return NextResponse.json(
+      { error: "too_large", message: "Logo must be under 500 KB." },
+      { status: 413 }
+    );
+  }
+
   let form: FormData;
   try {
     form = await request.formData();
@@ -46,7 +58,7 @@ export async function POST(request: Request) {
   }
   if (!ALLOWED_MIME.has(file.type)) {
     return NextResponse.json(
-      { error: "unsupported_mime", message: "PNG, JPG or SVG only." },
+      { error: "unsupported_mime", message: "PNG, JPG or WebP only." },
       { status: 400 }
     );
   }

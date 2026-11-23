@@ -1,13 +1,14 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { FileText, UploadCloud, Video as VideoIcon, X } from "lucide-react";
+import { FileText, Link2, UploadCloud, X } from "lucide-react";
 
 type Kind = "pdf" | "image" | "video";
 
 // Per-kind upload config. Bucket / accept / types / max mirror the server
 // allowlist in /api/upload/[bucket] and the storage caps (migrations
-// 021/023/024). `types` + `max` drive the client-side pre-check so a
+// 021/023/024/031). Free plan: PDF 5 MB, image 2 MB, no new video uploads
+// (existing video QRs keep playing; the server returns 403 video_disabled). `types` + `max` drive the client-side pre-check so a
 // too-big or wrong-type file fails instantly with a friendly message
 // instead of after a long upload.
 const CFG: Record<
@@ -17,16 +18,16 @@ const CFG: Record<
   pdf: {
     bucket: "qr-pdfs",
     accept: "application/pdf,.pdf",
-    hint: "PDF, up to 10 MB",
+    hint: "PDF, up to 5 MB",
     types: ["application/pdf"],
-    max: 10 * 1024 * 1024,
+    max: 5 * 1024 * 1024,
   },
   image: {
     bucket: "qr-images",
     accept: "image/jpeg,image/png,image/webp",
-    hint: "JPG, PNG or WebP, up to 5 MB",
+    hint: "JPG, PNG or WebP, up to 2 MB",
     types: ["image/jpeg", "image/png", "image/webp"],
-    max: 5 * 1024 * 1024,
+    max: 2 * 1024 * 1024,
   },
   video: {
     bucket: "qr-videos",
@@ -54,11 +55,14 @@ export default function FileUpload({
   form,
   setForm,
   draftToken,
+  onBackToTypes,
 }: {
   kind: Kind;
   form: Form;
   setForm: (f: Form) => void;
   draftToken: string;
+  /** Lets the video note send the user back to pick the Website URL type. */
+  onBackToTypes?: () => void;
 }) {
   const cfg = CFG[kind];
   const inputRef = useRef<HTMLInputElement>(null);
@@ -228,6 +232,37 @@ export default function FileUpload({
     );
   }
 
+  // ── Video: uploads are off on the free plan ───────────────────────
+  if (kind === "video") {
+    return (
+      <div className="rounded-xl border border-charcoal/15 bg-sand-light/30 p-5">
+        <div className="flex items-start gap-3">
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-deep-teal/10 text-deep-teal">
+            <Link2 className="h-4 w-4" strokeWidth={2} />
+          </span>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-charcoal">
+              Video uploads aren’t available on the free plan
+            </p>
+            <p className="mt-1 text-sm text-charcoal/65">
+              Upload your video to YouTube or Vimeo, then create a Website URL
+              QR code with its link.
+            </p>
+            {onBackToTypes && (
+              <button
+                type="button"
+                onClick={onBackToTypes}
+                className="mt-3 text-sm font-semibold text-deep-teal hover:underline"
+              >
+                Choose another type
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // ── Empty dropzone ────────────────────────────────────────────────
   return (
     <div>
@@ -251,9 +286,7 @@ export default function FileUpload({
         }`}
       >
         <span className="grid h-12 w-12 place-items-center rounded-full bg-deep-teal/10 text-deep-teal">
-          {kind === "video" ? (
-            <VideoIcon className="h-6 w-6" strokeWidth={1.75} />
-          ) : kind === "pdf" ? (
+          {kind === "pdf" ? (
             <FileText className="h-6 w-6" strokeWidth={1.75} />
           ) : (
             <UploadCloud className="h-6 w-6" strokeWidth={1.75} />
