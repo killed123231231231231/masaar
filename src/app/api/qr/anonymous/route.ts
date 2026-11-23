@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { generateShortId, isValidShortId } from "@/lib/shortid";
 import { parseHttpUrl } from "@/lib/url";
+import { checkDestination } from "@/lib/url-safety";
 import { isQuotaError, quotaExceededResponse } from "@/lib/quota";
 import { ipHash as hashRequestIp } from "@/lib/ip-hash";
 
@@ -57,6 +58,15 @@ export async function POST(request: Request) {
       { error: "Dynamic QR codes need a valid http(s) destination URL." },
       { status: 400 }
     );
+  }
+  if (kind === "dynamic" && (body.content_kind || "url") === "url") {
+    const safe = checkDestination(body.destination);
+    if (!safe.ok) {
+      return NextResponse.json(
+        { error: "unsafe_destination", message: safe.reason },
+        { status: 400 }
+      );
+    }
   }
 
   const shortId =

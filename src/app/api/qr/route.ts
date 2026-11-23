@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { generateShortId, isValidShortId } from "@/lib/shortid";
 import bcrypt from "bcryptjs";
 import { parseHttpUrl } from "@/lib/url";
+import { checkDestination } from "@/lib/url-safety";
 import { qrCacheSet, qrCacheDelete, toCachedQr } from "@/lib/qr-edge-cache";
 import {
   cleanHexArray,
@@ -162,6 +163,17 @@ export async function POST(request: Request) {
       { status: 400 }
     );
   }
+  // Abuse guard for new website-link QRs: no credentials, private hosts or
+  // blocked domains (see lib/url-safety).
+  if (insert.kind === "dynamic" && insert.content_kind === "url") {
+    const safe = checkDestination(insert.destination);
+    if (!safe.ok) {
+      return NextResponse.json(
+        { error: "unsafe_destination", message: safe.reason },
+        { status: 400 }
+      );
+    }
+  }
 
   if (insert.kind === "dynamic") {
     // Trust the client-generated shortId only if it's well-formed (so the
@@ -234,6 +246,17 @@ export async function PATCH(request: Request) {
   const sizeErr = sizeError(body);
   if (sizeErr) return NextResponse.json({ error: sizeErr }, { status: 400 });
 
+  // Read the live row first (owner-scoped). select("*") so the route works
+  // both before and after migration 031 adds admin_locked.
+  const { data: curRow } = await supabase
+    .from("qr_codes")
+    .select("*")
+    .eq("id", body.id)
+    .eq("user_id", user.id)
+    .maybeSingle();
+  const cur = curRow as (QrCode & { admin_locked?: boolean | null }) | null;
+  if (!cur) return NextResponse.json({ error: "not_found" }, { status: 404 });
+
   // Explicit allow-list. Spreading the request body let a client set any
   // column (kind, is_active, password_hash, payload_json, created_at, ...).
   // Only the two fields the edit UI actually changes are patchable.
@@ -300,13 +323,7 @@ export async function PATCH(request: Request) {
   // /r resolves changes. Guarded on the LIVE row's kind (never the client's
   // claim) and requires a valid http(s) destination.
   if (body.content_kind === "url") {
-    const { data: cur } = await supabase
-      .from("qr_codes")
-      .select("kind, content_kind")
-      .eq("id", body.id)
-      .eq("user_id", user.id)
-      .maybeSingle();
-    if (cur && cur.kind === "dynamic" && cur.content_kind !== "url") {
+    if (cur.kind === "dynamic" && cur.content_kind !== "url") {
       const u = parseHttpUrl(
         typeof body.destination === "string" ? body.destination : ""
       );
@@ -337,6 +354,24 @@ export async function PATCH(request: Request) {
 
   if (Object.keys(patch).length === 0) {
     return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
+  }
+
+  // Abuse guard ONLY when a website-link destination actually changes.
+  // Unchanged destinations of existing printed QRs are never re-validated
+  // (Rule 0) — an old link that predates these rules keeps working.
+  const nextKind = patch.content_kind ?? cur.content_kind;
+  if (
+    nextKind === "url" &&
+    typeof patch.destination === "string" &&
+    patch.destination !== cur.destination
+  ) {
+    const safe = checkDestination(patch.destination);
+    if (!safe.ok) {
+      return NextResponse.json(
+        { error: "unsafe_destination", message: safe.reason },
+        { status: 400 }
+      );
+    }
   }
 
   const { data, error } = await supabase
