@@ -5,10 +5,11 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import { Home, LogOut, Menu, Plus, X } from "lucide-react";
 import LogoMark from "@/components/logo-mark";
+import { PlanCard } from "@/components/dashboard/sidebar";
 import {
-  NAV, PlanCard, initials,
+  NAV, initials,
   type SidebarCurrent, type SidebarMe,
-} from "@/components/dashboard/sidebar";
+} from "@/components/dashboard/nav";
 
 const RING = "focus:outline-none focus-visible:ring-2 focus-visible:ring-lime/70 focus-visible:ring-offset-2 focus-visible:ring-offset-ink";
 

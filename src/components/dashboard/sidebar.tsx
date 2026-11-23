@@ -2,58 +2,17 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import {
-  Activity, ChevronsUpDown, Home, LayoutGrid, LogOut, Plus, QrCode, Settings,
-  type LucideIcon,
-} from "lucide-react";
+import { ChevronsUpDown, Home, LogOut, Plus, Settings, type LucideIcon } from "lucide-react";
 import LogoMark from "@/components/logo-mark";
+import {
+  NAV, initials, planUsage,
+  type SidebarCurrent, type SidebarMe,
+} from "@/components/dashboard/nav";
 
 // B5/Fix 20 — sidebar nav slimmed to 4 items (Overview, QR Codes, Activity,
 // Settings). 2026-11 redesign: dark ink rail, lime active pill, "Create QR
 // code" primary action, plan card with the real QR count, user card menu.
-export type SidebarCurrent =
-  | "overview"
-  | "qrcodes"
-  | "activity"
-  | "settings"
-  | "none";
-
-export interface SidebarMe {
-  email: string;
-  name: string;
-  plan: string;     // "Pro" | "Free"
-  qrCount: number;
-}
-
-// Free plan = 25 QR codes (mirrors DEFAULT_QR_QUOTA / migration 031).
-export const PLAN_LIMITS: Record<string, number> = { Free: 25, Pro: 5000 };
-
-export type NavSpec = { label: string; icon: LucideIcon; href: string; key: SidebarCurrent };
-
-export const NAV: NavSpec[] = [
-  { label: "Overview", icon: LayoutGrid, href: "/dashboard", key: "overview" },
-  { label: "QR Codes", icon: QrCode, href: "/dashboard/qr-codes", key: "qrcodes" },
-  { label: "Activity", icon: Activity, href: "/dashboard/activity", key: "activity" },
-  { label: "Settings", icon: Settings, href: "/dashboard/settings", key: "settings" },
-];
-
-export function planUsage(me: SidebarMe) {
-  const limit = PLAN_LIMITS[me.plan] ?? 25;
-  const used = Math.min(me.qrCount, limit);
-  const pct = Math.min(100, Math.round((used / limit) * 100));
-  return { limit, used, pct };
-}
-
-/** Up to two initials from the display name (falls back to the email). */
-export function initials(me: SidebarMe): string {
-  const src = (me.name && me.name !== me.email ? me.name : "").trim();
-  if (src) {
-    const parts = src.split(/\s+/).filter(Boolean);
-    const two = (parts[0]?.[0] ?? "") + (parts.length > 1 ? parts[parts.length - 1][0] : "");
-    if (two) return two.toUpperCase();
-  }
-  return (me.email?.[0] || "U").toUpperCase();
-}
+export type { SidebarCurrent, SidebarMe };
 
 const RING = "focus:outline-none focus-visible:ring-2 focus-visible:ring-lime/70 focus-visible:ring-offset-2 focus-visible:ring-offset-ink";
 

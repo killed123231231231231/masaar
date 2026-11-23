@@ -1,8 +1,9 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
-import Sidebar from "@/components/dashboard/sidebar";
-import MobileDashboardNav from "@/components/dashboard/mobile-dashboard-nav";
+import { ArrowLeft, Gauge } from "lucide-react";
+import DashboardFrame from "@/components/dashboard/frame";
+import { planUsage } from "@/components/dashboard/nav";
+import { Card, FOCUS, IconWell, PageTitle } from "@/components/dashboard/ui";
 import { createClient } from "@/lib/supabase/server";
 import { getMe } from "@/lib/me";
 import SettingsClient from "./settings-client";
@@ -21,36 +22,44 @@ export default async function SettingsPage() {
   if (!user) redirect("/");
 
   const me = await getMe(user.id, user.email ?? "");
+  const { limit, used, pct } = planUsage(me);
 
   return (
-    <div className="min-h-screen bg-[#F6F4EE] text-charcoal">
-      <div className="flex">
-        <Sidebar me={me} current="settings" />
-        <main className="min-w-0 flex-1 space-y-7 px-4 py-5 sm:px-5 sm:py-6 lg:px-8">
-          <MobileDashboardNav me={me} current="settings" />
+    <DashboardFrame me={me} current="settings" className="space-y-6">
+      {/* Escape hatch back to the Overview (B5/Fix 18 pattern). */}
+      <Link
+        href="/dashboard"
+        className={`inline-flex w-fit items-center gap-1.5 rounded-full font-body text-sm text-muted-2 hover:text-ink ${FOCUS}`}
+      >
+        <ArrowLeft className="h-4 w-4" aria-hidden /> Back to overview
+      </Link>
 
-          {/* Same escape-hatch pattern as the Edit-QR page (B5/Fix 18) — every
-              dashboard subpage gets a clear way back without the sidebar. */}
-          <Link
-            href="/dashboard"
-            className="inline-flex w-fit items-center gap-1.5 rounded-lg border border-charcoal/15 bg-white px-3 py-1.5 text-sm font-medium text-charcoal/75 hover:bg-sand-light hover:text-deep-teal"
-          >
-            <ArrowLeft className="h-4 w-4" /> Back to dashboard
-          </Link>
+      <PageTitle title="Settings" sub="Your email, password and plan." />
 
-          <div>
-            <h1 className="font-display text-2xl font-bold tracking-tight">
-              Account settings
-            </h1>
-            <p className="mt-1 text-sm text-charcoal/55">
-              Update your email and password. Plan + billing controls land
-              in Sprint 3.
+      <SettingsClient email={user.email ?? ""} />
+
+      <Card className="p-6">
+        <div className="flex items-start gap-3">
+          <IconWell icon={Gauge} tone="lime" />
+          <div className="min-w-0 flex-1">
+            <h2 className="font-heading text-[17px] font-semibold text-ink">{me.plan} plan</h2>
+            <p className="mt-0.5 font-body text-sm text-muted-2">
+              <span className="tabular-nums text-ink">{used.toLocaleString()}</span> of{" "}
+              {limit.toLocaleString()} QR codes used.
             </p>
+            <div
+              className="mt-3 h-2 max-w-md overflow-hidden rounded-full bg-stone"
+              role="progressbar"
+              aria-label="QR codes used"
+              aria-valuemin={0}
+              aria-valuemax={limit}
+              aria-valuenow={used}
+            >
+              <div className="h-full rounded-full bg-ink" style={{ width: `${pct}%` }} />
+            </div>
           </div>
-
-          <SettingsClient email={user.email ?? ""} />
-        </main>
-      </div>
-    </div>
+        </div>
+      </Card>
+    </DashboardFrame>
   );
 }

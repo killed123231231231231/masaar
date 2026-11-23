@@ -71,14 +71,14 @@ function EmailCard({ email }: { email: string }) {
   }
 
   return (
-    <section className="rounded-2xl border border-charcoal/10 bg-white p-6 shadow-[0_1px_2px_rgba(15,91,85,0.06),0_2px_8px_-2px_rgba(15,91,85,0.08)]">
+    <section className="min-w-0 rounded-card border border-stone-dark/70 bg-white p-6 font-body shadow-card">
       <div className="flex items-start gap-3">
-        <span className="grid h-9 w-9 place-items-center rounded-lg bg-deep-teal/10 text-deep-teal">
-          <Mail className="h-4 w-4" />
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-stone text-ink">
+          <Mail className="h-[18px] w-[18px]" strokeWidth={1.75} aria-hidden />
         </span>
         <div className="min-w-0 flex-1">
-          <h2 className="font-display text-base font-bold text-charcoal">Email</h2>
-          <p className="mt-0.5 truncate text-sm text-charcoal/65">{email}</p>
+          <h2 className="font-heading text-[17px] font-semibold text-ink">Email</h2>
+          <p className="mt-0.5 truncate text-sm text-muted-2">{email}</p>
         </div>
       </div>
 
@@ -86,14 +86,14 @@ function EmailCard({ email }: { email: string }) {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="mt-5 inline-flex items-center justify-center rounded-lg border border-charcoal/15 bg-white px-4 py-2 text-sm font-semibold text-charcoal/75 hover:bg-sand-light"
+          className="mt-5 inline-flex h-10 items-center justify-center rounded-full bg-stone px-5 text-sm font-medium text-ink transition-colors hover:bg-stone-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-ink/30 focus-visible:ring-offset-2"
         >
           Change email
         </button>
       ) : (
         <form onSubmit={handleSubmit} className="mt-5 space-y-3">
           <label className="block">
-            <span className="mb-1 block text-xs font-semibold uppercase tracking-wider text-charcoal/55">
+            <span className="mb-1.5 block text-[13px] font-medium text-ink">
               New email
             </span>
             <input
@@ -103,11 +103,11 @@ function EmailCard({ email }: { email: string }) {
               value={newEmail}
               onChange={(e) => setNewEmail(e.target.value)}
               placeholder="you@example.com"
-              className="w-full rounded-lg border border-charcoal/15 px-3 py-2.5 text-sm outline-none focus:border-deep-teal focus:ring-2 focus:ring-deep-teal/20"
+              className="w-full rounded-2xl border border-stone-dark bg-white px-4 py-2.5 text-sm text-ink outline-none placeholder:text-muted-4 focus:border-ink/40 focus:ring-2 focus:ring-ink/10"
             />
           </label>
           <label className="block">
-            <span className="mb-1 block text-xs font-semibold uppercase tracking-wider text-charcoal/55">
+            <span className="mb-1.5 block text-[13px] font-medium text-ink">
               Confirm current password
             </span>
             <div className="relative">
@@ -117,13 +117,13 @@ function EmailCard({ email }: { email: string }) {
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 placeholder="Your current password"
-                className="w-full rounded-lg border border-charcoal/15 px-3 py-2.5 pr-10 text-sm outline-none focus:border-deep-teal focus:ring-2 focus:ring-deep-teal/20"
+                className="w-full rounded-2xl border border-stone-dark bg-white px-4 py-2.5 pr-11 text-sm text-ink outline-none placeholder:text-muted-4 focus:border-ink/40 focus:ring-2 focus:ring-ink/10"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((s) => !s)}
                 aria-label={showPassword ? "Hide password" : "Show password"}
-                className="absolute inset-y-0 right-2 grid place-items-center px-2 text-charcoal/50 hover:text-charcoal/75"
+                className="absolute inset-y-0 right-2 grid place-items-center rounded-full px-2 text-muted-3 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-ink/30"
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
@@ -131,7 +131,7 @@ function EmailCard({ email }: { email: string }) {
           </label>
           <TurnstileWidget onToken={setCaptcha} resetKey={captchaReset} />
           {err && (
-            <p className="rounded-md border border-terracotta/25 bg-terracotta/5 p-2.5 text-xs text-terracotta-dark">
+            <p role="alert" className="rounded-2xl border border-blush bg-blush/30 px-3.5 py-2.5 text-xs text-ink">
               {err}
             </p>
           )}
@@ -139,7 +139,7 @@ function EmailCard({ email }: { email: string }) {
             <button
               type="submit"
               disabled={loading}
-              className="rounded-lg bg-deep-teal px-5 py-2.5 text-sm font-semibold text-white hover:bg-deep-teal-dark disabled:opacity-60"
+              className="inline-flex h-10 items-center rounded-full bg-ink px-5 text-sm font-medium text-white transition-colors hover:bg-ink-soft focus:outline-none focus-visible:ring-2 focus-visible:ring-ink/30 focus-visible:ring-offset-2 disabled:opacity-60"
             >
               {loading ? "Saving…" : "Send confirmation"}
             </button>
@@ -149,14 +149,14 @@ function EmailCard({ email }: { email: string }) {
                 setOpen(false);
                 setErr(null);
               }}
-              className="rounded-lg border border-charcoal/15 bg-white px-5 py-2.5 text-sm font-semibold text-charcoal/75 hover:bg-sand-light"
+              className="inline-flex h-10 items-center rounded-full bg-stone px-5 text-sm font-medium text-ink transition-colors hover:bg-stone-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-ink/30 focus-visible:ring-offset-2"
             >
               Cancel
             </button>
           </div>
-          <p className="text-[11px] text-charcoal/45">
-            Supabase will send a confirmation link to your new email. The
-            change isn’t effective until you click that link.
+          <p className="text-xs text-muted-3">
+            We send a confirmation link to your new email. The change takes
+            effect after you click it.
           </p>
         </form>
       )}
@@ -229,15 +229,15 @@ function PasswordCard() {
   }
 
   return (
-    <section className="rounded-2xl border border-charcoal/10 bg-white p-6 shadow-[0_1px_2px_rgba(15,91,85,0.06),0_2px_8px_-2px_rgba(15,91,85,0.08)]">
+    <section className="min-w-0 rounded-card border border-stone-dark/70 bg-white p-6 font-body shadow-card">
       <div className="flex items-start gap-3">
-        <span className="grid h-9 w-9 place-items-center rounded-lg bg-deep-teal/10 text-deep-teal">
-          <Lock className="h-4 w-4" />
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-stone text-ink">
+          <Lock className="h-[18px] w-[18px]" strokeWidth={1.75} aria-hidden />
         </span>
         <div className="min-w-0 flex-1">
-          <h2 className="font-display text-base font-bold text-charcoal">Password</h2>
-          <p className="mt-0.5 text-sm text-charcoal/65">
-            At least 8 characters. We re-verify the current one before saving.
+          <h2 className="font-heading text-[17px] font-semibold text-ink">Password</h2>
+          <p className="mt-0.5 text-sm text-muted-2">
+            At least 8 characters. We check your current password before saving.
           </p>
         </div>
       </div>
@@ -246,7 +246,7 @@ function PasswordCard() {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="mt-5 inline-flex items-center justify-center rounded-lg border border-charcoal/15 bg-white px-4 py-2 text-sm font-semibold text-charcoal/75 hover:bg-sand-light"
+          className="mt-5 inline-flex h-10 items-center justify-center rounded-full bg-stone px-5 text-sm font-medium text-ink transition-colors hover:bg-stone-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-ink/30 focus-visible:ring-offset-2"
         >
           Change password
         </button>
@@ -257,7 +257,7 @@ function PasswordCard() {
           <Pw label="Confirm new password" value={confirm} onChange={setConfirm} show={showPassword} setShow={setShowPassword} />
           <TurnstileWidget onToken={setCaptcha} resetKey={captchaReset} />
           {err && (
-            <p className="rounded-md border border-terracotta/25 bg-terracotta/5 p-2.5 text-xs text-terracotta-dark">
+            <p role="alert" className="rounded-2xl border border-blush bg-blush/30 px-3.5 py-2.5 text-xs text-ink">
               {err}
             </p>
           )}
@@ -265,7 +265,7 @@ function PasswordCard() {
             <button
               type="submit"
               disabled={loading}
-              className="rounded-lg bg-deep-teal px-5 py-2.5 text-sm font-semibold text-white hover:bg-deep-teal-dark disabled:opacity-60"
+              className="inline-flex h-10 items-center rounded-full bg-ink px-5 text-sm font-medium text-white transition-colors hover:bg-ink-soft focus:outline-none focus-visible:ring-2 focus-visible:ring-ink/30 focus-visible:ring-offset-2 disabled:opacity-60"
             >
               {loading ? "Saving…" : "Update password"}
             </button>
@@ -275,7 +275,7 @@ function PasswordCard() {
                 setOpen(false);
                 setErr(null);
               }}
-              className="rounded-lg border border-charcoal/15 bg-white px-5 py-2.5 text-sm font-semibold text-charcoal/75 hover:bg-sand-light"
+              className="inline-flex h-10 items-center rounded-full bg-stone px-5 text-sm font-medium text-ink transition-colors hover:bg-stone-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-ink/30 focus-visible:ring-offset-2"
             >
               Cancel
             </button>
@@ -298,7 +298,7 @@ function Pw({
 }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-xs font-semibold uppercase tracking-wider text-charcoal/55">
+      <span className="mb-1.5 block text-[13px] font-medium text-ink">
         {label}
       </span>
       <div className="relative">
@@ -309,13 +309,13 @@ function Pw({
           minLength={label === "Current password" ? undefined : 8}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full rounded-lg border border-charcoal/15 px-3 py-2.5 pr-10 text-sm outline-none focus:border-deep-teal focus:ring-2 focus:ring-deep-teal/20"
+          className="w-full rounded-2xl border border-stone-dark bg-white px-4 py-2.5 pr-11 text-sm text-ink outline-none placeholder:text-muted-4 focus:border-ink/40 focus:ring-2 focus:ring-ink/10"
         />
         <button
           type="button"
           onClick={() => setShow(!show)}
           aria-label={show ? "Hide password" : "Show password"}
-          className="absolute inset-y-0 right-2 grid place-items-center px-2 text-charcoal/50 hover:text-charcoal/75"
+          className="absolute inset-y-0 right-2 grid place-items-center rounded-full px-2 text-muted-3 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-ink/30"
         >
           {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
         </button>
