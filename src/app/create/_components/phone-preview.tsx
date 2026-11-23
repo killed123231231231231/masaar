@@ -11,7 +11,7 @@ import { type WizardType } from "../_lib/types";
  */
 export default function PhonePreview({
   type,
-   
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   form,
 }: {
   type: WizardType | null;
@@ -119,7 +119,7 @@ function ImageGlyph() {
 }
 
 function VCardPreview({
-   
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   form,
 }: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -156,7 +156,7 @@ function Row({ label, value }: { label: string; value: string }) {
 }
 
 function WhatsAppPreview({
-   
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   form,
 }: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
