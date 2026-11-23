@@ -2,9 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Check, ChevronRight, Flag, Mail, MessageSquare, Phone, User } from "lucide-react";
+import { Check, Mail, MessageSquare, Phone, User } from "lucide-react";
 import { ABUSE_MESSAGE_MAX } from "@/lib/abuse-report";
-import LogoMark from "@/components/logo-mark";
 import TurnstileWidget, { turnstileEnabled } from "@/components/turnstile-widget";
 
 // /contact — demo-request page, and the abuse-report form reached from
@@ -64,33 +63,13 @@ export default function ContactClient({
       setDone(true);
       setLoading(false);
     } catch {
-      setErr("Network error — please retry.");
+      setErr("Network error. Please retry.");
       setLoading(false);
     }
   }
 
   return (
-    <main className="min-h-screen bg-paper font-body text-ink">
-      <header className="sticky top-0 z-30 bg-paper/85 backdrop-blur-md">
-        <div className="mx-auto flex max-w-[1170px] items-center justify-between gap-3 px-4 py-4 sm:px-6">
-          <Link href="/" className="flex items-center gap-2">
-            <LogoMark className="h-8 w-8" />
-            <span className="font-heading text-[22px] font-extrabold tracking-[-0.03em] text-ink sm:text-[26px]">
-              Vertexa QR
-            </span>
-          </Link>
-          <Link
-            href="/create"
-            className="group inline-flex h-10 items-center gap-2 rounded-full py-1.5 pl-1 pr-3 text-[15px] font-medium text-ink transition-colors hover:bg-stone focus:outline-none focus-visible:ring-2 focus-visible:ring-ink/30"
-          >
-            <span className="grid h-8 w-8 place-items-center rounded-full bg-ink text-white transition-transform group-hover:translate-x-0.5">
-              <ChevronRight className="h-4 w-4" />
-            </span>
-            Create QR code
-          </Link>
-        </div>
-      </header>
-
+    <div className="w-full flex-1">
       <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:py-16">
         {done ? (
           <ThankYou name={name} isAbuse={isAbuse} />
@@ -98,10 +77,7 @@ export default function ContactClient({
           <>
             {isAbuse ? (
               <div>
-                <span className="inline-flex items-center gap-2 rounded-full bg-stone px-3 py-1.5 text-sm font-medium text-ink">
-                  <Flag className="h-3.5 w-3.5" /> Report abuse
-                </span>
-                <h1 className="mt-3 font-heading text-[36px] font-medium leading-[1.15] tracking-[-0.02em] sm:text-[54px]">
+                <h1 className="font-heading text-[36px] font-medium leading-[1.15] tracking-[-0.02em] sm:text-[54px]">
                   Report a QR code
                 </h1>
                 <p className="mt-3 text-base text-muted-2">
@@ -111,15 +87,12 @@ export default function ContactClient({
                 </p>
               </div>
             ) : (
-              <div className="text-left sm:text-center">
-                <span className="inline-flex items-center gap-2 rounded-full bg-stone px-3 py-1.5 text-sm font-medium text-ink"><span aria-hidden className="h-2 w-2 rounded-full bg-lime ring-1 ring-ink/20" />
-                  Book a demo
-                </span>
-                <h1 className="mt-3 font-heading text-[36px] font-medium leading-[1.15] tracking-[-0.02em] sm:text-[54px]">
+              <div>
+                <h1 className="font-heading text-[36px] font-medium leading-[1.15] tracking-[-0.02em] sm:text-[54px]">
                   Let’s talk about your QR rollout
                 </h1>
-                <p className="mt-3 text-balance text-base text-muted-2">
-                  Tell us a bit about your business — we’ll get back within one
+                <p className="mt-3 text-base text-muted-2">
+                  Tell us a bit about your business and we’ll get back within one
                   working day to set up a short walkthrough.
                 </p>
               </div>
@@ -193,7 +166,7 @@ export default function ContactClient({
                   placeholder={
                     isAbuse
                       ? "What did the QR code open, and where did you see it printed?"
-                      : "A few sentences about your use case — restaurant menus, retail signage, event tickets, etc."
+                      : "A few sentences about your use case: restaurant menus, retail signage, event tickets, etc."
                   }
                   className="min-h-[132px] w-full rounded-xl border border-stone-dark bg-white px-3.5 py-2.5 text-ink placeholder:text-muted-3 hover:border-ink/25 text-sm outline-none focus:border-ink focus:ring-2 focus:ring-ink/20"
                 />
@@ -224,7 +197,7 @@ export default function ContactClient({
           </>
         )}
       </div>
-    </main>
+    </div>
   );
 }
 
@@ -274,7 +247,7 @@ function ThankYou({ name, isAbuse }: { name: string; isAbuse: boolean }) {
         <Check className="h-7 w-7" strokeWidth={2.5} />
       </span>
       <h1 className="mt-5 font-heading text-[28px] font-medium tracking-[-0.02em] text-ink">
-        {isAbuse ? `Thanks, ${first}. Your report was sent` : `Thanks, ${first} — we’ll be in touch`}
+        {isAbuse ? `Thanks, ${first}. Your report was sent` : `Thanks, ${first}, we’ll be in touch`}
       </h1>
       <p className="mt-3 text-balance text-base text-muted-2">
         {isAbuse
