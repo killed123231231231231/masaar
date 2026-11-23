@@ -1,6 +1,8 @@
 "use client";
 
-import { Globe, Heart } from "lucide-react";
+import { FileText, Globe, Heart, Image as ImageIcon, MapPin, Play, Star } from "lucide-react";
+import { BrandGlyph } from "@/components/icons/brand-icons";
+import { platformMeta } from "../_lib/social-platforms";
 import { type WizardType } from "../_lib/types";
 
 /**
@@ -52,6 +54,16 @@ function body(type: WizardType | null, form: Record<string, any>) {
       return <SimplePreview title="New message" body={`To: ${form.number || "+966…"}`} />;
     case "phone":
       return <SimplePreview title="Call" body={form.number || "+966…"} />;
+    case "social":
+      return <SocialPreview form={form} />;
+    case "location":
+      return <LocationPreview form={form} />;
+    case "feedback":
+      return <FeedbackPreview form={form} />;
+    case "pdf":
+    case "image":
+    case "video":
+      return <FilePreview kind={type} form={form} />;
     default:
       return <SimplePreview title="Preview" body="Scan to open this content" />;
   }
@@ -191,3 +203,99 @@ function SimplePreview({ title, body }: { title: string; body: string }) {
   );
 }
 
+
+/* Previews for the hosted types, so step 2 never shows an empty phone. */
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function SocialPreview({ form }: { form: Record<string, any> }) {
+  const links: { platform: string; url: string }[] = Array.isArray(form.links) ? form.links : [];
+  return (
+    <div className="flex flex-col items-center px-4 pb-5 pt-7 text-center">
+      <div className="grid h-16 w-16 place-items-center overflow-hidden rounded-full bg-lime">
+        {form.avatar_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={form.avatar_url} alt="" className="h-full w-full object-cover" />
+        ) : null}
+      </div>
+      <p className="mt-3 font-heading text-sm font-semibold text-ink">{form.display_name || "Your name"}</p>
+      <p className="mt-1 line-clamp-2 text-[11px] text-muted-2">{form.bio || "A short line about you"}</p>
+      <div className="mt-4 w-full space-y-2">
+        {(links.length ? links : [{ platform: "instagram", url: "" }, { platform: "website", url: "" }]).slice(0, 5).map((l, i) => {
+          const m = platformMeta(l.platform);
+          return (
+            <div key={`${l.platform}-${i}`} className="flex items-center gap-2 rounded-xl border border-stone-dark px-2.5 py-2 text-left">
+              <span className="grid h-6 w-6 shrink-0 place-items-center rounded-lg" style={{ background: m.color }}>
+                <BrandGlyph platform={m.key} color="#FFFFFF" className="h-3.5 w-3.5" />
+              </span>
+              <span className="text-[11px] font-semibold text-ink">{m.label}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function LocationPreview({ form }: { form: Record<string, any> }) {
+  return (
+    <>
+      <div className="relative h-56 bg-[linear-gradient(135deg,#F0EEEB_25%,#E7E4DF_25%,#E7E4DF_50%,#F0EEEB_50%,#F0EEEB_75%,#E7E4DF_75%)] bg-[length:28px_28px]">
+        <span className="absolute left-1/2 top-1/2 grid h-11 w-11 -translate-x-1/2 -translate-y-full place-items-center rounded-full bg-ink text-lime shadow-card">
+          <MapPin className="h-5 w-5" aria-hidden />
+        </span>
+      </div>
+      <div className="p-4">
+        <p className="font-heading text-sm font-semibold text-ink">{form.label || "Your location"}</p>
+        <p className="mt-1 text-[11px] text-muted-2">Opens in Google Maps</p>
+        <div className="mt-4 rounded-full bg-ink py-2 text-center text-[11px] font-semibold text-white">Get directions</div>
+      </div>
+    </>
+  );
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function FeedbackPreview({ form }: { form: Record<string, any> }) {
+  return (
+    <div className="flex flex-col items-center px-4 pb-5 pt-8 text-center">
+      <p className="font-heading text-sm font-semibold text-ink">{form.headline || "How was your visit?"}</p>
+      <p className="mt-1 text-[11px] text-muted-2">{form.prompt || "Tap a star to rate us"}</p>
+      <div className="mt-4 flex gap-1.5">
+        {[0, 1, 2, 3, 4].map((i) => (
+          <Star key={i} className={`h-6 w-6 ${i < 4 ? "fill-lime text-ink" : "text-muted-4"}`} strokeWidth={1.6} aria-hidden />
+        ))}
+      </div>
+      <div className="mt-5 h-16 w-full rounded-xl border border-stone-dark" />
+      <div className="mt-3 w-full rounded-full bg-ink py-2 text-[11px] font-semibold text-white">Send feedback</div>
+    </div>
+  );
+}
+
+function FileIconFor({ kind }: { kind: "pdf" | "image" | "video" }) {
+  const Icon = kind === "pdf" ? FileText : kind === "image" ? ImageIcon : Play;
+  return <Icon className="h-7 w-7 text-ink" aria-hidden />;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function FilePreview({ kind, form }: { kind: "pdf" | "image" | "video"; form: Record<string, any> }) {
+  const label = kind === "pdf" ? "PDF" : kind === "image" ? "Image" : "Video";
+  return (
+    <>
+      <div className="flex items-center justify-center bg-ink py-2 text-[11px] font-semibold text-white">{label}</div>
+      <div className="flex flex-col items-center p-5 text-center">
+        <div className="grid h-40 w-full place-items-center rounded-xl bg-stone">
+          {kind === "image" && form.asset_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={form.asset_url} alt="" className="h-full w-full rounded-xl object-cover" />
+          ) : (
+            <FileIconFor kind={kind} />
+          )}
+        </div>
+        <p className="mt-3 max-w-full truncate text-xs font-semibold text-ink">{form.asset_filename || `Your ${label.toLowerCase()}`}</p>
+        <div className="mt-4 w-full rounded-full bg-ink py-2 text-[11px] font-semibold text-white">
+          {kind === "pdf" ? "Open PDF" : kind === "image" ? "View image" : "Play video"}
+        </div>
+      </div>
+    </>
+  );
+}

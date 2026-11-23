@@ -222,7 +222,7 @@ export default function Step3Customize({
   // related fields invalidate it.
   const framesGrid = useMemo(
     () => (
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
+      <div className="grid grid-cols-3 gap-2 md:grid-cols-4">
         {/* 2-up on phones so each frame thumb stays a comfortable tap
             target; 3/4-up as width allows. */}
         {FRAMES.map((f) => {
@@ -601,8 +601,8 @@ export default function Step3Customize({
                   />
                 )}
                 <p className="mt-2 rounded-xl bg-stone/60 p-2 text-xs text-muted-2">
-                  Scanners enter this password before the QR opens. Stored
-                  hashed (bcrypt). We never keep the plaintext.
+                  Anyone who scans must enter this password before the QR
+                  opens. It is stored encrypted and we can't read it.
                 </p>
               </>
             ) : (
@@ -616,7 +616,8 @@ export default function Step3Customize({
         </div>
       </div>
 
-      <aside className="self-start lg:sticky lg:top-6">
+      {/* Phones: preview first, so the QR is seen before the options. */}
+      <aside className="order-first self-start max-lg:w-full lg:order-none lg:sticky lg:top-6">
         <div className="grain relative overflow-hidden rounded-panel bg-mint p-4 sm:p-6">
         <div
           aria-hidden

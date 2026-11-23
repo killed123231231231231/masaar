@@ -66,6 +66,12 @@ export default function WizardClient({
   const draftTokenCreatedAt = useRef<number>(0);
   const shortId = useRef<string>("");
   const restored = useRef(false);
+  // The wizard's only scroll area. Reset it to the top whenever the step or
+  // type changes, so a new step never opens scrolled down at its preview.
+  const scrollRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: 0 });
+  }, [step, type]);
 
   // Restore from localStorage once on mount (SSR-safe).
   //
@@ -457,7 +463,7 @@ export default function WizardClient({
         <ProgressBar current={step} maxStep={maxStep} onJump={(n) => goStep(n)} />
         {/* The ONLY scroll area in the wizard (getqr: overscroll-contain
             so scroll never chains to the page). */}
-        <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain">
+        <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain">
           {stepContent}
         </div>
         {footer}
