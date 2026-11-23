@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendContactNotification } from "@/lib/email";
-import { ipHash as hashRequestIp } from "@/lib/ip-hash";
+import { clientIp, ipHash as hashRequestIp } from "@/lib/ip-hash";
+import { verifyTurnstile } from "@/lib/turnstile";
 
 export const runtime = "nodejs";
 
@@ -18,6 +19,7 @@ export async function POST(request: Request) {
     phone?: string;
     message?: string;
     preferred_time?: string;
+    turnstile_token?: string;
   } | null;
   try {
     body = await request.json();
@@ -41,6 +43,14 @@ export async function POST(request: Request) {
   if (name.length > 200 || email.length > 320 || message.length > 5000 ||
       phone.length > 50 || preferredTime.length > 200) {
     return NextResponse.json({ error: "field_too_long" }, { status: 400 });
+  }
+
+  // Bot check (no-op until TURNSTILE_SECRET_KEY is set).
+  if (!(await verifyTurnstile(body?.turnstile_token, clientIp(request)))) {
+    return NextResponse.json(
+      { error: "captcha_failed", message: "Please complete the verification and try again." },
+      { status: 400 }
+    );
   }
 
   const ipHash = await hashRequestIp(request);

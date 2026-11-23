@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
+import TurnstileWidget, { turnstileEnabled } from "@/components/turnstile-widget";
 
 /**
  * Returning-user login. Two entry points:
@@ -53,11 +54,20 @@ export default function LoginModal({
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [resetSent, setResetSent] = useState(false);
+  // One Turnstile token covers either action (sign in or setup link); it is
+  // single-use, so the widget is reset after every attempt.
+  const [captcha, setCaptcha] = useState<string | null>(null);
+  const [captchaReset, setCaptchaReset] = useState(0);
+  const captchaMissing = turnstileEnabled && !captcha;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!email || !password) {
       setErr("Email and password are required.");
+      return;
+    }
+    if (captchaMissing) {
+      setErr("Please complete the verification below.");
       return;
     }
     setLoading(true);
@@ -67,7 +77,9 @@ export default function LoginModal({
     const { error } = await supabase.auth.signInWithPassword({
       email: email.trim().toLowerCase(),
       password,
+      ...(captcha ? { options: { captchaToken: captcha } } : {}),
     });
+    setCaptchaReset((n) => n + 1);
 
     if (error) {
       setLoading(false);
@@ -114,12 +126,18 @@ export default function LoginModal({
       setErr("Enter your email above first.");
       return;
     }
+    if (captchaMissing) {
+      setErr("Please complete the verification below.");
+      return;
+    }
     setLoading(true);
     setErr(null);
     const supabase = createClient();
     const { error } = await supabase.auth.resetPasswordForEmail(em, {
       redirectTo: `${window.location.origin}/auth/reset`,
+      ...(captcha ? { captchaToken: captcha } : {}),
     });
+    setCaptchaReset((n) => n + 1);
     setLoading(false);
     if (error) {
       setErr(error.message);
@@ -188,6 +206,8 @@ export default function LoginModal({
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
+
+            <TurnstileWidget onToken={setCaptcha} resetKey={captchaReset} />
 
             {err && (
               <div className="rounded-md border border-terracotta/25 bg-terracotta/5 p-2.5">

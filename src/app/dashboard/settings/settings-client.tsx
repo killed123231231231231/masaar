@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { Eye, EyeOff, Lock, Mail } from "lucide-react";
+import TurnstileWidget, { turnstileEnabled } from "@/components/turnstile-widget";
 
 export default function SettingsClient({ email }: { email: string }) {
   return (
@@ -22,17 +23,30 @@ function EmailCard({ email }: { email: string }) {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  // The server re-verifies the password via Supabase sign-in, which needs a
+  // Turnstile token once bot protection is on.
+  const [captcha, setCaptcha] = useState<string | null>(null);
+  const [captchaReset, setCaptchaReset] = useState(0);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (turnstileEnabled && !captcha) {
+      setErr("Please complete the verification below.");
+      return;
+    }
     setLoading(true);
     setErr(null);
     try {
       const res = await fetch("/api/account/email", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ new_email: newEmail, current_password: currentPassword }),
+        body: JSON.stringify({
+          new_email: newEmail,
+          current_password: currentPassword,
+          captcha_token: captcha,
+        }),
       });
+      setCaptchaReset((n) => n + 1);
       const data = await res.json().catch(() => null);
       if (!res.ok) {
         const map: Record<string, string> = {
@@ -41,7 +55,7 @@ function EmailCard({ email }: { email: string }) {
           same_email: "That’s already your current email.",
           password_required: "Enter your current password to confirm.",
         };
-        setErr(map[data?.error] || data?.error || "Couldn’t update email.");
+        setErr(map[data?.error] || data?.message || data?.error || "Couldn’t update email.");
         setLoading(false);
         return;
       }
@@ -115,6 +129,7 @@ function EmailCard({ email }: { email: string }) {
               </button>
             </div>
           </label>
+          <TurnstileWidget onToken={setCaptcha} resetKey={captchaReset} />
           {err && (
             <p className="rounded-md border border-terracotta/25 bg-terracotta/5 p-2.5 text-xs text-terracotta-dark">
               {err}
@@ -159,10 +174,16 @@ function PasswordCard() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [captcha, setCaptcha] = useState<string | null>(null);
+  const [captchaReset, setCaptchaReset] = useState(0);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setErr(null);
+    if (turnstileEnabled && !captcha) {
+      setErr("Please complete the verification below.");
+      return;
+    }
     if (next.length < 8) {
       setErr("New password must be at least 8 characters.");
       return;
@@ -176,8 +197,13 @@ function PasswordCard() {
       const res = await fetch("/api/account/password", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ current_password: current, new_password: next }),
+        body: JSON.stringify({
+          current_password: current,
+          new_password: next,
+          captcha_token: captcha,
+        }),
       });
+      setCaptchaReset((n) => n + 1);
       const data = await res.json().catch(() => null);
       if (!res.ok) {
         const map: Record<string, string> = {
@@ -186,7 +212,7 @@ function PasswordCard() {
           same_password: "Pick a new password different from the current one.",
           current_password_required: "Enter your current password.",
         };
-        setErr(map[data?.error] || data?.error || "Couldn’t update password.");
+        setErr(map[data?.error] || data?.message || data?.error || "Couldn’t update password.");
         setLoading(false);
         return;
       }
@@ -229,6 +255,7 @@ function PasswordCard() {
           <Pw label="Current password" value={current} onChange={setCurrent} show={showPassword} setShow={setShowPassword} autoFocus />
           <Pw label="New password" value={next} onChange={setNext} show={showPassword} setShow={setShowPassword} />
           <Pw label="Confirm new password" value={confirm} onChange={setConfirm} show={showPassword} setShow={setShowPassword} />
+          <TurnstileWidget onToken={setCaptcha} resetKey={captchaReset} />
           {err && (
             <p className="rounded-md border border-terracotta/25 bg-terracotta/5 p-2.5 text-xs text-terracotta-dark">
               {err}

@@ -24,6 +24,7 @@ export async function POST(request: Request) {
   const body = (await request.json().catch(() => null)) as {
     new_email?: string;
     current_password?: string;
+    captcha_token?: string | null;
   } | null;
   const newEmail = (body?.new_email ?? "").trim().toLowerCase();
   const currentPassword = body?.current_password ?? "";
@@ -43,7 +44,18 @@ export async function POST(request: Request) {
   const { error: verifyErr } = await supabase.auth.signInWithPassword({
     email: user.email,
     password: currentPassword,
+    // Supabase Auth's Turnstile check also applies to this re-verification
+    // once bot protection is enabled; the settings form forwards a token.
+    ...(typeof body?.captcha_token === "string" && body.captcha_token
+      ? { options: { captchaToken: body.captcha_token } }
+      : {}),
   });
+  if (verifyErr?.message?.toLowerCase().includes("captcha")) {
+    return NextResponse.json(
+      { error: "captcha_failed", message: "Please complete the verification and try again." },
+      { status: 400 }
+    );
+  }
   if (verifyErr) {
     return NextResponse.json(
       { error: "invalid_current_password" },

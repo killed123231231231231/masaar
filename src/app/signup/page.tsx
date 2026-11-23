@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import AuthAside from "@/components/auth-aside";
+import TurnstileWidget, { turnstileEnabled } from "@/components/turnstile-widget";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -14,19 +15,33 @@ export default function SignupPage() {
   const [err, setErr] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [captcha, setCaptcha] = useState<string | null>(null);
+  const [captchaReset, setCaptchaReset] = useState(0);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (turnstileEnabled && !captcha) {
+      setErr("Please complete the verification below.");
+      return;
+    }
     setLoading(true);
     setErr(null);
     setMsg(null);
     const supabase = createClient();
+    // Email confirmation stays on: signUp returns no session until the
+    // user clicks the link, so we never sign them straight in here.
+    // captchaToken feeds Supabase Auth's native Turnstile check (enabled
+    // in the Supabase dashboard together with the keys).
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: fullName } },
+      options: {
+        data: { full_name: fullName },
+        ...(captcha ? { captchaToken: captcha } : {}),
+      },
     });
     setLoading(false);
+    setCaptchaReset((n) => n + 1); // tokens are single-use
     if (error) {
       setErr(error.message);
       return;
@@ -54,6 +69,8 @@ export default function SignupPage() {
           <Field label="Full name" type="text" value={fullName} onChange={setFullName} required />
           <Field label="Email" type="email" value={email} onChange={setEmail} required />
           <Field label="Password (8+ chars)" type="password" value={password} onChange={setPassword} required />
+
+          <TurnstileWidget onToken={setCaptcha} resetKey={captchaReset} />
 
           {err && <p className="text-sm text-red-600">{err}</p>}
           {msg && <p className="text-sm text-green-600">{msg}</p>}
