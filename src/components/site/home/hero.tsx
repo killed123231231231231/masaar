@@ -36,28 +36,21 @@ export default function Hero() {
 
       <Container className="relative pb-14 pt-20 text-center sm:pt-24 md:pb-20 md:pt-[104px]">
         <Reveal>
-          <p className="inline-flex items-center gap-2 font-body text-base text-muted">
-            <span aria-hidden className="h-2.5 w-2.5 rounded-full bg-lime ring-1 ring-ink/15" />
-            Free plan · No card needed
-          </p>
-        </Reveal>
-
-        <Reveal delay={80}>
           <h1
             id="hero-title"
-            className="mx-auto mt-5 max-w-[760px] text-balance font-heading text-[40px] font-medium leading-[1.15] tracking-[-0.025em] text-ink sm:text-[52px] md:text-[64px] md:leading-[1.2]"
+            className="mx-auto max-w-[760px] text-balance font-heading text-[40px] font-medium leading-[1.15] tracking-[-0.025em] text-ink sm:text-[52px] md:text-[64px] md:leading-[1.2]"
           >
-            QR codes you can change anytime
+            QR codes, but make them editable
           </h1>
         </Reveal>
 
-        <Reveal delay={160}>
+        <Reveal delay={80}>
           <p className="mx-auto mt-5 max-w-[560px] text-balance font-body text-lg leading-[1.4] text-muted md:text-[21px]">
-            Create dynamic QR codes, edit them after printing, and see every scan.
+            Change the link after it&apos;s printed and watch every scan roll in
           </p>
         </Reveal>
 
-        <Reveal delay={240}>
+        <Reveal delay={160}>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <PrimaryButton href="/create" size="lg">
               Create QR code
