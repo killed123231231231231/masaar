@@ -5,17 +5,19 @@ import {
   BarChart3, Calendar, ExternalLink, LinkIcon, Download, Lock,
   Mail, MapPin, MessageSquare, MoreVertical, Pencil, Phone, Plus,
   Search, Smartphone, Text as TextIcon, UserSquare,
-  Wifi, Trash2, type LucideIcon,
+  Wifi, Trash2, QrCode as QrCodeIcon, type LucideIcon,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import LogoMark from "@/components/logo-mark";
 import StyledQr from "@/components/styled-qr";
 import { createQr } from "@/lib/qr";
 import { appUrl } from "@/lib/utils";
-import Sidebar, { type SidebarMe } from "@/components/dashboard/sidebar";
-import MobileDashboardNav from "@/components/dashboard/mobile-dashboard-nav";
+import type { SidebarMe } from "@/components/dashboard/sidebar";
+import DashboardFrame from "@/components/dashboard/frame";
+import {
+  Card, EmptyState as EmptyBlock, FOCUS, PageTitle, PrimaryButton,
+} from "@/components/dashboard/ui";
 
 export interface QrCardData {
   id: string;
@@ -40,10 +42,10 @@ export interface QrCardData {
 }
 
 const STATUS_TINT: Record<string, string> = {
-  active: "bg-deep-teal/10 text-deep-teal",
-  pending_payment: "bg-terracotta/15 text-terracotta-dark",
-  suspended: "bg-charcoal/10 text-charcoal/65",
-  expired: "bg-charcoal/10 text-charcoal/55",
+  active: "bg-lime text-ink",
+  pending_payment: "bg-blush/70 text-ink",
+  suspended: "bg-stone text-muted-2",
+  expired: "bg-stone text-muted-2",
 };
 
 // Friendly label + icon per content_kind enum value. Anything unknown
@@ -94,41 +96,24 @@ export default function QrCodesClient({
   me: SidebarMe;
 }) {
   return (
-    <div className="min-h-screen bg-[#F6F4EE] text-charcoal">
-      <div className="flex">
-        <Sidebar me={me} current="qrcodes" />
-        <main className="min-w-0 flex-1 space-y-7 px-4 py-5 sm:px-5 sm:py-6 lg:px-8">
-          <MobileDashboardNav me={me} current="qrcodes" />
-          <PageHeader total={qrs.length} />
-          {qrs.length === 0 ? (
-            <EmptyState />
-          ) : (
-            <ListBlock qrs={qrs} counts={counts} />
-          )}
-        </main>
-      </div>
-    </div>
+    <DashboardFrame me={me} current="qrcodes" className="space-y-6">
+      <PageHeader total={qrs.length} />
+      {qrs.length === 0 ? (
+        <EmptyState />
+      ) : (
+        <ListBlock qrs={qrs} counts={counts} />
+      )}
+    </DashboardFrame>
   );
 }
 
 function PageHeader({ total }: { total: number }) {
   return (
-    <div>
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="font-display text-2xl font-bold tracking-tight">Your QR codes</h1>
-          <p className="mt-1 text-sm text-charcoal/55">
-            {total} {total === 1 ? "code" : "codes"} total · search, edit, or jump into per-QR analytics.
-          </p>
-        </div>
-        <Link
-          href="/create"
-          className="inline-flex items-center gap-1.5 rounded-lg bg-deep-teal px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-deep-teal-dark"
-        >
-          <Plus className="h-4 w-4" /> Create QR
-        </Link>
-      </div>
-    </div>
+    <PageTitle
+      title="QR codes"
+      sub={`${total} ${total === 1 ? "code" : "codes"}. Search, edit, download or open analytics.`}
+      right={<PrimaryButton href="/create" icon={Plus}>Create QR code</PrimaryButton>}
+    />
   );
 }
 
@@ -156,27 +141,33 @@ function ListBlock({
   return (
     <>
       <div className="flex flex-wrap items-center gap-2">
-        <label className="relative flex-1 min-w-[200px] max-w-md">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-charcoal/45" />
+        <label className="relative min-w-[200px] max-w-md flex-1">
+          <span className="sr-only">Search QR codes</span>
+          <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-3" aria-hidden />
           <input
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search by name, short link, or destination…"
-            className="w-full rounded-lg border border-charcoal/15 bg-white py-2 pl-9 pr-3 text-sm text-charcoal placeholder:text-charcoal/40 focus:border-deep-teal focus:outline-none focus:ring-2 focus:ring-deep-teal/15"
+            placeholder="Search by name, short link or destination"
+            className="h-11 w-full rounded-full border border-stone-dark bg-white pl-10 pr-4 font-body text-sm text-ink placeholder:text-muted-4 outline-none transition-colors focus:border-ink/40 focus:ring-2 focus:ring-ink/10"
           />
         </label>
+        <span className="font-body text-[13px] text-muted-3">
+          {filtered.length === qrs.length
+            ? `${qrs.length} ${qrs.length === 1 ? "code" : "codes"}`
+            : `${filtered.length} of ${qrs.length}`}
+        </span>
         {/* The placeholder "Filters" button (toast: coming in Sprint 3) was
             removed — a control that goes nowhere reads as broken. It returns
             with the real filtering feature. */}
       </div>
 
       {filtered.length === 0 ? (
-        <p className="rounded-2xl border border-charcoal/10 bg-white p-8 text-center text-sm text-charcoal/55">
+        <Card as="div" className="p-8 text-center font-body text-sm text-muted-2">
           No codes match “{query}”.
-        </p>
+        </Card>
       ) : (
-        <ul className="rounded-2xl border border-charcoal/10 bg-white shadow-[0_1px_2px_rgba(15,91,85,0.06),0_2px_8px_-2px_rgba(15,91,85,0.08)]">
+        <ul className="rounded-card border border-stone-dark/70 bg-white font-body shadow-card">
           {/* No overflow-hidden on the <ul>: the row 3-dot menu is an
               absolutely positioned dropdown, and clipping it to the list
               box cut the menu off on the last/only row. Corner rounding is
@@ -271,12 +262,12 @@ function ListRow({
 
   return (
     <li
-      className={`flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3 transition first:rounded-t-2xl last:rounded-b-2xl sm:flex-nowrap sm:gap-4 sm:px-5 ${
-        !isLast ? "border-b border-charcoal/5" : ""
+      className={`flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3.5 transition first:rounded-t-card last:rounded-b-card sm:flex-nowrap sm:gap-4 sm:px-5 ${
+        !isLast ? "border-b border-stone" : ""
       } ${
         // Suspended rows are locked — no hover tint either, so the row
         // doesn't pretend to be interactive while its actions are disabled.
-        status === "suspended" ? "opacity-55" : "hover:bg-sand-light/40"
+        status === "suspended" ? "opacity-60" : "hover:bg-cream/70"
       }`}
     >
       {/* Thumbnail — the row's visual anchor. A generous, clickable preview
@@ -288,7 +279,7 @@ function ListRow({
         title={locked ? "Inactive — reactivate to open" : `Open QR code ${q.name}`}
         tabIndex={locked ? -1 : undefined}
         aria-disabled={locked || undefined}
-        className={`group/qr block shrink-0 rounded-lg border border-charcoal/10 bg-white p-1 shadow-sm transition-all duration-200 hover:border-deep-teal/40 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-deep-teal/40 ${lockCls}`}
+        className={`group/qr block shrink-0 rounded-2xl border border-stone-dark bg-white p-1.5 transition-all duration-200 hover:-translate-y-0.5 hover:border-ink/25 hover:shadow-card ${FOCUS} ${lockCls}`}
       >
         <div
           className={`h-16 w-16 transition group-hover/qr:scale-[1.04] lg:h-[72px] lg:w-[72px] ${
@@ -315,13 +306,13 @@ function ListRow({
 
       {/* Name + edit shortcut. Tappable on the whole block for fast access. */}
       <div className="min-w-0 flex-[1.4]">
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-charcoal/45">
+        <p className="text-xs text-muted-3">
           QR name
         </p>
         <div className="mt-0.5 flex items-center gap-1.5">
           <Link
             href={`/dashboard/qr/${q.id}`}
-            className={`truncate text-sm font-semibold text-charcoal hover:text-deep-teal ${lockCls}`}
+            className={`truncate rounded font-heading text-[15px] font-semibold text-ink hover:underline ${FOCUS} ${lockCls}`}
             title={q.name}
             tabIndex={locked ? -1 : undefined}
             aria-disabled={locked || undefined}
@@ -334,7 +325,7 @@ function ListRow({
             <Link
               href={`/dashboard/qr/${q.id}`}
               aria-label="Edit QR name"
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-md text-charcoal/45 hover:bg-sand-light hover:text-deep-teal focus:outline-none focus-visible:ring-2 focus-visible:ring-deep-teal/40"
+              className={`grid h-9 w-9 shrink-0 place-items-center rounded-full text-muted-3 hover:bg-stone hover:text-ink ${FOCUS}`}
             >
               <Pencil className="h-3.5 w-3.5" />
             </Link>
@@ -342,7 +333,7 @@ function ListRow({
         </div>
         {adminLocked && (
           // Phone widths hide the status column, so say it here too.
-          <p className="mt-0.5 inline-flex items-center gap-1 text-[11px] font-medium text-terracotta-dark md:hidden">
+          <p className="mt-0.5 inline-flex items-center gap-1 text-[11px] font-medium text-ink md:hidden">
             <Lock className="h-3 w-3" aria-hidden="true" />
             Locked by the site owner
           </p>
@@ -351,14 +342,14 @@ function ListRow({
 
       {/* Destination — hidden under md. */}
       <div className="hidden min-w-0 flex-[1.4] md:block">
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-charcoal/45">
+        <p className="text-xs text-muted-3">
           Destination
         </p>
         <a
           href={q.destination}
           target="_blank"
           rel="noopener noreferrer"
-          className={`mt-0.5 inline-flex max-w-full items-center gap-1.5 truncate text-sm text-charcoal/65 hover:text-deep-teal ${lockCls}`}
+          className={`mt-0.5 inline-flex max-w-full items-center gap-1.5 truncate rounded text-sm text-muted-2 hover:text-ink ${FOCUS} ${lockCls}`}
           title={q.destination}
           tabIndex={locked ? -1 : undefined}
           aria-disabled={locked || undefined}
@@ -370,11 +361,11 @@ function ListRow({
 
       {/* Created — hidden under lg. */}
       <div className="hidden w-28 shrink-0 lg:block">
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-charcoal/45">
+        <p className="text-xs text-muted-3">
           Created
         </p>
-        <p className="mt-0.5 inline-flex items-center gap-1 text-xs text-charcoal/65">
-          <Calendar className="h-3 w-3 text-charcoal/40" />
+        <p className="mt-0.5 inline-flex items-center gap-1 text-[13px] text-muted-2">
+          <Calendar className="h-3 w-3 text-muted-3" aria-hidden />
           {fmtCreated(q.created_at)}
         </p>
       </div>
@@ -385,8 +376,8 @@ function ListRow({
           ~30px between rows depending on label text ("Website" vs
           "WhatsApp", "active" vs "pending payment"). Fixed-width
           containers + justify-center keeps the column predictable. */}
-      <span className="hidden w-32 shrink-0 items-center justify-center gap-1.5 rounded-md bg-sand-light px-2 py-1 text-xs font-medium text-charcoal/70 sm:inline-flex">
-        <TypeIcon className="h-3.5 w-3.5 text-deep-teal" />
+      <span className="hidden w-32 shrink-0 items-center justify-center gap-1.5 rounded-full bg-stone px-2.5 py-1 text-xs font-medium text-ink sm:inline-flex">
+        <TypeIcon className="h-3.5 w-3.5" aria-hidden />
         {tm.label}
       </span>
 
@@ -412,20 +403,20 @@ function ListRow({
                 ? "Active — click to deactivate"
                 : "Inactive — click to activate"
             }
-            className={`relative h-6 w-11 shrink-0 rounded-full transition-colors duration-300 ease-out disabled:cursor-not-allowed disabled:opacity-60 ${
-              isActive ? "bg-deep-teal" : "bg-charcoal/25"
+            className={`relative h-6 w-11 shrink-0 rounded-full transition-colors duration-300 ease-out disabled:cursor-not-allowed disabled:opacity-60 ${FOCUS} ${
+              isActive ? "bg-ink" : "bg-stone-dark"
             }`}
           >
             <span
-              className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-300 ease-out ${
-                isActive ? "translate-x-5" : "translate-x-0"
+              className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full shadow-sm transition-transform duration-300 ease-out ${
+                isActive ? "translate-x-5 bg-lime" : "translate-x-0 bg-white"
               }`}
             />
           </button>
         </div>
       ) : adminLocked ? (
         <span
-          className="hidden w-[88px] shrink-0 items-center justify-center gap-1 rounded-full bg-terracotta/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-terracotta-dark md:inline-flex"
+          className="hidden w-[88px] shrink-0 items-center justify-center gap-1 rounded-full bg-blush/70 px-2 py-1 text-[11px] font-medium text-ink md:inline-flex"
           title="Locked by the site owner. Contact support to have it reviewed."
         >
           <Lock className="h-3 w-3" aria-hidden="true" />
@@ -433,7 +424,7 @@ function ListRow({
         </span>
       ) : (
         <span
-          className={`hidden w-[88px] shrink-0 rounded-full px-2 py-0.5 text-center text-[10px] font-bold uppercase tracking-wider md:inline-block ${statusTint}`}
+          className={`hidden w-[88px] shrink-0 rounded-full px-2 py-1 text-center text-[11px] font-medium capitalize md:inline-block ${statusTint}`}
         >
           {status.replace(/_/g, " ")}
         </span>
@@ -442,13 +433,13 @@ function ListRow({
       {/* Scans — prominent pill (getqr style: "163 scans" / "2.2K scans"). */}
       <Link
         href={`/dashboard?qr=${q.id}`}
-        className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-deep-teal/10 px-2.5 py-1.5 text-xs font-bold text-deep-teal transition hover:bg-deep-teal/15 ${lockCls}`}
+        className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-lime px-3 text-xs font-medium text-ink transition hover:bg-lime-deep ${FOCUS} ${lockCls}`}
         title={locked ? "Inactive — reactivate to view analytics" : "Open analytics"}
         tabIndex={locked ? -1 : undefined}
         aria-disabled={locked || undefined}
       >
-        <BarChart3 className="h-3.5 w-3.5" />
-        {formatScans(scans)} scans
+        <BarChart3 className="h-3.5 w-3.5" aria-hidden />
+        <span className="tabular-nums">{formatScans(scans)}</span> scans
       </Link>
 
       {/* Download — bordered so it clearly reads as a button. Styled PNG that
@@ -457,7 +448,7 @@ function ListRow({
         type="button"
         onClick={downloadStyled}
         disabled={locked}
-        className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-charcoal/15 bg-white text-charcoal/60 shadow-sm transition hover:border-deep-teal/40 hover:bg-sand-light hover:text-deep-teal disabled:pointer-events-none disabled:opacity-40"
+        className={`grid h-9 w-9 shrink-0 place-items-center rounded-full border border-stone-dark bg-white text-ink transition hover:bg-stone disabled:pointer-events-none disabled:opacity-40 ${FOCUS}`}
         title={locked ? "Inactive — reactivate to download" : "Download PNG"}
         aria-label={`Download ${q.name} as PNG`}
       >
@@ -556,20 +547,20 @@ function RowMenu({
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label="More actions"
-        className="grid h-9 w-9 shrink-0 place-items-center rounded-md text-charcoal/55 hover:bg-sand-light hover:text-deep-teal"
+        className={`grid h-9 w-9 shrink-0 place-items-center rounded-full text-muted-2 hover:bg-stone hover:text-ink ${FOCUS}`}
       >
         <MoreVertical className="h-4 w-4" />
       </button>
       {open && (
         <div
           role="menu"
-          className="absolute right-0 top-full z-20 mt-1 w-44 overflow-hidden rounded-lg border border-charcoal/10 bg-white shadow-xl"
+          className="absolute right-0 top-full z-20 mt-1 w-48 overflow-hidden rounded-2xl border border-stone-dark bg-white p-1.5 shadow-float"
         >
           {locked ? (
             <span
               role="menuitem"
               aria-disabled
-              className="flex cursor-not-allowed items-center gap-2 px-3 py-2.5 text-sm font-medium text-charcoal/35"
+              className="flex cursor-not-allowed items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-muted-4"
             >
               <Pencil className="h-4 w-4" /> Edit
             </span>
@@ -578,7 +569,7 @@ function RowMenu({
               href={`/dashboard/qr/${id}`}
               role="menuitem"
               onClick={() => setOpen(false)}
-              className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium text-charcoal/80 hover:bg-sand-light hover:text-deep-teal"
+              className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-ink hover:bg-stone focus:outline-none focus-visible:ring-2 focus-visible:ring-ink/30"
             >
               <Pencil className="h-4 w-4" /> Edit
             </Link>
@@ -587,7 +578,7 @@ function RowMenu({
             <span
               role="menuitem"
               aria-disabled
-              className="flex cursor-not-allowed items-center gap-2 px-3 py-2.5 text-sm font-medium text-charcoal/35"
+              className="flex cursor-not-allowed items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-muted-4"
             >
               <BarChart3 className="h-4 w-4" /> Analytics
             </span>
@@ -596,7 +587,7 @@ function RowMenu({
               href={`/dashboard?qr=${id}`}
               role="menuitem"
               onClick={() => setOpen(false)}
-              className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium text-charcoal/80 hover:bg-sand-light hover:text-deep-teal"
+              className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-ink hover:bg-stone focus:outline-none focus-visible:ring-2 focus-visible:ring-ink/30"
             >
               <BarChart3 className="h-4 w-4" /> Analytics
             </Link>
@@ -606,7 +597,7 @@ function RowMenu({
             role="menuitem"
             onClick={handleDelete}
             disabled={deleting}
-            className="flex w-full items-center gap-2 border-t border-charcoal/10 px-3 py-2.5 text-sm font-medium text-terracotta-dark hover:bg-terracotta/10 disabled:opacity-60"
+            className="mt-1 flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-ink hover:bg-blush/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-ink/30 disabled:opacity-60"
           >
             <Trash2 className="h-4 w-4" /> {deleting ? "Deleting…" : "Delete"}
           </button>
@@ -620,21 +611,13 @@ function RowMenu({
 
 function EmptyState() {
   return (
-    <div className="rounded-2xl border border-dashed border-charcoal/15 bg-white p-12 text-center">
-      <LogoMark className="mx-auto h-14 w-14 opacity-30" />
-      <h3 className="mt-4 font-display text-lg font-semibold text-charcoal">
-        No QR codes yet
-      </h3>
-      <p className="mt-2 mx-auto max-w-sm text-sm leading-relaxed text-charcoal/60">
-        Create your first dynamic QR code and watch scans roll in.
-      </p>
-      <Link
-        href="/create"
-        className="mt-6 inline-flex items-center gap-1.5 rounded-lg bg-deep-teal px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-deep-teal-dark"
-      >
-        <Plus className="h-4 w-4" /> Create your first QR
-      </Link>
-    </div>
+    <Card className="py-6">
+      <EmptyBlock
+        icon={QrCodeIcon}
+        title="No QR codes yet"
+        body="Create your first dynamic QR code. You can change where it points after printing."
+        action={<PrimaryButton href="/create" icon={Plus}>Create QR code</PrimaryButton>}
+      />
+    </Card>
   );
 }
-
