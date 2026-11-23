@@ -148,32 +148,32 @@ export default function LoginModal({
 
   return (
     <div
-      className="w-full max-w-sm rounded-2xl border border-charcoal/10 bg-white p-7 shadow-xl"
+      className="w-full max-w-sm rounded-panel border border-stone-dark bg-white p-7 font-body shadow-float"
       onClick={(e) => e.stopPropagation()}
     >
       {resetSent ? (
         <div className="text-center">
-          <h2 className="font-display text-lg font-bold text-charcoal">
+          <h2 className="font-heading text-2xl font-medium text-ink">
             Check your email
           </h2>
-          <p className="mt-3 text-sm leading-relaxed text-charcoal/65">
+          <p className="mt-3 text-sm leading-relaxed text-muted-2">
             We sent a setup link to <strong>{email}</strong>. Open it on
             this device to set your password.
           </p>
           <button
             type="button"
             onClick={onClose}
-            className="mt-6 text-xs font-medium text-charcoal/55 hover:text-deep-teal"
+            className="mt-6 text-xs font-medium text-muted-3 hover:text-ink"
           >
             Close
           </button>
         </div>
       ) : (
         <>
-          <h2 className="font-display text-lg font-bold text-charcoal">
+          <h2 className="font-heading text-2xl font-medium text-ink">
             Welcome Back
           </h2>
-          <p className="mt-2 text-sm text-charcoal/60">
+          <p className="mt-2 text-sm text-muted-2">
             Please enter your details to sign in
           </p>
 
@@ -185,7 +185,8 @@ export default function LoginModal({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
-              className="w-full rounded-lg border border-charcoal/15 px-3 py-2.5 text-sm outline-none focus:border-deep-teal focus:ring-2 focus:ring-deep-teal/20"
+              aria-label="Email"
+              className="w-full rounded-xl h-11 border border-stone-dark bg-white px-3.5 py-2.5 text-ink placeholder:text-muted-3 hover:border-ink/25 text-sm outline-none focus:border-ink focus:ring-2 focus:ring-ink/20"
             />
 
             <div className="relative">
@@ -195,13 +196,14 @@ export default function LoginModal({
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Password"
-                className="w-full rounded-lg border border-charcoal/15 px-3 py-2.5 pr-10 text-sm outline-none focus:border-deep-teal focus:ring-2 focus:ring-deep-teal/20"
+                aria-label="Password"
+                className="w-full rounded-xl h-11 border border-stone-dark bg-white px-3.5 py-2.5 text-ink placeholder:text-muted-3 hover:border-ink/25 pr-10 text-sm outline-none focus:border-ink focus:ring-2 focus:ring-ink/20"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((s) => !s)}
                 aria-label={showPassword ? "Hide password" : "Show password"}
-                className="absolute inset-y-0 right-2 grid place-items-center px-2 text-charcoal/50 hover:text-charcoal/75"
+                className="absolute inset-y-0 right-2 grid place-items-center px-2 text-muted-3 hover:text-muted"
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
@@ -210,15 +212,15 @@ export default function LoginModal({
             <TurnstileWidget onToken={setCaptcha} resetKey={captchaReset} />
 
             {err && (
-              <div className="rounded-md border border-terracotta/25 bg-terracotta/5 p-2.5">
-                <p className="text-xs text-terracotta-dark">{err}</p>
-                <p className="mt-1.5 text-[11px] text-charcoal/65">
+              <div className="rounded-xl border border-red-200 bg-red-50 p-2.5">
+                <p className="text-xs text-red-700">{err}</p>
+                <p className="mt-1.5 text-[11px] text-muted-2">
                   First time logging in (or forgot)?{" "}
                   <button
                     type="button"
                     onClick={handleSendSetupLink}
                     disabled={loading}
-                    className="font-semibold text-deep-teal hover:underline disabled:opacity-60"
+                    className="font-semibold text-ink underline underline-offset-2 hover:no-underline disabled:opacity-60"
                   >
                     Send me a setup link
                   </button>
@@ -229,7 +231,7 @@ export default function LoginModal({
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-lg bg-deep-teal px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-deep-teal-dark disabled:opacity-60"
+              className="w-full rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-ink-soft disabled:opacity-60"
             >
               {loading ? "Signing in…" : "Log in"}
             </button>
@@ -239,31 +241,31 @@ export default function LoginModal({
                 type="button"
                 onClick={handleSendSetupLink}
                 disabled={loading}
-                className="text-xs font-medium text-charcoal/55 hover:text-deep-teal disabled:opacity-60"
+                className="text-xs font-medium text-muted-3 hover:text-ink disabled:opacity-60"
               >
                 Forgot password?
               </button>
             </div>
           </form>
 
-          <div className="my-4 flex items-center gap-3 text-xs text-charcoal/40">
-            <span className="h-px flex-1 bg-charcoal/10" /> OR
-            <span className="h-px flex-1 bg-charcoal/10" />
+          <div className="my-4 flex items-center gap-3 text-xs text-muted-3">
+            <span className="h-px flex-1 bg-ink/10" /> OR
+            <span className="h-px flex-1 bg-ink/10" />
           </div>
           <button
             type="button"
             onClick={() => toast("Google sign-in is coming soon")}
-            className="w-full rounded-lg border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal transition-colors hover:bg-sand-light/60"
+            className="w-full rounded-full bg-stone px-5 py-3 text-sm font-medium text-ink transition-colors hover:bg-stone-dark"
           >
             Continue with Google
           </button>
 
-          <p className="mt-5 text-center text-xs text-charcoal/55">
+          <p className="mt-5 text-center text-xs text-muted-3">
             No account?{" "}
             <button
               type="button"
               onClick={onSwitchToSignup}
-              className="font-semibold text-deep-teal hover:underline"
+              className="font-semibold text-ink underline underline-offset-2 hover:no-underline"
             >
               Create your first QR
             </button>
@@ -271,7 +273,7 @@ export default function LoginModal({
             <Link
               href="/create"
               onClick={onClose}
-              className="font-semibold text-deep-teal hover:underline"
+              className="font-semibold text-ink underline underline-offset-2 hover:no-underline"
             >
               here
             </Link>

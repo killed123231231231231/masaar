@@ -70,19 +70,19 @@ export default async function LocationPage({
   const coords = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
 
   return (
-    <main className="min-h-screen bg-sand-light/40">
+    <main className="min-h-screen bg-paper font-body text-ink">
       <div className="mx-auto w-full max-w-md px-4 pb-12 pt-8">
-        <div className="flex items-center justify-center gap-2 text-deep-teal">
+        <div className="mx-auto flex w-fit items-center justify-center gap-2 rounded-full bg-stone px-3 py-1.5 text-ink">
           <MapPin className="h-5 w-5" />
           <span className="text-xs font-semibold uppercase tracking-wider">Location</span>
         </div>
         {label && (
-          <h1 className="mt-2 text-center font-display text-xl font-bold tracking-tight text-charcoal">
+          <h1 className="mt-2 text-center font-heading text-2xl font-medium tracking-tight text-ink">
             {label}
           </h1>
         )}
 
-        <div className="mt-5 overflow-hidden rounded-2xl border border-charcoal/10 shadow-sm">
+        <div className="mt-5 overflow-hidden rounded-card border border-stone-dark shadow-card">
           <iframe title={label || "Location"} src={osmEmbed(lat, lng)} className="h-72 w-full" loading="lazy" />
         </div>
 
@@ -91,7 +91,7 @@ export default async function LocationPage({
             href={gmaps}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex w-full items-center justify-center rounded-xl bg-deep-teal px-4 py-3.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-deep-teal-dark"
+            className="flex w-full items-center justify-center rounded-full bg-ink px-4 py-3.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-ink-soft"
           >
             Open in Google Maps
           </a>
@@ -99,7 +99,7 @@ export default async function LocationPage({
             href={amaps}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex w-full items-center justify-center rounded-xl border border-charcoal/15 bg-white px-4 py-3.5 text-sm font-semibold text-charcoal transition hover:bg-sand-light"
+            className="flex w-full items-center justify-center rounded-full bg-stone px-4 py-3.5 text-sm font-medium text-ink transition-colors hover:bg-stone-dark"
           >
             Open in Apple Maps
           </a>
@@ -107,13 +107,13 @@ export default async function LocationPage({
         </div>
 
         <footer className="mt-10 text-center">
-          <Link href="/" className="text-xs font-medium text-charcoal/40 transition-colors hover:text-deep-teal">
+          <Link href="/" className="text-xs font-medium text-muted-3 transition-colors hover:text-ink">
             Made with <span className="font-semibold">Vertexa QR</span>
           </Link>
-          <span aria-hidden className="mx-2 text-xs text-charcoal/25">·</span>
+          <span aria-hidden className="mx-2 text-xs text-muted-4">·</span>
           <Link
             href={`/contact?topic=abuse&qr=${encodeURIComponent(shortId)}`}
-            className="text-xs text-charcoal/55 transition-colors hover:text-terracotta-dark"
+            className="text-xs text-muted-3 transition-colors hover:text-ink"
           >
             Report abuse
           </Link>

@@ -9,7 +9,7 @@ type Link = { platform: string; url: string };
 type Form = Record<string, any>;
 
 const inputCls =
-  "block w-full rounded-lg border border-charcoal/15 bg-sand-light/30 px-4 py-2.5 text-sm text-charcoal outline-none transition-colors placeholder:text-charcoal/40 focus:border-deep-teal focus:bg-white focus:ring-2 focus:ring-deep-teal/15";
+  "block min-h-[44px] w-full rounded-xl border border-stone-dark bg-white px-4 py-2.5 font-body text-[15px] text-ink outline-none transition-colors placeholder:text-muted-3 hover:border-ink/25 focus:border-ink focus:ring-2 focus:ring-ink/20";
 
 export default function SocialForm({
   form,
@@ -71,7 +71,7 @@ export default function SocialForm({
         <button
           type="button"
           onClick={() => fileRef.current?.click()}
-          className="relative grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-full border border-charcoal/15 bg-sand-light/40 text-charcoal/40 transition hover:border-deep-teal/40"
+          className="relative grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-full border border-ink/15 bg-stone/60 text-muted-2 transition hover:border-ink/40"
           aria-label="Upload profile photo"
         >
           {form.avatar_url ? (
@@ -92,7 +92,7 @@ export default function SocialForm({
         </button>
         <div className="min-w-0 flex-1 space-y-3">
           <label className="block">
-            <span className="mb-1.5 block text-sm font-semibold text-charcoal/80">Display name</span>
+            <span className="mb-1.5 block font-body text-sm font-medium text-ink">Display name</span>
             <input
               value={form.display_name ?? ""}
               onChange={(e) => set("display_name", e.target.value)}
@@ -101,7 +101,7 @@ export default function SocialForm({
             />
           </label>
           <label className="block">
-            <span className="mb-1.5 block text-sm font-semibold text-charcoal/80">Bio</span>
+            <span className="mb-1.5 block font-body text-sm font-medium text-ink">Bio</span>
             <textarea
               value={form.bio ?? ""}
               onChange={(e) => set("bio", e.target.value)}
@@ -113,11 +113,11 @@ export default function SocialForm({
           </label>
         </div>
       </div>
-      {err && <p className="text-xs font-medium text-terracotta-dark">{err}</p>}
+      {err && <p className="text-xs font-medium text-red-700">{err}</p>}
 
       {/* Channel picker */}
       <div>
-        <p className="mb-2 text-sm font-semibold text-charcoal/80">Add your channels</p>
+        <p className="mb-2 font-body text-sm font-medium text-ink">Add your channels</p>
         <div className="flex flex-wrap gap-2">
           {SOCIAL_PLATFORMS.map((p) => {
             const added = links.some((l) => l.platform === p.key);
@@ -129,8 +129,8 @@ export default function SocialForm({
                 onClick={() => addPlatform(p.key)}
                 className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition ${
                   added
-                    ? "cursor-default border-charcoal/10 bg-charcoal/5 text-charcoal/40"
-                    : "border-charcoal/15 text-charcoal/70 hover:border-deep-teal hover:text-deep-teal"
+                    ? "cursor-default border-ink/10 bg-ink/5 text-muted-3"
+                    : "border-ink/15 text-muted hover:border-ink hover:text-ink"
                 }`}
               >
                 <span className="h-2.5 w-2.5 rounded-full" style={{ background: p.color }} />
@@ -149,7 +149,7 @@ export default function SocialForm({
             return (
               <div key={l.platform} className="flex items-center gap-2">
                 <span
-                  className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-[10px] font-bold uppercase text-white"
+                  className="grid h-9 w-9 shrink-0 place-items-center rounded-xl text-[10px] font-bold uppercase text-white"
                   style={{ background: m.color }}
                 >
                   {m.label.slice(0, 2)}
@@ -165,7 +165,7 @@ export default function SocialForm({
                 <button
                   type="button"
                   onClick={() => setLinks(links.filter((_, idx) => idx !== i))}
-                  className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-charcoal/40 transition hover:bg-charcoal/5 hover:text-terracotta"
+                  className="grid h-9 w-9 shrink-0 place-items-center rounded-xl text-muted-3 transition hover:bg-ink/5 hover:text-red-600"
                   aria-label={`Remove ${m.label}`}
                 >
                   <X className="h-4 w-4" />

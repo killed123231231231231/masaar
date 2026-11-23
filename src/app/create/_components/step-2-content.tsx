@@ -68,18 +68,19 @@ export default function Step2Content({
     "Fill in the content for this QR code and give it a memorable name.";
 
   return (
-    <div className="grid gap-8 pt-6 lg:grid-cols-[1fr_360px] lg:gap-10 lg:pt-10">
-      {/* LEFT — form card with icon-chip header per the reference. */}
-      <section className="rounded-2xl border border-charcoal/10 bg-white p-6 shadow-[0_1px_2px_rgba(15,91,85,0.04)] sm:p-8">
-        <header className="flex items-start gap-4 border-b border-charcoal/10 pb-6">
-          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-deep-teal/10 text-deep-teal">
-            <HeaderIcon className="h-6 w-6" strokeWidth={1.75} />
+    <div className="grid gap-8 lg:grid-cols-[1fr_380px] lg:gap-10">
+      {/* LEFT — form card (Sunbeam double frame: stone outer, white inner). */}
+      <div className="min-w-0 self-start rounded-panel bg-stone p-1.5">
+      <section className="rounded-[26px] border border-stone-dark bg-white p-5 sm:p-8">
+        <header className="flex items-start gap-4 border-b border-stone-dark pb-6">
+          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-lime text-ink">
+            <HeaderIcon className="h-5 w-5" strokeWidth={1.75} />
           </span>
           <div className="min-w-0">
-            <h1 className="font-display text-xl font-bold text-charcoal sm:text-2xl">
+            <h1 className="font-heading text-2xl font-medium leading-tight text-ink sm:text-[28px]">
               {meta.label}
             </h1>
-            <p className="mt-1 text-sm text-charcoal/55">{subtitle}</p>
+            <p className="mt-1 font-body text-[15px] text-muted-2">{subtitle}</p>
           </div>
         </header>
 
@@ -92,7 +93,7 @@ export default function Step2Content({
                 placeholder="https://example.com"
                 className={inputCls}
               />
-              <p className="mt-1.5 text-xs text-charcoal/45">
+              <p className="mt-1.5 text-xs text-muted-3">
                 No “https://”? We’ll add it for you.
               </p>
             </Field>
@@ -112,25 +113,25 @@ export default function Step2Content({
           )}
 
           {type === "vcard" && (
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Field label="First name"><input value={form.firstName ?? ""} onChange={(e) => set("firstName", e.target.value)} className={inputCls} /></Field>
               <Field label="Last name"><input value={form.lastName ?? ""} onChange={(e) => set("lastName", e.target.value)} className={inputCls} /></Field>
               <Field label="Phone"><input value={form.phone ?? ""} onChange={(e) => set("phone", e.target.value)} className={inputCls} /></Field>
               <Field label="Email"><input value={form.email ?? ""} onChange={(e) => set("email", e.target.value)} className={inputCls} /></Field>
               <Field label="Company"><input value={form.organization ?? ""} onChange={(e) => set("organization", e.target.value)} className={inputCls} /></Field>
               <Field label="Job title"><input value={form.title ?? ""} onChange={(e) => set("title", e.target.value)} className={inputCls} /></Field>
-              <div className="col-span-2">
+              <div className="sm:col-span-2">
                 <Field label="Website"><input value={form.website ?? ""} onChange={(e) => set("website", e.target.value)} placeholder="https://example.com" className={inputCls} /></Field>
               </div>
-              <div className="col-span-2">
+              <div className="sm:col-span-2">
                 <Field label="Address"><input value={form.address ?? ""} onChange={(e) => set("address", e.target.value)} className={inputCls} /></Field>
               </div>
             </div>
           )}
 
           {type === "wifi" && (
-            <div className="grid grid-cols-2 gap-4">
-              <div className="col-span-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="sm:col-span-2">
                 <Field label="Network name (SSID)" required><input value={form.ssid ?? ""} onChange={(e) => set("ssid", e.target.value)} className={inputCls} /></Field>
               </div>
               <Field label="Password" required={(form.encryption ?? "WPA") !== "nopass"}><input value={form.password ?? ""} onChange={(e) => set("password", e.target.value)} className={inputCls} /></Field>
@@ -141,11 +142,11 @@ export default function Step2Content({
                   <option value="nopass">None (open network)</option>
                 </select>
               </Field>
-              <p className="col-span-2 -mt-1 text-xs text-charcoal/50">
+              <p className="-mt-1 text-xs text-muted-3 sm:col-span-2">
                 Most networks use WPA/WPA2 — the password is required so phones auto-connect. Only choose “None” for a genuinely open network.
               </p>
-              <label className="col-span-2 flex items-center gap-2 text-sm text-charcoal/70">
-                <input type="checkbox" checked={!!form.hidden} onChange={(e) => set("hidden", e.target.checked)} />
+              <label className="flex items-center gap-2 text-sm text-muted sm:col-span-2">
+                <input type="checkbox" checked={!!form.hidden} onChange={(e) => set("hidden", e.target.checked)} className="h-4 w-4 accent-ink" />
                 Hidden network
               </label>
             </div>
@@ -223,7 +224,7 @@ export default function Step2Content({
           )}
 
           {!meta.ready && type !== "payment" && (
-            <div className="rounded-xl border border-charcoal/10 bg-sand-light/50 p-6 text-sm text-charcoal/60">
+            <div className="rounded-xl border border-ink/10 bg-stone/60 p-6 text-sm text-muted-2">
               The <strong>{meta.label}</strong> form lands in a later
               session (its backend isn’t live yet). Pick a ready type to
               go end-to-end now.
@@ -242,11 +243,20 @@ export default function Step2Content({
           )}
         </div>
       </section>
+      </div>
 
-      {/* RIGHT — phone preview, bigger and more prominent per the
-          reference. Sticky so the user sees their input live. */}
-      <aside className="self-start lg:sticky lg:top-28">
-        <PhonePreview type={type} form={form} />
+      {/* RIGHT — phone preview on a soft pastel grain frame. Sticky so
+          the user sees their input live. */}
+      <aside className="self-start lg:sticky lg:top-6">
+        <div className="grain relative overflow-hidden rounded-panel bg-sky px-5 py-7 sm:px-8">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -left-12 -top-16 h-52 w-52 rounded-full bg-white/45 blur-2xl"
+          />
+          <div className="relative">
+            <PhonePreview type={type} form={form} />
+          </div>
+        </div>
       </aside>
     </div>
   );
@@ -255,7 +265,7 @@ export default function Step2Content({
 // Inputs match the reference: light bg, slightly taller, info icon
 // on the right (decorative — wired to a tooltip in a future polish).
 const inputCls =
-  "block w-full rounded-lg border border-charcoal/15 bg-sand-light/30 px-4 py-3 text-sm text-charcoal outline-none transition-colors placeholder:text-charcoal/40 focus:border-deep-teal focus:bg-white focus:ring-2 focus:ring-deep-teal/15";
+  "block min-h-[44px] w-full rounded-xl border border-stone-dark bg-white px-4 py-2.5 font-body text-[15px] text-ink outline-none transition-colors placeholder:text-muted-3 hover:border-ink/25 focus:border-ink focus:ring-2 focus:ring-ink/20";
 
 function Field({
   label,
@@ -268,9 +278,9 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-sm font-semibold text-charcoal/80">
+      <span className="mb-1.5 block font-body text-sm font-medium text-ink">
         {label}
-        {required && <span className="ml-0.5 text-terracotta">*</span>}
+        {required && <span aria-hidden className="ml-0.5 text-red-600">*</span>}
       </span>
       {children}
     </label>

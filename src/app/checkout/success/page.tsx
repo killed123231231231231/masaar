@@ -17,16 +17,16 @@ export default async function CheckoutSuccessPage({
   const email = typeof sp.email === "string" ? sp.email : "";
 
   return (
-    <main className="grid min-h-screen place-items-center bg-sand-light/40 px-5 py-12">
-      <div className="w-full max-w-md rounded-2xl border border-charcoal/10 bg-white p-8 text-center shadow-sm">
-        <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-deep-teal/10 text-deep-teal">
+    <main className="grid min-h-screen place-items-center bg-paper px-4 py-12 font-body text-ink">
+      <div className="w-full max-w-md rounded-panel border border-stone-dark bg-white p-8 text-center shadow-card">
+        <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-lime text-ink">
           <CheckCircle2 className="h-8 w-8" />
         </span>
 
-        <h1 className="mt-5 font-display text-2xl font-bold text-charcoal">
+        <h1 className="mt-5 font-heading text-[28px] font-medium tracking-[-0.02em] text-ink">
           Your QR is live!
         </h1>
-        <p className="mt-3 text-sm leading-relaxed text-charcoal/65">
+        <p className="mt-3 text-sm leading-relaxed text-muted-2">
           Account created and QR activated.{" "}
           {email ? (
             <>
@@ -41,7 +41,7 @@ export default async function CheckoutSuccessPage({
           )}
         </p>
 
-        <div className="mt-6 rounded-xl bg-sand-light/70 p-4 text-left text-xs text-charcoal/60">
+        <div className="mt-6 rounded-xl bg-stone/60 p-4 text-left text-xs text-muted-2">
           <p>
             <strong>Next time you visit:</strong> click <em>“Log in”</em> in
             the header and use the email + password from your welcome email.
@@ -51,7 +51,7 @@ export default async function CheckoutSuccessPage({
 
         <Link
           href="/"
-          className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal transition-colors hover:text-deep-teal"
+          className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-stone px-5 py-3 text-sm font-medium text-ink transition-colors hover:bg-stone-dark"
         >
           <LogoMark className="h-4 w-4" />
           Back to home
@@ -62,7 +62,7 @@ export default async function CheckoutSuccessPage({
             checkout flow never actually downloads a file to the
             user's machine — the QR is attached in the welcome
             email. New copy points at the email-attached QR. */}
-        <p className="mt-3 text-center text-xs text-charcoal/45">
+        <p className="mt-3 text-center text-xs text-muted-3">
           Tip: scan the QR in your inbox to see your destination live.
         </p>
       </div>

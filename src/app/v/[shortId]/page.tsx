@@ -70,7 +70,7 @@ export default async function HostedAssetPage({
   const ck = qr.content_kind;
 
   return (
-    <main className="flex min-h-screen flex-col bg-charcoal">
+    <main className="flex min-h-screen flex-col bg-ink">
       {ck === "image" && (
         <div className="flex flex-1 items-center justify-center p-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -92,7 +92,7 @@ export default async function HostedAssetPage({
             autoPlay
             muted
             playsInline
-            className="max-h-[calc(100vh-3rem)] w-full max-w-3xl rounded-lg"
+            className="max-h-[calc(100vh-3rem)] w-full max-w-3xl rounded-xl"
           />
         </div>
       )}
@@ -107,8 +107,8 @@ export default async function HostedAssetPage({
           />
           {/* Mobile: iframes for PDF are unreliable, so a clean CTA. */}
           <div className="flex flex-1 flex-col items-center justify-center gap-2 p-6 text-center md:hidden">
-            <div className="w-full max-w-sm rounded-2xl bg-white/5 p-8">
-              <p className="font-display text-lg font-bold text-white">
+            <div className="w-full max-w-sm rounded-card bg-white/5 p-8">
+              <p className="font-heading text-2xl font-medium text-white">
                 {qr.name}
               </p>
               <p className="mt-1 text-sm text-white/45">PDF document</p>
@@ -116,7 +116,7 @@ export default async function HostedAssetPage({
                 href={url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-6 inline-flex items-center justify-center rounded-lg bg-deep-teal px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-deep-teal-dark"
+                className="mt-6 inline-flex items-center justify-center rounded-full bg-lime px-6 py-3 text-sm font-medium text-ink transition-colors hover:bg-lime-deep"
               >
                 View PDF
               </a>
@@ -125,17 +125,17 @@ export default async function HostedAssetPage({
         </>
       )}
 
-      <footer className="shrink-0 bg-charcoal py-3 text-center">
+      <footer className="shrink-0 bg-ink py-3 text-center">
         <Link
           href="/"
-          className="text-xs font-medium text-white/40 transition-colors hover:text-white/70"
+          className="text-xs font-medium text-white/60 transition-colors hover:text-white"
         >
           Made with <span className="font-semibold">Vertexa QR</span>
         </Link>
         <span aria-hidden className="mx-2 text-xs text-white/25">·</span>
         <Link
           href={`/contact?topic=abuse&qr=${encodeURIComponent(shortId)}`}
-          className="text-xs text-white/55 transition-colors hover:text-white/80"
+          className="text-xs text-white/70 transition-colors hover:text-white"
         >
           Report abuse
         </Link>

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import AuthAside from "@/components/auth-aside";
 import TurnstileWidget, { turnstileEnabled } from "@/components/turnstile-widget";
@@ -53,17 +54,18 @@ export default function SignupPage() {
   }
 
   return (
-    <main className="grid min-h-screen lg:grid-cols-[3fr_2fr]">
-      <div className="flex items-center justify-center bg-sand-light/40 px-4 py-12">
-        <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-sm border border-charcoal/10">
+    <main className="grid min-h-screen bg-paper font-body text-ink lg:grid-cols-[3fr_2fr]">
+      <div className="flex items-center justify-center px-4 py-12">
+        <div className="w-full max-w-md rounded-panel bg-stone p-1.5">
+        <div className="rounded-[26px] border border-stone-dark bg-white p-6 sm:p-8">
           <Link
             href="/"
-            className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-charcoal/55 transition-colors hover:text-deep-teal"
+            className="mb-6 inline-flex items-center gap-1.5 rounded-full bg-stone px-3.5 py-1.5 text-sm font-medium text-ink transition-colors hover:bg-stone-dark"
           >
-            <span aria-hidden>←</span> Back to home
+            <ArrowLeft aria-hidden className="h-4 w-4" /> Back to home
           </Link>
-          <h1 className="font-display text-2xl font-bold text-charcoal">Create your account</h1>
-          <p className="mt-1 text-sm text-charcoal/55">It only takes a few seconds.</p>
+          <h1 className="font-heading text-[32px] font-medium leading-tight tracking-[-0.02em] text-ink">Create your account</h1>
+          <p className="mt-1.5 text-[15px] text-muted-2">Free plan, no card needed.</p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <Field label="Full name" type="text" value={fullName} onChange={setFullName} required />
@@ -72,24 +74,25 @@ export default function SignupPage() {
 
           <TurnstileWidget onToken={setCaptcha} resetKey={captchaReset} />
 
-          {err && <p className="text-sm text-red-600">{err}</p>}
-          {msg && <p className="text-sm text-green-600">{msg}</p>}
+          {err && <p className="rounded-xl border border-red-200 bg-red-50 p-2.5 text-sm text-red-700">{err}</p>}
+          {msg && <p className="rounded-xl bg-lime/50 p-2.5 text-sm text-ink">{msg}</p>}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-lg bg-deep-teal px-4 py-2.5 text-sm font-semibold text-white hover:bg-deep-teal-dark transition-colors duration-200 disabled:opacity-60"
+            className="h-11 w-full rounded-full bg-ink px-4 text-[15px] font-medium text-white shadow-card transition-colors duration-200 hover:bg-ink-soft focus:outline-none focus-visible:ring-2 focus-visible:ring-ink/30 focus-visible:ring-offset-2 disabled:opacity-60"
           >
             {loading ? "Creating…" : "Create account"}
           </button>
         </form>
 
-          <p className="mt-6 text-center text-sm text-charcoal/55">
+          <p className="mt-6 text-center text-sm text-muted-2">
             Already have an account?{" "}
-            <Link href="/?login=1" className="font-semibold text-deep-teal hover:underline">
+            <Link href="/?login=1" className="font-semibold text-ink underline underline-offset-4 hover:no-underline">
               Log in
             </Link>
           </p>
+        </div>
         </div>
       </div>
       <AuthAside />
@@ -112,13 +115,13 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="block text-sm font-medium text-charcoal/75">{label}</span>
+      <span className="block text-sm font-medium text-ink">{label}</span>
       <input
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         required={required}
-        className="mt-1 block w-full rounded-lg border border-charcoal/15 h-11 px-3 text-sm shadow-sm transition-colors duration-150 focus:border-deep-teal focus:outline-none focus:ring-2 focus:ring-deep-teal/20"
+        className="mt-1.5 block h-11 w-full rounded-xl border border-stone-dark bg-white px-3.5 text-[15px] text-ink transition-colors duration-150 hover:border-ink/25 focus:border-ink focus:outline-none focus:ring-2 focus:ring-ink/20"
       />
     </label>
   );

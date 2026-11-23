@@ -4,7 +4,7 @@ import {
   useCallback, useEffect, useMemo, useRef, useState,
   type Dispatch, type MutableRefObject, type ReactNode, type SetStateAction,
 } from "react";
-import { ChevronDown, Download } from "lucide-react";
+import { AlertTriangle, ChevronDown, Download, Pizza } from "lucide-react";
 import QrPreview from "@/components/qr-preview";
 import FramedQr from "./framed-qr";
 import { FRAMES } from "../_lib/frames";
@@ -232,10 +232,10 @@ export default function Step3Customize({
               key={f.key}
               type="button"
               onClick={() => set("frame_style", f.key)}
-              className={`flex flex-col items-center gap-1.5 rounded-lg border p-2 transition ${
+              className={`flex flex-col items-center gap-1.5 rounded-xl border p-2 transition ${
                 active
-                  ? "border-deep-teal ring-1 ring-deep-teal"
-                  : "border-charcoal/10 hover:border-deep-teal/40"
+                  ? "border-ink ring-1 ring-ink"
+                  : "border-ink/10 hover:border-ink/40"
               }`}
             >
               <span className="flex h-[60px] w-full items-center justify-center overflow-hidden">
@@ -246,11 +246,11 @@ export default function Step3Customize({
                     textColor={c.text_color}
                     text={c.qr_text || "SCAN ME"}
                   >
-                    <span className="block h-20 w-20 bg-charcoal" />
+                    <span className="block h-20 w-20 bg-ink" />
                   </FramedQr>
                 </span>
               </span>
-              <span className="text-center text-[10px] leading-tight text-charcoal/55">
+              <span className="text-center text-[10px] leading-tight text-muted-3">
                 {f.label}
               </span>
             </button>
@@ -273,10 +273,10 @@ export default function Step3Customize({
             type="button"
             onClick={() => set("logo_url", p.url)}
             title={p.label}
-            className={`grid aspect-square place-items-center overflow-hidden rounded-lg border p-1 transition ${
+            className={`grid aspect-square place-items-center overflow-hidden rounded-xl border p-1 transition ${
               c.logo_url === p.url
-                ? "border-deep-teal ring-1 ring-deep-teal"
-                : "border-charcoal/10 hover:border-deep-teal/40"
+                ? "border-ink ring-1 ring-ink"
+                : "border-ink/10 hover:border-ink/40"
             }`}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -289,15 +289,15 @@ export default function Step3Customize({
   );
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[1fr_300px]">
-      <div>
+    <div className="grid gap-8 lg:grid-cols-[1fr_340px] lg:gap-10">
+      <div className="min-w-0">
         {showHeading && (
           <>
-            <h1 className="font-display text-2xl font-bold tracking-tight text-charcoal">
+            <h1 className="font-heading text-[28px] font-medium leading-tight tracking-[-0.02em] text-ink md:text-[34px]">
               Customize &amp; protect
             </h1>
-            <p className="mt-1 text-sm text-charcoal/60">
-              Optional — defaults look great too.
+            <p className="mt-1.5 font-body text-[15px] text-muted-2">
+              All optional. The defaults scan well.
             </p>
           </>
         )}
@@ -319,7 +319,7 @@ export default function Step3Customize({
               <ColorRow label="QR color" value={c.fg_color} onChange={(v) => set("fg_color", v)} />
               <ColorRow label="Background" value={c.bg_color} onChange={(v) => set("bg_color", v)} />
             </div>
-            <label className="mt-3 flex items-center gap-2 text-sm text-charcoal/70">
+            <label className="mt-3 flex items-center gap-2 text-sm text-muted">
               <input
                 type="checkbox"
                 checked={c.gradient_color !== null}
@@ -347,7 +347,7 @@ export default function Step3Customize({
                 restored with these keys absent reads as OFF, not checked. */}
             {isAuthed && (
               <>
-                <label className="mt-3 flex items-center gap-2 text-sm text-charcoal/70">
+                <label className="mt-3 flex items-center gap-2 text-sm text-muted">
                   <input
                     type="checkbox"
                     checked={!!c.dot_palette}
@@ -377,7 +377,7 @@ export default function Step3Customize({
                               set("dot_palette", next);
                             }}
                           />
-                          <label className="mt-1 flex items-center gap-1.5 text-xs text-charcoal/55">
+                          <label className="mt-1 flex items-center gap-1.5 text-xs text-muted-3">
                             Weight
                             <input
                               type="number"
@@ -403,7 +403,7 @@ export default function Step3Customize({
                                   }),
                                 }));
                               }}
-                              className="h-7 w-16 rounded border border-charcoal/15 px-1.5 text-xs"
+                              className="h-7 w-16 rounded border border-ink/15 px-1.5 text-xs"
                             />
                             %
                           </label>
@@ -428,7 +428,7 @@ export default function Step3Customize({
                                   };
                                 })
                               }
-                              className="absolute right-0 top-0 text-xs text-charcoal/45 hover:text-terracotta"
+                              className="absolute right-0 top-0 text-xs text-muted-3 hover:text-red-600"
                             >
                               Remove
                             </button>
@@ -455,7 +455,7 @@ export default function Step3Customize({
                             };
                           })
                         }
-                        className="rounded-lg border border-charcoal/15 px-3 py-1.5 text-xs font-medium text-charcoal/75 hover:bg-sand-light"
+                        className="rounded-xl border border-ink/15 px-3 py-1.5 text-xs font-medium text-muted hover:bg-stone"
                       >
                         + Add color (up to 4)
                       </button>
@@ -465,7 +465,7 @@ export default function Step3Customize({
                       fallbackAccent="#5B8C2A"
                       onChange={(po) => set("palette_options", po)}
                     />
-                    <p className="text-xs text-charcoal/45">
+                    <p className="text-xs text-muted-3">
                       Each color must be a 6-digit hex (e.g. #FFC107) — use the
                       swatch to be sure. Colors follow a fixed pattern, so your
                       download always matches the preview.
@@ -480,7 +480,7 @@ export default function Step3Customize({
             </div>
             {isAuthed ? (
               <>
-                <label className="mt-3 flex items-center gap-2 text-sm text-charcoal/70">
+                <label className="mt-3 flex items-center gap-2 text-sm text-muted">
                   <input
                     type="checkbox"
                     checked={!!c.corner_colors}
@@ -515,21 +515,21 @@ export default function Step3Customize({
                 )}
               </>
             ) : (
-              <p className="mt-3 rounded-lg bg-sand-light/60 p-2.5 text-xs text-charcoal/55">
+              <p className="mt-3 rounded-xl bg-stone/60 p-2.5 text-xs text-muted-2">
                 Multi-color dots &amp; custom corner colors are available once you
                 have an account — create this QR, then style it from your
                 dashboard.
               </p>
             )}
             <label className="mt-4 block">
-              <span className="mb-1 block text-sm font-medium text-charcoal/75">QR text label</span>
+              <span className="mb-1 block text-sm font-medium text-muted">QR text label</span>
               <input
                 value={c.qr_text}
                 onChange={(e) => set("qr_text", e.target.value)}
                 placeholder="Scan me!"
-                className="block w-full rounded-lg border border-charcoal/15 px-3 py-2 text-sm outline-none focus:border-deep-teal focus:ring-2 focus:ring-deep-teal/20"
+                className="block min-h-[44px] w-full rounded-xl border border-stone-dark bg-white px-3.5 py-2 text-[15px] text-ink outline-none hover:border-ink/25 focus:border-ink focus:ring-2 focus:ring-ink/20"
               />
-              <span className="mt-1 block text-xs text-charcoal/45">
+              <span className="mt-1 block text-xs text-muted-3">
                 Shows under the QR for frames with a text region (Session I).
               </span>
             </label>
@@ -537,15 +537,15 @@ export default function Step3Customize({
 
           <Acc title="Logo" defaultOpen={false}>
             {previewData.startsWith("WIFI:") && c.logo_url && (
-              <p className="mb-3 rounded-lg border border-amber-300 bg-amber-50 p-2.5 text-xs text-amber-700">
-                ⚠️ WiFi QR codes are small — a logo can cover too much and make
+              <p className="mb-3 rounded-xl border border-amber-300 bg-amber-50 p-2.5 text-xs text-amber-700">
+                <AlertTriangle className="mr-1 inline h-3.5 w-3.5 -translate-y-px" aria-hidden />WiFi QR codes are small — a logo can cover too much and make
                 them <strong>unscannable</strong>. For WiFi we recommend removing
                 the logo (or keeping it very small).
               </p>
             )}
-            <p className="mb-2 text-sm font-medium text-charcoal/75">Quick icons</p>
+            <p className="mb-2 text-sm font-medium text-muted">Quick icons</p>
             {logoPresets}
-            <p className="mb-2 text-sm font-medium text-charcoal/75">Or upload your own</p>
+            <p className="mb-2 text-sm font-medium text-muted">Or upload your own</p>
             {/* B5/Fix 21 — anon users can upload too. LogoUpload branches
                 internally based on isAuthed + draftToken. */}
             <LogoUpload
@@ -557,9 +557,9 @@ export default function Step3Customize({
             />
             {c.logo_url && (
               <label className="mt-4 block">
-                <span className="mb-1 flex items-center justify-between text-sm font-medium text-charcoal/75">
+                <span className="mb-1 flex items-center justify-between text-sm font-medium text-muted">
                   <span>Logo size</span>
-                  <span className="text-xs text-charcoal/45">
+                  <span className="text-xs text-muted-3">
                     {Math.round(c.logo_scale * 100)}%
                   </span>
                 </span>
@@ -570,9 +570,9 @@ export default function Step3Customize({
                   step={0.01}
                   value={c.logo_scale}
                   onChange={(e) => set("logo_scale", Number(e.target.value))}
-                  className="w-full accent-deep-teal"
+                  className="w-full accent-ink"
                 />
-                <span className="mt-1 block text-xs text-charcoal/45">
+                <span className="mt-1 block text-xs text-muted-3">
                   Bigger logos can make the QR harder to scan — keep it readable.
                 </span>
               </label>
@@ -583,7 +583,7 @@ export default function Step3Customize({
           <Acc title="Protect this QR with a password" defaultOpen={false}>
             {isAuthed ? (
               <>
-                <label className="flex items-center gap-2 text-sm text-charcoal/70">
+                <label className="flex items-center gap-2 text-sm text-muted">
                   <input
                     type="checkbox"
                     checked={!!c.password}
@@ -597,16 +597,16 @@ export default function Step3Customize({
                     value={c.password.trim()}
                     onChange={(e) => set("password", e.target.value)}
                     placeholder="4–64 characters"
-                    className="mt-3 block w-full rounded-lg border border-charcoal/15 px-3 py-2 text-sm outline-none focus:border-deep-teal focus:ring-2 focus:ring-deep-teal/20"
+                    className="mt-3 block min-h-[44px] w-full rounded-xl border border-stone-dark bg-white px-3.5 py-2 text-[15px] text-ink outline-none hover:border-ink/25 focus:border-ink focus:ring-2 focus:ring-ink/20"
                   />
                 )}
-                <p className="mt-2 rounded-lg bg-sand-light/60 p-2 text-xs text-charcoal/55">
+                <p className="mt-2 rounded-xl bg-stone/60 p-2 text-xs text-muted-2">
                   Scanners enter this password before the QR opens. Stored
                   hashed (bcrypt) — we never keep the plaintext.
                 </p>
               </>
             ) : (
-              <p className="rounded-lg bg-sand-light/60 p-3 text-xs text-charcoal/55">
+              <p className="rounded-xl bg-stone/60 p-3 text-xs text-muted-2">
                 Password protection is available once you have an account —
                 create this QR, then add a password from your dashboard.
               </p>
@@ -616,8 +616,16 @@ export default function Step3Customize({
         </div>
       </div>
 
-      <aside className="lg:sticky lg:top-24 self-start">
-        <div className="flex flex-col items-center gap-4 rounded-2xl border border-charcoal/10 bg-white p-5 shadow-sm">
+      <aside className="self-start lg:sticky lg:top-6">
+        <div className="grain relative overflow-hidden rounded-panel bg-mint p-4 sm:p-6">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -right-14 -top-14 h-48 w-48 rounded-full bg-white/45 blur-2xl"
+        />
+        <div className="relative flex flex-col items-center gap-4 rounded-card bg-white p-4 shadow-float sm:p-5">
+          <p className="self-start font-body text-xs font-medium uppercase tracking-[0.14em] text-muted-3">
+            Live preview
+          </p>
           <div ref={previewRef} className="inline-block bg-white p-2">
             <FramedQr
               frame={style.frame_style}
@@ -629,25 +637,25 @@ export default function Step3Customize({
             </FramedQr>
           </div>
           {showDownloads && (
-          <div className="flex gap-2">
+          <div className="flex flex-wrap justify-center gap-2">
             <button
               type="button"
               onClick={() => downloadFramed("png")}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-charcoal/20 bg-white px-4 py-2 text-sm font-semibold text-charcoal/75 transition-colors hover:bg-sand-light"
+              className={dlBtn}
             >
               <Download className="h-4 w-4" /> PNG
             </button>
             <button
               type="button"
               onClick={() => downloadFramed("svg")}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-charcoal/20 bg-white px-4 py-2 text-sm font-semibold text-charcoal/75 transition-colors hover:bg-sand-light"
+              className={dlBtn}
             >
               <Download className="h-4 w-4" /> SVG
             </button>
             <button
               type="button"
               onClick={downloadPdf}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-charcoal/20 bg-white px-4 py-2 text-sm font-semibold text-charcoal/75 transition-colors hover:bg-sand-light"
+              className={dlBtn}
             >
               <Download className="h-4 w-4" /> PDF
             </button>
@@ -655,10 +663,14 @@ export default function Step3Customize({
           )}
           {previewFooter && <div className="w-full">{previewFooter}</div>}
         </div>
+        </div>
       </aside>
     </div>
   );
 }
+
+const dlBtn =
+  "inline-flex h-10 items-center gap-1.5 rounded-full bg-stone px-4 font-body text-sm font-medium text-ink transition-colors hover:bg-stone-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-ink/30";
 
 function Acc({
   title,
@@ -671,16 +683,27 @@ function Acc({
 }) {
   const [open, setOpen] = useState(!!defaultOpen);
   return (
-    <div className="rounded-xl border border-charcoal/10 bg-white">
+    <div
+      className={`rounded-card border bg-white transition-shadow ${
+        open ? "border-ink/15 shadow-card" : "border-stone-dark hover:border-ink/20"
+      }`}
+    >
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-semibold text-charcoal"
+        aria-expanded={open}
+        className="flex min-h-[56px] w-full items-center justify-between gap-3 rounded-card px-5 py-3 text-left font-heading text-[17px] font-semibold text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-ink/30"
       >
         {title}
-        <ChevronDown className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`} />
+        <span
+          className={`grid h-8 w-8 shrink-0 place-items-center rounded-full transition-colors ${
+            open ? "bg-lime text-ink" : "bg-stone text-ink"
+          }`}
+        >
+          <ChevronDown className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`} />
+        </span>
       </button>
-      {open && <div className="border-t border-charcoal/10 p-4">{children}</div>}
+      {open && <div className="border-t border-stone-dark p-5 font-body">{children}</div>}
     </div>
   );
 }
@@ -711,9 +734,9 @@ function PaletteOptionsControls({
   const emit = (next: PaletteOptions) => onChange(cleanPaletteOptions(next));
 
   return (
-    <div className="space-y-3 rounded-lg bg-sand-light/40 p-3">
+    <div className="space-y-3 rounded-xl bg-stone/60 p-3">
       <label className="block">
-        <span className="mb-1 block text-sm font-medium text-charcoal/75">
+        <span className="mb-1 block text-sm font-medium text-muted">
           Color spread
         </span>
         <select
@@ -729,7 +752,7 @@ function PaletteOptionsControls({
                     : "scatter",
             })
           }
-          className="h-9 w-full rounded-lg border border-charcoal/15 bg-white px-2 text-sm"
+          className="h-11 w-full rounded-xl border border-stone-dark bg-white px-3 text-sm text-ink focus:border-ink focus:outline-none focus:ring-2 focus:ring-ink/20"
         >
           <option value="scatter">Scattered (confetti mix)</option>
           <option value="cluster">Clustered (blobby regions)</option>
@@ -738,9 +761,9 @@ function PaletteOptionsControls({
       </label>
       {(po.mode === "cluster" || po.mode === "organic") && (
         <label className="block">
-          <span className="mb-1 flex items-center justify-between text-sm font-medium text-charcoal/75">
+          <span className="mb-1 flex items-center justify-between text-sm font-medium text-muted">
             <span>Region size</span>
-            <span className="text-xs text-charcoal/45">{po.cluster_size}×{po.cluster_size} dots</span>
+            <span className="text-xs text-muted-3">{po.cluster_size}×{po.cluster_size} dots</span>
           </span>
           <input
             type="range"
@@ -749,11 +772,11 @@ function PaletteOptionsControls({
             step={1}
             value={po.cluster_size}
             onChange={(e) => emit({ ...po, cluster_size: Number(e.target.value) })}
-            className="w-full accent-deep-teal"
+            className="w-full accent-ink"
           />
         </label>
       )}
-      <label className="flex items-center gap-2 text-sm text-charcoal/70">
+      <label className="flex items-center gap-2 text-sm text-muted">
         <input
           type="checkbox"
           checked={!!po.accent_color}
@@ -771,9 +794,9 @@ function PaletteOptionsControls({
             onChange={(v) => emit({ ...po, accent_color: v })}
           />
           <label className="block">
-            <span className="mb-1 flex items-center justify-between text-sm font-medium text-charcoal/75">
+            <span className="mb-1 flex items-center justify-between text-sm font-medium text-muted">
               <span>Sprinkle amount</span>
-              <span className="text-xs text-charcoal/45">
+              <span className="text-xs text-muted-3">
                 ~{Math.round(po.accent_share * 100)}% of dots
               </span>
             </span>
@@ -784,11 +807,11 @@ function PaletteOptionsControls({
               step={0.01}
               value={po.accent_share}
               onChange={(e) => emit({ ...po, accent_share: Number(e.target.value) })}
-              className="w-full accent-deep-teal"
+              className="w-full accent-ink"
             />
           </label>
           <label className="block">
-            <span className="mb-1 block text-sm font-medium text-charcoal/75">
+            <span className="mb-1 block text-sm font-medium text-muted">
               Sprinkle style
             </span>
             <select
@@ -796,7 +819,7 @@ function PaletteOptionsControls({
               onChange={(e) =>
                 emit({ ...po, accent_style: e.target.value === "mini" ? "mini" : "dots" })
               }
-              className="h-9 w-full rounded-lg border border-charcoal/15 bg-white px-2 text-sm"
+              className="h-11 w-full rounded-xl border border-stone-dark bg-white px-3 text-sm text-ink focus:border-ink focus:outline-none focus:ring-2 focus:ring-ink/20"
             >
               <option value="dots">Small rare dots</option>
               <option value="mini">Mini clusters</option>
@@ -911,28 +934,28 @@ function StylePresets({
 
   return (
     <div className="mb-4">
-      <p className="mb-2 text-sm font-medium text-charcoal/75">Style presets</p>
+      <p className="mb-2 text-sm font-medium text-muted">Style presets</p>
       <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
           onClick={() => apply(PIZZA_CAMPAIGN)}
-          className="rounded-full border border-terracotta/40 bg-terracotta/10 px-3 py-1.5 text-xs font-semibold text-terracotta-dark hover:bg-terracotta/20"
+          className="rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100"
         >
-          🍕 Pizza Campaign
+          <Pizza className="mr-1 inline h-3.5 w-3.5 -translate-y-px" aria-hidden />Pizza Campaign
         </button>
         {Object.entries(saved).map(([name, p]) => (
           <span
             key={name}
-            className="inline-flex items-center gap-1 rounded-full border border-charcoal/15 bg-white px-3 py-1.5 text-xs font-medium text-charcoal/75"
+            className="inline-flex items-center gap-1 rounded-full border border-ink/15 bg-white px-3 py-1.5 text-xs font-medium text-muted"
           >
-            <button type="button" onClick={() => apply(p)} className="hover:text-deep-teal">
+            <button type="button" onClick={() => apply(p)} className="hover:text-ink">
               {name}
             </button>
             <button
               type="button"
               aria-label={`Delete preset ${name}`}
               onClick={() => remove(name)}
-              className="text-charcoal/35 hover:text-terracotta"
+              className="text-muted-3 hover:text-red-600"
             >
               ✕
             </button>
@@ -941,7 +964,7 @@ function StylePresets({
         <button
           type="button"
           onClick={saveCurrent}
-          className="rounded-full border border-dashed border-charcoal/25 px-3 py-1.5 text-xs font-medium text-charcoal/55 hover:border-deep-teal/40 hover:text-deep-teal"
+          className="rounded-full border border-dashed border-ink/25 px-3 py-1.5 text-xs font-medium text-muted-3 hover:border-ink/40 hover:text-ink"
         >
           + Save current
         </button>
@@ -961,10 +984,10 @@ function ColorRow({
 }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-sm font-medium text-charcoal/75">{label}</span>
+      <span className="mb-1 block text-sm font-medium text-muted">{label}</span>
       <span className="flex items-center gap-2">
-        <input type="color" value={value} onChange={(e) => onChange(e.target.value)} className="h-9 w-12 rounded border border-charcoal/15" />
-        <input value={value} onChange={(e) => onChange(e.target.value)} className="h-9 w-full rounded-lg border border-charcoal/15 px-2 text-xs" />
+        <input type="color" value={value} onChange={(e) => onChange(e.target.value)} className="h-11 w-12 shrink-0 cursor-pointer rounded-xl border border-stone-dark bg-white p-1" />
+        <input value={value} onChange={(e) => onChange(e.target.value)} className="h-11 w-full rounded-xl border border-stone-dark bg-white px-3 font-mono text-xs uppercase text-ink focus:border-ink focus:outline-none focus:ring-2 focus:ring-ink/20" />
       </span>
     </label>
   );
@@ -983,11 +1006,11 @@ function SelectRow({
 }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-sm font-medium text-charcoal/75">{label}</span>
+      <span className="mb-1 block text-sm font-medium text-muted">{label}</span>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="h-9 w-full rounded-lg border border-charcoal/15 bg-white px-2 text-sm capitalize"
+        className="h-11 w-full rounded-xl border border-stone-dark bg-white px-3 text-sm text-ink focus:border-ink focus:outline-none focus:ring-2 focus:ring-ink/20 capitalize"
       >
         {options.map((o) => (
           <option key={o} value={o}>{o.replace(/-/g, " ")}</option>
@@ -1115,9 +1138,9 @@ function LogoUpload({
       <div className="flex items-center gap-3">
         {value && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={value} alt="logo" className="h-10 w-10 rounded border border-charcoal/15 object-contain" />
+          <img src={value} alt="logo" className="h-10 w-10 rounded border border-ink/15 object-contain" />
         )}
-        <label className="cursor-pointer rounded-lg border border-charcoal/15 px-3 py-1.5 text-sm font-medium text-charcoal/75 hover:bg-sand-light/60">
+        <label className="cursor-pointer rounded-xl border border-ink/15 px-3 py-1.5 text-sm font-medium text-muted hover:bg-stone">
           {busy ? "Uploading…" : value ? "Replace" : "Upload logo"}
           <input
             type="file"
@@ -1132,14 +1155,14 @@ function LogoUpload({
           />
         </label>
         {value && (
-          <button type="button" onClick={() => onChange(null)} className="text-xs text-charcoal/45 hover:text-charcoal/70">
+          <button type="button" onClick={() => onChange(null)} className="text-xs text-muted-3 hover:text-muted">
             Reset
           </button>
         )}
       </div>
       {err && <p className="mt-1 text-xs text-red-600">{err}</p>}
       {warn && <p className="mt-1 text-xs text-amber-600">{warn}</p>}
-      <p className="mt-1 text-xs text-charcoal/45">
+      <p className="mt-1 text-xs text-muted-3">
         PNG, JPG or WebP · under {maxLabel} · 512×512 or larger for best quality
       </p>
     </div>

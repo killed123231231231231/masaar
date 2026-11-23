@@ -157,40 +157,40 @@ export default function FileUpload({
   // ── Uploaded ──────────────────────────────────────────────────────
   if (assetUrl && progress === null) {
     return (
-      <div className="rounded-xl border border-charcoal/15 bg-sand-light/30 p-4">
+      <div className="rounded-xl border border-ink/15 bg-stone/60 p-4">
         <div className="flex items-center gap-4">
           {kind === "image" ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={assetUrl}
               alt={`Preview of ${filename}`}
-              className="h-20 w-20 rounded-lg object-cover"
+              className="h-20 w-20 rounded-xl object-cover"
             />
           ) : kind === "video" ? (
             <video
               src={assetUrl}
-              className="h-20 w-28 rounded-lg bg-black object-contain"
+              className="h-20 w-28 rounded-xl bg-black object-contain"
               muted
               playsInline
             />
           ) : (
-            <span className="grid h-20 w-20 place-items-center rounded-lg bg-deep-teal/10 text-deep-teal">
+            <span className="grid h-20 w-20 place-items-center rounded-xl bg-lime/40 text-ink">
               <FileText className="h-8 w-8" strokeWidth={1.75} />
             </span>
           )}
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold text-charcoal">
+            <p className="truncate text-sm font-semibold text-ink">
               {filename}
             </p>
             {typeof form.asset_size === "number" && (
-              <p className="mt-0.5 text-xs text-charcoal/50">
+              <p className="mt-0.5 text-xs text-muted-3">
                 {prettySize(form.asset_size)}
               </p>
             )}
             <button
               type="button"
               onClick={pick}
-              className="mt-2 text-xs font-semibold text-deep-teal hover:underline"
+              className="mt-2 text-xs font-semibold text-ink hover:underline"
             >
               Replace
             </button>
@@ -199,7 +199,7 @@ export default function FileUpload({
             type="button"
             onClick={clear}
             aria-label="Remove file"
-            className="grid h-8 w-8 shrink-0 place-items-center rounded-md text-charcoal/40 transition-colors hover:bg-terracotta/10 hover:text-terracotta focus:outline-none focus-visible:ring-2 focus-visible:ring-deep-teal/40"
+            className="grid h-8 w-8 shrink-0 place-items-center rounded-md text-muted-3 transition-colors hover:bg-red-50 hover:text-red-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-ink/40"
           >
             <X className="h-4 w-4" />
           </button>
@@ -218,13 +218,13 @@ export default function FileUpload({
   // ── Uploading ─────────────────────────────────────────────────────
   if (progress !== null) {
     return (
-      <div className="rounded-xl border border-charcoal/15 bg-white p-5">
-        <p className="text-sm font-medium text-charcoal/70">
+      <div className="rounded-xl border border-ink/15 bg-white p-5">
+        <p className="text-sm font-medium text-muted">
           Uploading… {progress}%
         </p>
-        <div className="mt-2 h-2 overflow-hidden rounded-full bg-charcoal/10">
+        <div className="mt-2 h-2 overflow-hidden rounded-full bg-ink/10">
           <div
-            className="h-full bg-deep-teal transition-all"
+            className="h-full bg-ink transition-all"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -235,16 +235,16 @@ export default function FileUpload({
   // ── Video: uploads are off on the free plan ───────────────────────
   if (kind === "video") {
     return (
-      <div className="rounded-xl border border-charcoal/15 bg-sand-light/30 p-5">
+      <div className="rounded-xl border border-ink/15 bg-stone/60 p-5">
         <div className="flex items-start gap-3">
-          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-deep-teal/10 text-deep-teal">
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-lime/40 text-ink">
             <Link2 className="h-4 w-4" strokeWidth={2} />
           </span>
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-charcoal">
+            <p className="text-sm font-semibold text-ink">
               Video uploads aren’t available on the free plan
             </p>
-            <p className="mt-1 text-sm text-charcoal/65">
+            <p className="mt-1 text-sm text-muted-2">
               Upload your video to YouTube or Vimeo, then create a Website URL
               QR code with its link.
             </p>
@@ -252,7 +252,7 @@ export default function FileUpload({
               <button
                 type="button"
                 onClick={onBackToTypes}
-                className="mt-3 text-sm font-semibold text-deep-teal hover:underline"
+                className="mt-3 text-sm font-semibold text-ink hover:underline"
               >
                 Choose another type
               </button>
@@ -281,21 +281,21 @@ export default function FileUpload({
         }}
         className={`flex w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-6 py-10 text-center transition-colors ${
           dragging
-            ? "border-deep-teal bg-deep-teal/5"
-            : "border-charcoal/20 bg-sand-light/30 hover:border-deep-teal/50"
+            ? "border-ink bg-stone/60"
+            : "border-ink/20 bg-stone/60 hover:border-ink/50"
         }`}
       >
-        <span className="grid h-12 w-12 place-items-center rounded-full bg-deep-teal/10 text-deep-teal">
+        <span className="grid h-12 w-12 place-items-center rounded-full bg-lime/40 text-ink">
           {kind === "pdf" ? (
             <FileText className="h-6 w-6" strokeWidth={1.75} />
           ) : (
             <UploadCloud className="h-6 w-6" strokeWidth={1.75} />
           )}
         </span>
-        <span className="text-sm font-semibold text-charcoal">
+        <span className="text-sm font-semibold text-ink">
           Drop your file here or click to browse
         </span>
-        <span className="text-xs text-charcoal/45">{cfg.hint}</span>
+        <span className="text-xs text-muted-3">{cfg.hint}</span>
       </button>
       <input
         ref={inputRef}
@@ -304,7 +304,7 @@ export default function FileUpload({
         hidden
         onChange={(e) => onFiles(e.target.files)}
       />
-      {error && <p className="mt-2 text-xs text-terracotta-dark">{error}</p>}
+      {error && <p className="mt-2 text-xs text-red-700">{error}</p>}
     </div>
   );
 }

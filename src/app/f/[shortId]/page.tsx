@@ -57,10 +57,10 @@ export default async function FeedbackPage({
   const c = (qr.payload_json ?? {}) as Cfg;
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-sand-light to-white px-4 py-10">
-      <div className="w-full max-w-md rounded-2xl border border-charcoal/10 bg-white p-6 shadow-sm sm:p-8">
+    <main className="flex min-h-screen items-center justify-center bg-paper font-body text-ink px-4 py-10">
+      <div className="w-full max-w-md rounded-panel border border-stone-dark bg-white p-6 shadow-card sm:p-8">
         {qr.name && (
-          <p className="mb-1 text-center text-xs font-semibold uppercase tracking-wider text-deep-teal">
+          <p className="mx-auto mb-3 w-fit rounded-full bg-stone px-3 py-1 text-center text-xs font-medium text-ink">
             {qr.name}
           </p>
         )}
@@ -73,14 +73,14 @@ export default async function FeedbackPage({
         <footer className="mt-8 text-center">
           <Link
             href="/"
-            className="text-xs font-medium text-charcoal/40 transition-colors hover:text-deep-teal"
+            className="text-xs font-medium text-muted-3 transition-colors hover:text-ink"
           >
             Made with <span className="font-semibold">Vertexa QR</span>
           </Link>
-          <span aria-hidden className="mx-2 text-xs text-charcoal/25">·</span>
+          <span aria-hidden className="mx-2 text-xs text-muted-4">·</span>
           <Link
             href={`/contact?topic=abuse&qr=${encodeURIComponent(shortId)}`}
-            className="text-xs text-charcoal/55 transition-colors hover:text-terracotta-dark"
+            className="text-xs text-muted-3 transition-colors hover:text-ink"
           >
             Report abuse
           </Link>

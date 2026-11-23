@@ -45,31 +45,31 @@ export default function PaymentForm({
   }
 
   return (
-    <div className="rounded-2xl border border-charcoal/10 bg-sand-light/40 p-8 text-center">
-      <span className="relative mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-deep-teal/10 text-deep-teal">
+    <div className="rounded-2xl border border-ink/10 bg-stone/60 p-8 text-center">
+      <span className="relative mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-lime/40 text-ink">
         <Wallet className="h-7 w-7" strokeWidth={1.75} />
-        <span className="absolute -top-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-charcoal/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-charcoal/55">
+        <span className="absolute -top-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-ink/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-2">
           Coming soon
         </span>
       </span>
-      <h2 className="mt-5 font-display text-lg font-bold text-charcoal">
+      <h2 className="mt-5 font-heading text-lg font-bold text-ink">
         Accept Mada, STC Pay &amp; Apple Pay via QR
       </h2>
-      <p className="mx-auto mt-1.5 max-w-sm text-sm leading-relaxed text-charcoal/55">
+      <p className="mx-auto mt-1.5 max-w-sm text-sm leading-relaxed text-muted-3">
         Payment QRs are in development. Leave your email and we’ll tell you
         the moment they launch.
       </p>
 
       {done ? (
         <div className="mt-6 flex flex-col items-center gap-3">
-          <p className="inline-flex items-center gap-2 rounded-lg bg-deep-teal/10 px-4 py-2.5 text-sm font-semibold text-deep-teal">
+          <p className="inline-flex items-center gap-2 rounded-xl bg-lime/40 px-4 py-2.5 text-sm font-semibold text-ink">
             <Check className="h-4 w-4" /> We’ll let you know!
           </p>
           {onBackToTypes && (
             <button
               type="button"
               onClick={onBackToTypes}
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-deep-teal hover:underline"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-ink hover:underline"
             >
               <ArrowLeft className="h-4 w-4" /> Choose another QR type
             </button>
@@ -82,19 +82,19 @@ export default function PaymentForm({
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
-            className="block w-full rounded-lg border border-charcoal/15 bg-white px-4 py-2.5 text-sm text-charcoal outline-none transition-colors placeholder:text-charcoal/40 focus:border-deep-teal focus:ring-2 focus:ring-deep-teal/15"
+            className="block min-h-[44px] w-full rounded-xl border border-stone-dark bg-white px-4 py-2.5 font-body text-[15px] text-ink outline-none transition-colors placeholder:text-muted-3 hover:border-ink/25 focus:border-ink focus:ring-2 focus:ring-ink/20"
           />
           <button
             type="button"
             onClick={submit}
             disabled={submitting}
-            className="shrink-0 rounded-lg bg-deep-teal px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-deep-teal-dark disabled:opacity-60"
+            className="shrink-0 rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-ink-soft disabled:opacity-60"
           >
             {submitting ? "…" : "Notify me"}
           </button>
         </div>
       )}
-      {err && <p className="mt-3 text-xs font-medium text-terracotta-dark">{err}</p>}
+      {err && <p className="mt-3 text-xs font-medium text-red-700">{err}</p>}
     </div>
   );
 }

@@ -7,7 +7,7 @@ import { LocateFixed, Search, Loader2, MapPin } from "lucide-react";
 type Form = Record<string, any>;
 
 const inputCls =
-  "block w-full rounded-lg border border-charcoal/15 bg-sand-light/30 px-4 py-2.5 text-sm text-charcoal outline-none transition-colors placeholder:text-charcoal/40 focus:border-deep-teal focus:bg-white focus:ring-2 focus:ring-deep-teal/15";
+  "block min-h-[44px] w-full rounded-xl border border-stone-dark bg-white px-4 py-2.5 font-body text-[15px] text-ink outline-none transition-colors placeholder:text-muted-3 hover:border-ink/25 focus:border-ink focus:ring-2 focus:ring-ink/20";
 
 interface Hit {
   display_name: string;
@@ -111,7 +111,7 @@ export default function LocationForm({
         type="button"
         onClick={useMyLocation}
         disabled={locating}
-        className="inline-flex items-center gap-2 rounded-lg border border-deep-teal/40 px-4 py-2.5 text-sm font-semibold text-deep-teal transition-colors hover:bg-deep-teal/5 disabled:opacity-60"
+        className="inline-flex items-center gap-2 rounded-xl border border-ink/40 px-4 py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-stone/60 disabled:opacity-60"
       >
         {locating ? <Loader2 className="h-4 w-4 animate-spin" /> : <LocateFixed className="h-4 w-4" />}
         Use my current location
@@ -119,9 +119,9 @@ export default function LocationForm({
 
       <div className="relative">
         <label className="block">
-          <span className="mb-1.5 block text-sm font-semibold text-charcoal/80">Search an address or place</span>
+          <span className="mb-1.5 block font-body text-sm font-medium text-ink">Search an address or place</span>
           <span className="relative block">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-charcoal/40" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-3" />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -129,20 +129,20 @@ export default function LocationForm({
               className={`${inputCls} pl-9`}
             />
             {searching && (
-              <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-charcoal/40" />
+              <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-3" />
             )}
           </span>
         </label>
         {hits.length > 0 && (
-          <ul className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-lg border border-charcoal/15 bg-white shadow-lg">
+          <ul className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-xl border border-ink/15 bg-white shadow-lg">
             {hits.map((h, i) => (
               <li key={i}>
                 <button
                   type="button"
                   onClick={() => pick(h)}
-                  className="flex w-full items-start gap-2 px-3 py-2 text-left text-sm text-charcoal/80 hover:bg-sand-light/60"
+                  className="flex w-full items-start gap-2 px-3 py-2 text-left text-sm text-muted hover:bg-stone"
                 >
-                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-deep-teal" />
+                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-ink" />
                   <span className="line-clamp-2">{h.display_name}</span>
                 </button>
               </li>
@@ -152,7 +152,7 @@ export default function LocationForm({
       </div>
 
       <label className="block">
-        <span className="mb-1.5 block text-sm font-semibold text-charcoal/80">Display label</span>
+        <span className="mb-1.5 block font-body text-sm font-medium text-ink">Display label</span>
         <input
           value={form.label ?? ""}
           onChange={(e) => set("label", e.target.value)}
@@ -161,22 +161,22 @@ export default function LocationForm({
         />
       </label>
 
-      {err && <p className="text-xs font-medium text-terracotta-dark">{err}</p>}
+      {err && <p className="text-xs font-medium text-red-700">{err}</p>}
 
       {hasPoint ? (
-        <div className="overflow-hidden rounded-xl border border-charcoal/15">
+        <div className="overflow-hidden rounded-xl border border-ink/15">
           <iframe
             title="Selected location"
             src={osmEmbed(lat, lng)}
             className="h-56 w-full"
             loading="lazy"
           />
-          <p className="bg-sand-light/40 px-3 py-2 text-xs text-charcoal/55">
+          <p className="bg-stone/60 px-3 py-2 text-xs text-muted-2">
             {lat.toFixed(5)}, {lng.toFixed(5)}
           </p>
         </div>
       ) : (
-        <div className="grid h-40 place-items-center rounded-xl border border-dashed border-charcoal/20 bg-sand-light/30 text-sm text-charcoal/45">
+        <div className="grid h-40 place-items-center rounded-xl border border-dashed border-ink/20 bg-stone/60 text-sm text-muted-2">
           Pick a location to preview the map
         </div>
       )}

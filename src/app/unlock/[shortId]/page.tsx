@@ -50,7 +50,7 @@ export default async function UnlockPage({
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-sand-light to-white px-4 py-10">
+    <main className="flex min-h-screen items-center justify-center bg-paper font-body text-ink px-4 py-10">
       <UnlockForm shortId={shortId} name={qr.name} />
     </main>
   );

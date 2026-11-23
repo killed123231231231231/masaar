@@ -8,16 +8,18 @@ export default function TermsPage() {
       title="Terms & Conditions"
       intro="Placeholder terms — full legal copy is being prepared."
     >
-      <p>
-        By using Vertexa QR you agree to use the service lawfully and not to
-        encode malicious, illegal, or infringing destinations in your QR
-        codes. Dynamic QR destinations remain editable by the owning
-        account.
-      </p>
-      <p>
-        This is a pre-launch placeholder. Final Terms & Conditions will
-        replace this page before public launch.
-      </p>
+      <article className="max-w-2xl space-y-5 font-body text-[17px] leading-[1.65] text-muted-2">
+        <p>
+          By using Vertexa QR you agree to use the service lawfully and not to
+          encode malicious, illegal, or infringing destinations in your QR
+          codes. Dynamic QR destinations remain editable by the owning
+          account.
+        </p>
+        <p>
+          This is a pre-launch placeholder. Final Terms & Conditions will
+          replace this page before public launch.
+        </p>
+      </article>
     </MarketingShell>
   );
 }
