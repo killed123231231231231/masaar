@@ -623,7 +623,7 @@ export default function Step3Customize({
           className="pointer-events-none absolute -right-14 -top-14 h-48 w-48 rounded-full bg-white/45 blur-2xl"
         />
         <div className="relative flex flex-col items-center gap-4 rounded-card bg-white p-4 shadow-float sm:p-5">
-          <p className="self-start font-body text-xs font-medium uppercase tracking-[0.14em] text-muted-3">
+          <p className="self-start font-heading text-sm font-semibold text-ink">
             Live preview
           </p>
           <div ref={previewRef} className="inline-block bg-white p-2">
