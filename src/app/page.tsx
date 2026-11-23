@@ -12,7 +12,6 @@ import {
   QrCode,
   RefreshCw,
   ShieldCheck,
-  UtensilsCrossed,
 } from "lucide-react";
 import LogoMark from "@/components/logo-mark";
 import HeaderLoginButton from "@/components/header-login-button";
@@ -42,8 +41,8 @@ const NAV = [
 // capability strip: small, confident, every claim shipped today.
 // Same vertical slot as the old trust strip.
 const TRUST_CAPABILITIES = [
-  "Arabic-first menus",
-  "SAR pricing",
+  "Free to use, no card needed",
+  "PNG / SVG / JPG export",
   "Dynamic destinations",
   "Live scan analytics",
   "Menu / WhatsApp / WiFi / vCard",
@@ -487,11 +486,11 @@ function HowItWorks() {
 // Replaces the old AnalyticsPreview section. Borrows getqr.com's
 // `lg:grid-cols-5` icon+h3+body card pattern as the dominant
 // "what you get" visual primitive on the landing, but every feature
-// here is Vertexa QR-specific (GCC content types, bilingual Arabic, AI
-// Menu) — none are copied from getqr's generic 5.
+// here is Vertexa QR-specific (GCC content types, bilingual Arabic)
+// — none are copied from getqr's generic 5. The AI Menu Builder card
+// was dropped with the Menu vertical.
 //
-// Two features carry honest "Coming soon" badges (Bilingual + AI
-// Menu). Per STRATEGY.md and the brand-discipline guardrails, no
+// One feature carries an honest "Coming soon" badge (Bilingual). Per STRATEGY.md and the brand-discipline guardrails, no
 // roadmap item is shipped as "live" before its session lands.
 // B6 audit copy refinement — feature titles now match the
 // vocabulary a Saudi cafe owner actually uses ("Menu, WhatsApp,
@@ -522,12 +521,6 @@ const LANDING_FEATURES = [
     body: "Native RTL, IBM Plex Arabic — not translated as an afterthought.",
     soon: true,
   },
-  {
-    icon: UtensilsCrossed,
-    title: "AI Menu Builder",
-    body: "Upload a paper menu photo. AI extracts items, prices, bilingual fields.",
-    soon: true,
-  },
 ];
 
 function FeaturesGrid() {
@@ -542,12 +535,12 @@ function FeaturesGrid() {
             More than a QR generator
           </h2>
           <p className="mt-4 text-balance text-base leading-relaxed text-charcoal/65">
-            Five capabilities most generators don&apos;t ship — built around how
+            Four capabilities most generators don&apos;t ship — built around how
             GCC businesses actually use QR codes day to day.
           </p>
         </div>
 
-        <ul className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
+        <ul className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {LANDING_FEATURES.map(({ icon: Icon, title, body, soon }) => (
             <li
               key={title}
@@ -627,10 +620,9 @@ function BuiltInRiyadh() {
             vCards, WiFi, locations</span>, and more.
           </p>
           <p className="mt-3 text-balance text-sm leading-relaxed text-charcoal/70 sm:text-base">
-            Built with Saudi pricing, Arabic-ready interfaces, and GCC
-            business needs in mind, Vertexa QR gives you a cleaner way to
-            launch, manage, and track every QR code from one simple
-            dashboard.
+            Free to use, with Arabic-ready interfaces and GCC business needs
+            in mind, Vertexa QR gives you a cleaner way to launch, manage,
+            and track every QR code from one simple dashboard.
           </p>
           <p className="mt-3 text-balance text-sm leading-relaxed text-charcoal/70 sm:text-base">
             Launching in 2026 with a focused, practical product for Saudi
@@ -639,16 +631,16 @@ function BuiltInRiyadh() {
 
           <ul className="mt-5 grid gap-3 sm:grid-cols-3">
             <CapabilityPill
-              label="Saudi-first pricing"
-              note="SAR, no surprise renewals"
+              label="Free to use"
+              note="No card needed"
             />
             <CapabilityPill
               label="Arabic-ready interface"
               note="Plex Arabic + RTL"
             />
             <CapabilityPill
-              label="F&B menu workflows"
-              note="Built for cafés + restaurants"
+              label="Built for F&B and retail"
+              note="Menus, WhatsApp, WiFi, vCard"
             />
           </ul>
         </div>
@@ -896,11 +888,11 @@ function BuiltForGCC() {
 const FAQS = [
   {
     q: "How is this different from a free QR generator?",
-    a: "Free generators give you a static image — print it, and the URL behind it is locked forever. Vertexa QR codes are dynamic: you can re-point the destination anytime, see who scanned where, and add branding without losing the scan trail. The cost difference shows up the first time a printed campaign needs a URL change.",
+    a: "Free generators give you a static image — print it, and the URL behind it is locked forever. Vertexa QR codes are dynamic: you can re-point the destination anytime, see who scanned where, and add branding without losing the scan trail. That matters the first time a printed campaign needs a URL change.",
   },
   {
     q: "Can I use it for restaurant menus?",
-    a: "Yes — the Restaurant Pro tier is built around it. Upload a paper-menu photo and the AI menu builder extracts categories, items, prices, allergens, and bilingual fields in seconds. Each scan opens a fast, mobile-first hosted menu page that respects halal / dietary tags. AI menu builder rolls out next sprint; the underlying dynamic-QR layer ships today.",
+    a: "Yes. Upload your menu as a PDF, or link to your online menu, and print one dynamic QR for your tables. When prices or items change, upload the new menu or change the link in your dashboard. The printed code keeps working, so there is no reprint.",
   },
   {
     q: "Can I connect QR codes to WhatsApp?",
@@ -911,8 +903,8 @@ const FAQS = [
     a: "The dashboard already ships in English with brand-correct Arabic typography (IBM Plex Sans Arabic). Full Arabic UI with RTL layout rolls out next. Hosted scan-landing pages (menu, vCard) support Arabic + English side by side today.",
   },
   {
-    q: "Does it support Mada / STC Pay / Tap?",
-    a: "Not yet — payments are scaffolded but the actual gateway wiring lands next sprint. We're being deliberate: the GCC market needs Mada and Apple Pay first, not Stripe-only. Until then, activation is on a SAR-priced launch promo. We'll never charge a card you didn't put in.",
+    q: "Does it cost anything?",
+    a: "No. Vertexa QR is free to use and there is no paid plan. You don't need a card to sign up, and we never ask for payment details.",
   },
   {
     q: "Can I edit the destination after printing?",
@@ -924,23 +916,19 @@ const FAQS = [
   },
   {
     q: "Do I need technical skills?",
-    a: "No. The builder is a 3-step wizard: pick a content type, fill in the details, customize colors / logo. Most cafés have their first scannable QR in under a minute. The Arabic-ready interface and SAR pricing remove the usual friction of US-market tools.",
+    a: "No. The builder is a 3-step wizard: pick a content type, fill in the details, customize colors / logo. Most cafés have their first scannable QR in under a minute.",
   },
   {
     q: "Are scans tracked privately?",
     a: "We log country, city (Vercel-provided geo headers, no third-party IP service), device type, browser, and OS. IPs are SHA-256 hashed and truncated to 16 hex chars at write time — we never store raw addresses. Scans aren't tied to any user identity unless the QR is gated with a password.",
   },
   {
-    q: "Halal / SFDA badges for menus?",
-    a: "Halal flag and dietary tags (vegetarian, vegan, spicy, contains nuts) are first-class fields in our menu schema. They render with brand-correct iconography on the hosted menu page. The full Restaurant Pro builder ships next sprint.",
+    q: "Can my menu show halal and dietary details?",
+    a: "Yes, as part of your own menu. Vertexa QR doesn't build menus: put halal, allergen and dietary details in your menu PDF or on your menu website, and the QR opens it as it is.",
   },
   {
     q: "Where is my data stored?",
     a: "Supabase Postgres in ap-south-1 (Mumbai) — the closest AWS region to the GCC. We're evaluating a Riyadh / UAE region when AWS / Supabase land one; for now Mumbai gives us sub-100ms latency to most of the Gulf without compromising compliance.",
-  },
-  {
-    q: "What happens if I cancel?",
-    a: "Your existing QR codes stay valid — static ones keep working forever, dynamic ones either revert to a Vertexa QR landing page (free tier) or stay live if you re-activate within 90 days. We don't auto-renew silently or send opaque \"I don't recognize this charge\" billing — every renewal is opt-in.",
   },
 ];
 
