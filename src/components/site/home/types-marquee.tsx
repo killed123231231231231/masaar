@@ -13,12 +13,13 @@ import {
   Wifi,
   type LucideIcon,
 } from "lucide-react";
+import WhatsAppIcon from "@/components/icons/whatsapp";
 import Reveal from "@/components/motion/reveal";
 
 /** The 12 QR types offered in the builder (/create). */
 export const QR_TYPES: { label: string; icon: LucideIcon }[] = [
   { label: "Website", icon: Globe },
-  { label: "WhatsApp", icon: MessageCircle },
+  { label: "WhatsApp", icon: WhatsAppIcon },
   { label: "PDF", icon: FileText },
   { label: "WiFi", icon: Wifi },
   { label: "vCard", icon: Contact },

@@ -214,7 +214,7 @@ export default function Step3Customize({
   // wizard footer's "Download" button produces the same framed PNG/SVG.
   useEffect(() => {
     if (downloadRef) downloadRef.current = (format) => downloadFramed(format);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   });
 
   // Memoised so a colour/dot/logo change elsewhere doesn't re-render all 16

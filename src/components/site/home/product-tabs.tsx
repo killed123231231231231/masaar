@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { BarChart3, FileText, Globe, MessageCircle, Wifi, type LucideIcon } from "lucide-react";
+import WhatsAppIcon from "@/components/icons/whatsapp";
 import { AppWindow, PastelFrame, type Tint } from "@/components/site/product-frame";
 import {
   AnalyticsScreen,
@@ -36,7 +37,7 @@ const TABS: Tab[] = [
   {
     key: "whatsapp",
     label: "WhatsApp",
-    icon: MessageCircle,
+    icon: WhatsAppIcon,
     tint: "mint",
     path: "quickqrcode.live/create",
     active: "create",

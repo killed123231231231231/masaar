@@ -12,6 +12,7 @@ import {
   Wifi,
   type LucideIcon,
 } from "lucide-react";
+import WhatsAppIcon from "@/components/icons/whatsapp";
 import MockQr from "@/components/site/mock-qr";
 import { ChipMock, FieldMock, SwitchMock } from "@/components/site/product-frame";
 
@@ -127,7 +128,7 @@ export function WebsiteScreen() {
 
 export function WhatsAppScreen() {
   return (
-    <BuilderShell icon={MessageCircle} type="WhatsApp" seed="whatsapp" previewNote="Opens a chat">
+    <BuilderShell icon={WhatsAppIcon} type="WhatsApp" seed="whatsapp" previewNote="Opens a chat">
       <FieldMock label="Phone number" value="+966 5X XXX XXXX" icon={Phone} />
       <div>
         <div className="mb-1.5 text-[12px] font-medium text-muted-2">Message</div>

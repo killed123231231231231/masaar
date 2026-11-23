@@ -7,6 +7,7 @@ import {
   Search, Smartphone, Text as TextIcon, UserSquare,
   Wifi, Trash2, QrCode as QrCodeIcon, type LucideIcon,
 } from "lucide-react";
+import WhatsAppIcon from "@/components/icons/whatsapp";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
@@ -59,7 +60,7 @@ const TYPE_META: Record<string, { label: string; icon: LucideIcon }> = {
   email: { label: "Email", icon: Mail },
   sms: { label: "SMS", icon: MessageSquare },
   phone: { label: "Phone", icon: Phone },
-  whatsapp: { label: "WhatsApp", icon: MessageSquare },
+  whatsapp: { label: "WhatsApp", icon: WhatsAppIcon },
   app_link: { label: "App Link", icon: Smartphone },
   location: { label: "Location", icon: MapPin },
 };
