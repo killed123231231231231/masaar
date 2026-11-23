@@ -1,6 +1,9 @@
 import SiteHeader from "@/components/site/site-header";
 import SiteFooter from "@/components/site/site-footer";
 import Hero from "@/components/site/home/hero";
+import ProductTabs from "@/components/site/home/product-tabs";
+import Reveal from "@/components/motion/reveal";
+import { Container } from "@/components/site/section";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -23,6 +26,17 @@ export default async function LandingPage() {
     <main className="min-h-screen overflow-x-clip bg-paper font-body text-ink">
       <SiteHeader isAuthed={isAuthed} userEmail={userEmail} />
       <Hero />
+
+      <section id="how" aria-labelledby="how-title" className="pb-16 md:pb-[120px]">
+        <h2 id="how-title" className="sr-only">
+          How it works
+        </h2>
+        <Container>
+          <Reveal delay={120}>
+            <ProductTabs />
+          </Reveal>
+        </Container>
+      </section>
       <SiteFooter />
     </main>
   );

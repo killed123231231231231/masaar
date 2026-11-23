@@ -48,11 +48,11 @@ export function Float({
   );
 }
 
-/** Lime scalloped seal (12 lobes) with grain, drawn in SVG. */
+/** Lime scalloped seal (16 lobes) with grain, drawn in SVG. */
 export function Seal({ id, className = "" }: { id: string; className?: string }) {
-  const lobes = 12;
-  const R = 37;
-  const r = 13.5;
+  const lobes = 16;
+  const R = 39;
+  const r = 8.6;
   const circles = Array.from({ length: lobes }, (_, i) => {
     const a = (i / lobes) * Math.PI * 2;
     return { cx: 50 + R * Math.cos(a), cy: 50 + R * Math.sin(a) };
@@ -68,7 +68,7 @@ export function Seal({ id, className = "" }: { id: string; className?: string })
   return (
     <svg viewBox="0 0 100 100" className={`overflow-visible ${className}`} aria-hidden>
       <defs>
-        <radialGradient id={`${id}-fill`} cx="34%" cy="28%" r="80%">
+        <radialGradient id={`${id}-fill`} gradientUnits="userSpaceOnUse" cx="36" cy="30" r="78">
           <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.9" />
           <stop offset="30%" stopColor="#DBFC74" />
           <stop offset="100%" stopColor="#B9E23A" />
@@ -81,7 +81,7 @@ export function Seal({ id, className = "" }: { id: string; className?: string })
         <filter id={`${id}-shadow`} x="-30%" y="-30%" width="160%" height="170%">
           <feDropShadow dx="0" dy="10" stdDeviation="8" floodColor="#1A1A1A" floodOpacity="0.18" />
         </filter>
-        <radialGradient id={`${id}-rim`} cx="70%" cy="78%" r="60%">
+        <radialGradient id={`${id}-rim`} gradientUnits="userSpaceOnUse" cx="72" cy="80" r="62">
           <stop offset="0%" stopColor="#1A1A1A" stopOpacity="0.14" />
           <stop offset="100%" stopColor="#1A1A1A" stopOpacity="0" />
         </radialGradient>
