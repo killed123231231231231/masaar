@@ -6,11 +6,12 @@ import {
   Area, AreaChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
 import {
-  ArrowDownRight, ArrowUpRight, CalendarDays, ChevronDown, ScanLine, TrendingUp,
+  ArrowDownRight, ArrowUpRight, CalendarDays, ScanLine, TrendingUp,
   type LucideIcon,
 } from "lucide-react";
 import { PERIODS, type Bucket, type Period } from "@/lib/analytics";
 import { Card, CardHeader, FOCUS, IconWell } from "@/components/dashboard/ui";
+import SelectMenu from "@/components/dashboard/select-menu";
 
 // Chart palette for the 2026-11 redesign: ink, lime, lilac, sky, mint, blush.
 export const PALETTE = ["#1A1A1A", "#DBFC74", "#E3B8FF", "#A9CCFF", "#8EF0B9", "#FFC2E2"];
@@ -89,26 +90,27 @@ export function PeriodPills({ current }: { current: Period }) {
   );
 }
 
-/** Calendar pill with a native select (accessible, works on touch). */
-export function PeriodSelect({ current }: { current: Period }) {
+/** Calendar pill with the themed dropdown. Keeps every other param. */
+export function PeriodSelect({
+  current,
+  size = "md",
+  align = "left",
+}: {
+  current: Period;
+  size?: "sm" | "md";
+  align?: "left" | "right";
+}) {
   const setParam = useSetParam();
-  const id = useId();
   return (
-    <div className="relative">
-      <label htmlFor={id} className="sr-only">Period</label>
-      <CalendarDays className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink" aria-hidden />
-      <select
-        id={id}
-        value={current}
-        onChange={(e) => setParam("period", e.target.value)}
-        className={`h-10 cursor-pointer appearance-none rounded-full border border-stone-dark bg-white pl-10 pr-9 font-body text-sm font-medium text-ink transition-colors hover:bg-cream ${FOCUS}`}
-      >
-        {PERIODS.map((p) => (
-          <option key={p.id} value={p.id}>{p.label}</option>
-        ))}
-      </select>
-      <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-3" aria-hidden />
-    </div>
+    <SelectMenu
+      label="Period"
+      icon={CalendarDays}
+      size={size}
+      align={align}
+      value={current}
+      options={PERIODS.map((p) => ({ value: p.id, label: p.label }))}
+      onChange={(v) => setParam("period", v)}
+    />
   );
 }
 

@@ -1,17 +1,18 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
-  BarChart3, ChevronDown, Download, Globe, Globe2, List, Monitor, Moon, MoreHorizontal,
+  BarChart3, Download, Globe, Globe2, List, Monitor, Moon, MoreHorizontal,
   Pencil, QrCode, ScanLine, Smartphone, Sparkles, Sun, Sunrise, Sunset, Tablet, Users, X,
   type LucideIcon,
 } from "lucide-react";
 import QrThumb from "@/components/qr-thumb";
 import type { SidebarMe } from "@/components/dashboard/sidebar";
 import DashboardFrame from "@/components/dashboard/frame";
+import SelectMenu from "@/components/dashboard/select-menu";
 import {
   Card, CardHeader, EmptyState, FOCUS, INK_BTN, OUTLINE_BTN, PageTitle, PrimaryButton, SECONDARY_BTN,
 } from "@/components/dashboard/ui";
@@ -137,27 +138,18 @@ function PageHeader({
   );
 }
 
-/** Native select over the user's QRs; drives the existing ?qr= filter. */
+/** Themed dropdown over the user's QRs; drives the existing ?qr= filter. */
 function QrFilterSelect({ userQrs, current }: { userQrs: AccountUserQr[]; current: string | null }) {
   const setParam = useSetParam();
-  const id = useId();
   return (
-    <div className="relative">
-      <label htmlFor={id} className="sr-only">Filter by QR code</label>
-      <QrCode className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink" aria-hidden />
-      <select
-        id={id}
-        value={current ?? ""}
-        onChange={(e) => setParam("qr", e.target.value || null)}
-        className={`h-10 max-w-[15rem] cursor-pointer appearance-none truncate rounded-full border border-stone-dark bg-white pl-10 pr-9 font-body text-sm font-medium text-ink transition-colors hover:bg-cream ${FOCUS}`}
-      >
-        <option value="">All QR codes</option>
-        {userQrs.map((q) => (
-          <option key={q.id} value={q.id}>{q.name}</option>
-        ))}
-      </select>
-      <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-3" aria-hidden />
-    </div>
+    <SelectMenu
+      label="Filter by QR code"
+      icon={QrCode}
+      className="max-w-[16rem]"
+      value={current ?? ""}
+      options={[{ value: "", label: "All QR codes" }, ...userQrs.map((q) => ({ value: q.id, label: q.name }))]}
+      onChange={(v) => setParam("qr", v || null)}
+    />
   );
 }
 
