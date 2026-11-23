@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter, useSearchParams } from "next/navigation";
 import LoginModal from "@/components/login-modal";
+import { secondaryButtonClass } from "@/components/site/buttons";
 
 /**
  * "Log in" trigger for the public-site header. Opens the same Welcome
@@ -60,7 +61,7 @@ export default function HeaderLoginButton() {
       role="dialog"
       aria-modal="true"
       aria-label="Log in"
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-charcoal/40 px-4 py-6 backdrop-blur-sm"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-ink/40 px-4 py-6 backdrop-blur-sm"
       onClick={() => setOpen(false)}
     >
       <LoginModal
@@ -80,7 +81,7 @@ export default function HeaderLoginButton() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="hidden px-3 py-2 text-sm font-medium text-charcoal transition-colors hover:text-deep-teal sm:inline-block"
+        className={`${secondaryButtonClass} !hidden sm:!inline-flex`}
       >
         Log in
       </button>

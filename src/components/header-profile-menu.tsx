@@ -40,7 +40,8 @@ export default function HeaderProfileMenu({ email }: { email: string | null }) {
         aria-haspopup="menu"
         aria-expanded={open}
         title={email ?? undefined}
-        className="grid h-9 w-9 place-items-center rounded-full bg-deep-teal text-xs font-bold uppercase text-white transition-colors hover:bg-deep-teal-dark"
+        aria-label={email ? `Account menu for ${email}` : "Account menu"}
+        className="grid h-10 w-10 place-items-center rounded-full bg-ink font-heading text-sm font-bold uppercase text-lime transition-transform duration-200 hover:-translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/30 focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
       >
         {initial}
       </button>
@@ -48,43 +49,43 @@ export default function HeaderProfileMenu({ email }: { email: string | null }) {
       {open && (
         <div
           role="menu"
-          className="absolute right-0 top-full z-50 mt-2 w-56 overflow-hidden rounded-lg border border-charcoal/10 bg-white text-charcoal shadow-xl"
+          className="absolute right-0 top-full z-50 mt-2 w-60 overflow-hidden rounded-2xl border border-stone-dark bg-white p-1.5 font-body text-ink shadow-float"
         >
           {email && (
-            <div className="border-b border-charcoal/10 px-3 py-2.5">
-              <p className="text-[10px] uppercase tracking-wider text-charcoal/45">
+            <div className="mb-1 rounded-xl bg-cream px-3 py-2.5">
+              <p className="text-[11px] font-medium uppercase tracking-wider text-muted-3">
                 Signed in as
               </p>
-              <p className="truncate text-xs font-semibold text-charcoal">{email}</p>
+              <p className="truncate text-sm font-medium text-ink">{email}</p>
             </div>
           )}
           <Link
             href="/dashboard"
             role="menuitem"
             onClick={() => setOpen(false)}
-            className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium text-charcoal/80 hover:bg-sand-light hover:text-deep-teal"
+            className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-ink hover:bg-stone focus-visible:bg-stone focus-visible:outline-none"
           >
-            <LayoutGrid className="h-4 w-4" /> Dashboard
+            <LayoutGrid className="h-4 w-4 text-muted-3" /> Dashboard
           </Link>
           <Link
             href="/dashboard/settings"
             role="menuitem"
             onClick={() => setOpen(false)}
-            className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium text-charcoal/80 hover:bg-sand-light hover:text-deep-teal"
+            className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-ink hover:bg-stone focus-visible:bg-stone focus-visible:outline-none"
           >
-            <Settings className="h-4 w-4" /> Settings
+            <Settings className="h-4 w-4 text-muted-3" /> Settings
           </Link>
           <form
             action="/auth/signout"
             method="post"
-            className="border-t border-charcoal/10"
+            className="mt-1 border-t border-stone pt-1"
           >
             <button
               type="submit"
               role="menuitem"
-              className="flex w-full items-center gap-2 px-3 py-2.5 text-sm font-medium text-terracotta-dark hover:bg-terracotta/10"
+              className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-ink hover:bg-stone focus-visible:bg-stone focus-visible:outline-none"
             >
-              <LogOut className="h-4 w-4" /> Sign out
+              <LogOut className="h-4 w-4 text-muted-3" /> Sign out
             </button>
           </form>
         </div>
