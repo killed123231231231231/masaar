@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import {
-  BarChart3, Calendar, ExternalLink, LinkIcon, Download,
+  BarChart3, Calendar, ExternalLink, LinkIcon, Download, Lock,
   Mail, MapPin, MessageSquare, MoreVertical, Pencil, Phone, Plus,
   Search, Smartphone, Text as TextIcon, UserSquare,
   Wifi, Trash2, type LucideIcon,
@@ -35,6 +35,8 @@ export interface QrCardData {
   dot_palette: string[] | null;
   corner_colors: string[] | null;
   palette_options: import("@/lib/palette").PaletteOptions | null;
+  /** Locked by the site owner from /admin; the owner cannot switch it on. */
+  admin_locked?: boolean;
 }
 
 const STATUS_TINT: Record<string, string> = {
@@ -210,7 +212,8 @@ function ListRow({
   // instantly; the server syncs on router.refresh().
   const [status, setStatus] = useState(q.status);
   const [toggling, setToggling] = useState(false);
-  const canToggle = status === "active" || status === "suspended";
+  const adminLocked = q.admin_locked === true;
+  const canToggle = !adminLocked && (status === "active" || status === "suspended");
   const isActive = status === "active";
   const statusTint = STATUS_TINT[status] ?? STATUS_TINT.active;
   // When suspended the row is locked — open / edit / download / analytics are
@@ -232,7 +235,12 @@ function ListRow({
     setToggling(false);
     if (!res.ok) {
       setStatus(prev);
-      toast.error("Couldn’t update status. Try again.");
+      toast.error(
+        res.status === 403
+          ? "This QR code was locked by the site owner."
+          : "Couldn’t update status. Try again."
+      );
+      if (res.status === 403) router.refresh();
       return;
     }
     toast.success(next === "active" ? "QR is now active" : "QR is now inactive");
@@ -336,6 +344,13 @@ function ListRow({
             </Link>
           )}
         </div>
+        {adminLocked && (
+          // Phone widths hide the status column, so say it here too.
+          <p className="mt-0.5 inline-flex items-center gap-1 text-[11px] font-medium text-terracotta-dark md:hidden">
+            <Lock className="h-3 w-3" aria-hidden="true" />
+            Locked by the site owner
+          </p>
+        )}
       </div>
 
       {/* Destination — hidden under md. */}
@@ -412,6 +427,14 @@ function ListRow({
             />
           </button>
         </div>
+      ) : adminLocked ? (
+        <span
+          className="hidden w-[88px] shrink-0 items-center justify-center gap-1 rounded-full bg-terracotta/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-terracotta-dark md:inline-flex"
+          title="Locked by the site owner. Contact support to have it reviewed."
+        >
+          <Lock className="h-3 w-3" aria-hidden="true" />
+          Locked
+        </span>
       ) : (
         <span
           className={`hidden w-[88px] shrink-0 rounded-full px-2 py-0.5 text-center text-[10px] font-bold uppercase tracking-wider md:inline-block ${statusTint}`}

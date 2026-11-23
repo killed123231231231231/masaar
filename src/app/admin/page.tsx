@@ -121,8 +121,8 @@ export default async function AdminPage() {
         <Card title="Recent QR codes" note="Newest 50" flush>
           {data.lockColumnMissing && (
             <p className="mx-5 mb-3 rounded-lg bg-sand-light px-3 py-2 text-xs text-charcoal/70">
-              The admin lock column is not in the database yet. Locking will only
-              set the QR to suspended until that migration is applied.
+              Locking is off until database migration 031 (admin lock) is
+              applied.
             </p>
           )}
           <RecentQrTable qrs={data.recentQrs} lockColumnMissing={data.lockColumnMissing} />

@@ -28,6 +28,24 @@ export default async function QrCodesPage() {
   if (qrsRes.error) throw qrsRes.error;
   const qrs = (qrsRes.data ?? []) as QrCardData[];
 
+  // Site-owner lock (migration 031). Read separately and tolerantly: before
+  // the migration the column does not exist, the query errors, and no QR
+  // is locked. Kept out of the main select so that query never breaks.
+  if (qrs.length) {
+    const { data: lockRows, error: lockErr } = await supabase
+      .from("qr_codes")
+      .select("id, admin_locked")
+      .eq("user_id", user.id);
+    if (!lockErr && lockRows) {
+      const lockedIds = new Set(
+        (lockRows as { id: string; admin_locked: boolean | null }[])
+          .filter((r) => r.admin_locked === true)
+          .map((r) => r.id)
+      );
+      for (const q of qrs) q.admin_locked = lockedIds.has(q.id);
+    }
+  }
+
   // Scan counts via Postgres aggregate — owner-RLS via RPC.
   const ids = qrs.map((q) => q.id);
   const counts: Record<string, number> = {};

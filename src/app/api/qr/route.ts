@@ -185,6 +185,24 @@ export async function PATCH(request: Request) {
   const sizeErr = sizeError(body);
   if (sizeErr) return NextResponse.json({ error: sizeErr }, { status: 400 });
 
+  // A QR locked by the site owner from /admin cannot be edited or switched
+  // back on by its owner. Read the LIVE row, never the client's claim.
+  // Before migration 031 the column does not exist and the query errors;
+  // nothing can be locked then (the /admin lock refuses), so carry on.
+  // The 031 trigger enforces the same rule in the database.
+  const { data: lockRow, error: lockErr } = await supabase
+    .from("qr_codes")
+    .select("admin_locked")
+    .eq("id", body.id)
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (!lockErr && (lockRow as { admin_locked?: boolean | null } | null)?.admin_locked === true) {
+    return NextResponse.json(
+      { error: "This QR code was locked by the site owner and cannot be changed.", locked: true },
+      { status: 403 }
+    );
+  }
+
   // Explicit allow-list. Spreading the request body let a client set any
   // column (kind, is_active, password_hash, payload_json, created_at, ...).
   // Only the two fields the edit UI actually changes are patchable.

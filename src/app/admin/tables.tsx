@@ -71,7 +71,7 @@ export function UsersTable({ users }: { users: AdminUserRow[] }) {
 function statusPill(status: string, locked: boolean) {
   if (locked) return <Pill tone="warn">Locked</Pill>;
   if (status === "active") return <Pill tone="ok">Active</Pill>;
-  if (status === "suspended") return <Pill tone="warn">Suspended</Pill>;
+  if (status === "suspended") return <Pill tone="muted">Inactive</Pill>;
   if (status === "pending_payment") return <Pill tone="muted">Pending</Pill>;
   if (status === "draft") return <Pill tone="muted">Draft</Pill>;
   return <Pill tone="muted">{status || "-"}</Pill>;
@@ -157,13 +157,15 @@ function UserAction({ user }: { user: AdminUserRow }) {
 }
 
 function QrAction({ qr, lockColumnMissing }: { qr: AdminQrRow; lockColumnMissing: boolean }) {
-  const locked = qr.adminLocked || (lockColumnMissing && qr.status === "suspended");
-  if (locked) {
+  // Without migration 031 the lock is off: a suspended status alone is an
+  // owner pause, never an admin lock, so no Lock or Unlock is offered.
+  if (lockColumnMissing) return <span className="text-xs text-charcoal/50">-</span>;
+  if (qr.adminLocked) {
     return (
       <AdminActionButton
         action="qr-unlock"
         id={qr.id}
-        confirmText={`Unlock "${qr.name}"? It will be set to active and scans will open its destination again.`}
+        confirmText={`Unlock "${qr.name}"? It goes back to the status it had before the lock.`}
       />
     );
   }
@@ -174,7 +176,7 @@ function QrAction({ qr, lockColumnMissing }: { qr: AdminQrRow; lockColumnMissing
     <AdminActionButton
       action="qr-lock"
       id={qr.id}
-      confirmText={`Lock "${qr.name}"? Scans will show the expired page instead of its destination until you unlock it.`}
+      confirmText={`Lock "${qr.name}"? Scans will show the expired page and its owner cannot switch it back on until you unlock it.`}
     />
   );
 }

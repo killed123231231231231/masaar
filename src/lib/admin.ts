@@ -37,6 +37,19 @@ export function isAdminEmail(
 }
 
 /**
+ * True only for a user whose email is on the allow-list AND confirmed.
+ * An unconfirmed account could have been signed up by anyone who typed
+ * an allow-listed address, so it never counts.
+ */
+export function isAdminUser(
+  user: Pick<User, "email" | "email_confirmed_at"> | null | undefined,
+  raw: string | undefined = process.env.ADMIN_EMAILS
+): boolean {
+  if (!user || !user.email_confirmed_at) return false;
+  return isAdminEmail(user.email, raw);
+}
+
+/**
  * Server-only: the signed-in user if they are an admin, otherwise null.
  * Uses the cookie-bound Supabase client so the session is verified by
  * Supabase Auth (getUser), not just decoded from the cookie.
@@ -49,8 +62,17 @@ export async function requireAdmin(): Promise<User | null> {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user || !isAdminEmail(user.email)) return null;
+  if (!isAdminUser(user)) return null;
   return user;
+}
+
+/**
+ * Status a QR goes back to when the site owner unlocks it: the status it
+ * had before the lock. Anything other than "active" stays off, so an
+ * unlock never switches on a QR its owner had paused.
+ */
+export function statusAfterUnlock(prev: string | null | undefined): "active" | "suspended" {
+  return prev === "active" ? "active" : "suspended";
 }
 
 export function isUuid(value: unknown): value is string {

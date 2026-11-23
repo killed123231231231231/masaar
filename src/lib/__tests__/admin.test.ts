@@ -5,11 +5,13 @@ import {
   destinationHost,
   formatRiyadhDateTime,
   isAdminEmail,
+  isAdminUser,
   isBanned,
   isSameOrigin,
   isUuid,
   lastRiyadhDays,
   riyadhDay,
+  statusAfterUnlock,
 } from "../admin";
 
 describe("isAdminEmail", () => {
@@ -115,5 +117,40 @@ describe("destinationHost", () => {
     expect(destinationHost("mailto:a@b.com")).toBe("-");
     expect(destinationHost("BEGIN:VCARD")).toBe("-");
     expect(destinationHost("")).toBe("-");
+  });
+});
+
+describe("isAdminUser", () => {
+  const raw = "owner@example.com";
+
+  it("accepts an allow-listed user with a confirmed email", () => {
+    expect(
+      isAdminUser({ email: "owner@example.com", email_confirmed_at: "2026-11-01T00:00:00Z" }, raw)
+    ).toBe(true);
+  });
+
+  it("rejects an allow-listed email that is not confirmed", () => {
+    expect(isAdminUser({ email: "owner@example.com", email_confirmed_at: undefined }, raw)).toBe(false);
+    expect(isAdminUser({ email: "owner@example.com", email_confirmed_at: "" }, raw)).toBe(false);
+  });
+
+  it("rejects a confirmed user who is not on the list, and no user", () => {
+    expect(
+      isAdminUser({ email: "other@example.com", email_confirmed_at: "2026-11-01T00:00:00Z" }, raw)
+    ).toBe(false);
+    expect(isAdminUser(null, raw)).toBe(false);
+  });
+});
+
+describe("statusAfterUnlock", () => {
+  it("restores active only when the QR was active before the lock", () => {
+    expect(statusAfterUnlock("active")).toBe("active");
+  });
+
+  it("keeps a QR its owner had paused switched off", () => {
+    expect(statusAfterUnlock("suspended")).toBe("suspended");
+    expect(statusAfterUnlock(null)).toBe("suspended");
+    expect(statusAfterUnlock(undefined)).toBe("suspended");
+    expect(statusAfterUnlock("draft")).toBe("suspended");
   });
 });

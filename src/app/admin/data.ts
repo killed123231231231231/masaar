@@ -87,7 +87,7 @@ export interface AdminData {
   users: AdminUserRow[];
   usersTotalShown: number;
   recentQrs: AdminQrRow[];
-  /** True when the admin_locked column was not found on qr_codes. */
+  /** True when migration 031 (admin_locked, admin_prev_status) is not applied. */
   lockColumnMissing: boolean;
   warnings: string[];
 }
@@ -209,7 +209,9 @@ export async function loadAdminData(selfId: string): Promise<AdminData> {
     warnings.push("Recent QR codes could not be loaded.");
   } else {
     const rows = (recentRes.data ?? []) as unknown as Record<string, unknown>[];
-    if (rows.length > 0 && !("admin_locked" in rows[0])) lockColumnMissing = true;
+    if (rows.length > 0 && !("admin_locked" in rows[0] && "admin_prev_status" in rows[0])) {
+      lockColumnMissing = true;
+    }
     recentQrs = rows.map((r) => {
       const userId = typeof r.user_id === "string" ? r.user_id : null;
       return {
