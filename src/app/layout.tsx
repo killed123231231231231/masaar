@@ -1,10 +1,14 @@
 import type { Metadata } from "next";
-import { Inter, IBM_Plex_Sans_Arabic, Manrope } from "next/font/google";
+import { Inter, IBM_Plex_Sans_Arabic, Manrope, Urbanist, Jost } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope" });
+// Sunbeam-style type system (2026-11 redesign): Urbanist for display, Jost
+// for body. Manrope/Inter stay registered while pages migrate.
+const urbanist = Urbanist({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800"], variable: "--font-urbanist" });
+const jost = Jost({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-jost" });
 const plexArabic = IBM_Plex_Sans_Arabic({
   subsets: ["arabic", "latin"],
   weight: ["400", "500", "600", "700"],
@@ -14,7 +18,7 @@ const plexArabic = IBM_Plex_Sans_Arabic({
 export const metadata: Metadata = {
   title: "Vertexa QR — Free QR code generator with scan analytics",
   description:
-    "Generate dynamic QR codes with logos, colors, and analytics. Edit destinations after printing. Built for GCC businesses.",
+    "Generate dynamic QR codes with logos, colors, and analytics. Edit destinations after printing. Free to start.",
   openGraph: {
     title: "Vertexa QR",
     description: "One QR. Every scan, tracked.",
@@ -36,7 +40,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`scroll-smooth ${inter.variable} ${manrope.variable} ${plexArabic.variable}`}>
+    <html lang="en" className={`scroll-smooth ${inter.variable} ${manrope.variable} ${plexArabic.variable} ${urbanist.variable} ${jost.variable}`}>
       <body className="font-sans antialiased">
         {children}
         <Toaster position="top-center" richColors />

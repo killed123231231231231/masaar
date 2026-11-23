@@ -63,3 +63,20 @@ section[id] {
     margin-inline: auto;
   }
 }
+
+/* ── Vertexa QR redesign motion + texture utilities ─────────────────────
+   Scroll reveal: elements with .reveal start hidden and fade/rise in when
+   the <Reveal> client component (src/components/motion/reveal.tsx) adds
+   .is-visible via IntersectionObserver. Respects reduced motion. */
+@layer utilities {
+  .reveal { opacity: 0; transform: translateY(24px); transition: opacity .8s cubic-bezier(.22,1,.36,1), transform .8s cubic-bezier(.22,1,.36,1); transition-delay: var(--reveal-delay, 0ms); }
+  .reveal.is-visible { opacity: 1; transform: none; }
+  /* Soft film-grain overlay used on pastel product frames and 3D shapes. */
+  .grain { position: relative; isolation: isolate; }
+  .grain::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: .35; mix-blend-mode: soft-light;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.9'/%3E%3C/svg%3E"); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; }
+  .animate-float-y, .animate-marquee, .animate-spin-slow { animation: none !important; }
+}
