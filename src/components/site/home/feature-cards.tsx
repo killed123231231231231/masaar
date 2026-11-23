@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { ArrowDown, BarChart3, Palette, PencilLine, type LucideIcon } from "lucide-react";
 import Reveal from "@/components/motion/reveal";
 import MockQr from "@/components/site/mock-qr";
-import { ScanChart, UpdatedToast } from "@/components/site/mock-screens";
+import { ScanChart } from "@/components/site/mock-screens";
 import { Container, SectionTitle } from "@/components/site/section";
 
 type Card = {
@@ -61,8 +61,8 @@ function DesignVignette() {
   );
 }
 
-// The middle card is the "active" one and carries the floating
-// "Destination updated" snippet, so the dynamic-editing card sits there.
+// The middle card is the "active" one (darker stone frame), so the
+// dynamic-editing card sits there.
 const CARDS: Card[] = [
   {
     title: "Track every scan",
@@ -104,18 +104,13 @@ export default function FeatureCards() {
                     c.active ? "bg-stone-dark" : "bg-stone"
                   }`}
                 >
-                  {c.active && (
-                    <UpdatedToast className="absolute -top-5 right-4 z-10 hidden animate-float-y lg:flex" />
-                  )}
                   <div className="flex h-full flex-col rounded-card bg-white p-6 lg:p-7">
-                    <span
-                      className={`grid h-12 w-12 place-items-center rounded-full transition-colors duration-300 ${
-                        c.active ? "bg-lime" : "bg-stone group-hover:bg-lime"
-                      }`}
-                    >
-                      <Icon className="h-5 w-5 text-ink" aria-hidden />
-                    </span>
-                    <h3 className="mt-6 font-heading text-2xl font-medium leading-[1.2] tracking-[-0.01em] text-ink">
+                    <Icon
+                      className="h-9 w-9 text-ink transition-transform duration-300 group-hover:-translate-y-0.5"
+                      strokeWidth={1.75}
+                      aria-hidden
+                    />
+                    <h3 className="mt-5 font-heading text-2xl font-medium leading-[1.2] tracking-[-0.01em] text-ink">
                       {c.title}
                     </h3>
                     <p className="mt-2 font-body text-base leading-[1.4] text-muted-2">{c.body}</p>

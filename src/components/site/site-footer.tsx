@@ -40,7 +40,6 @@ const linkCls = `inline-flex items-center gap-1 rounded font-body text-base text
  * page width, sitting on soft pastel cloud shapes.
  */
 export default function SiteFooter() {
-  const year = new Date().getFullYear();
   return (
     <footer className="relative overflow-hidden pb-6 pt-10 md:pb-8 md:pt-16">
       {/* Soft background clouds behind the bottom of the page. */}
@@ -95,21 +94,6 @@ export default function SiteFooter() {
                 </div>
               ))}
             </div>
-          </div>
-
-          <div className="mt-10 border-t border-stone pt-6 font-body text-sm text-muted-3">
-            <p>
-              © {year} Vertexa QR. Powered by{" "}
-              <a
-                href="https://www.vertechxa.ai"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`rounded font-medium text-ink underline-offset-4 hover:underline ${focusRing}`}
-              >
-                Vertexa
-              </a>
-              .
-            </p>
           </div>
         </div>
       </Container>

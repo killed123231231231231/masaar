@@ -6,24 +6,29 @@ import { focusRing } from "@/components/site/section";
 /**
  * Primary button: ink circle with a white chevron, then the label on a
  * transparent background. On hover the circle nudges right and the pill
- * fills with stone.
+ * fills with stone. `filled` shows the stone pill by default (hover goes
+ * to stone-dark).
  */
 export function PrimaryButton({
   href,
   children,
   className = "",
   size = "md",
+  filled = false,
 }: {
   href: string;
   children: ReactNode;
   className?: string;
   size?: "md" | "lg";
+  filled?: boolean;
 }) {
   const lg = size === "lg";
   return (
     <Link
       href={href}
-      className={`group inline-flex shrink-0 items-center rounded-full font-body font-medium text-ink transition-colors duration-200 hover:bg-stone ${
+      className={`group inline-flex shrink-0 items-center rounded-full font-body font-medium text-ink transition-colors duration-200 ${
+        filled ? "bg-stone hover:bg-stone-dark" : "hover:bg-stone"
+      } ${
         lg ? "h-12 gap-3 py-1.5 pl-1.5 pr-5 text-[17px]" : "h-10 gap-2.5 py-1.5 pl-1 pr-3 text-base"
       } ${focusRing} ${className}`}
     >

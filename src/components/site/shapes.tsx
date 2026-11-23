@@ -118,12 +118,12 @@ export function FinderRing({ className = "" }: { className?: string }) {
   );
 }
 
-/** Sky quarter-disc. */
+/** Sky quarter-disc (the two straight edges get soft corners so it never reads as clipped). */
 export function QuarterDisc({ className = "" }: { className?: string }) {
   return (
     <div
       aria-hidden
-      className={`grain rounded-tl-full ${className}`}
+      className={`grain rounded-bl-[22%] rounded-br-[22%] rounded-tl-full rounded-tr-[22%] ${className}`}
       style={{ background: shade("#A9CCFF"), boxShadow: volume }}
     />
   );
