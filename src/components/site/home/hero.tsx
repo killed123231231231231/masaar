@@ -38,9 +38,10 @@ export default function Hero() {
         <Reveal>
           <h1
             id="hero-title"
-            className="mx-auto max-w-[760px] text-balance font-heading text-[40px] font-medium leading-[1.15] tracking-[-0.025em] text-ink sm:text-[52px] md:text-[64px] md:leading-[1.2]"
+            className="mx-auto max-w-[760px] text-balance font-heading text-[clamp(32px,10vw,40px)] font-medium leading-[1.15] tracking-[-0.025em] text-ink sm:text-[52px] md:text-[64px] md:leading-[1.2]"
           >
-            QR codes, but make them editable
+            QR codes, but <br />
+            make them editable
           </h1>
         </Reveal>
 
@@ -52,7 +53,11 @@ export default function Hero() {
 
         <Reveal delay={160}>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <PrimaryButton href="/create" size="lg">
+            <PrimaryButton
+              href="/create"
+              size="lg"
+              className="!border-lime !bg-lime hover:!border-lime-deep hover:!bg-lime-deep"
+            >
               Create QR code
             </PrimaryButton>
             <SecondaryButton href="#how" className="md:!h-12">

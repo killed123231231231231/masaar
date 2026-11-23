@@ -85,6 +85,13 @@ export default function SiteHeader({
               </PrimaryButton>
             </>
           )}
+          {/* Mobile: compact text-only "Create QR code" next to the menu. */}
+          <Link
+            href="/create"
+            className={`inline-flex h-9 shrink-0 items-center whitespace-nowrap rounded-full bg-lime px-3.5 font-body text-sm font-medium text-ink transition-colors duration-200 hover:bg-lime-deep sm:hidden ${focusRing}`}
+          >
+            Create QR code
+          </Link>
           <MobileNav nav={SITE_NAV} isAuthed={isAuthed} />
         </div>
       </div>
