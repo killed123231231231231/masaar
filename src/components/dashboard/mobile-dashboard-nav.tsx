@@ -3,31 +3,20 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
-import {
-  Activity,
-  Crown,
-  Home,
-  LayoutGrid,
-  LogOut,
-  Menu,
-  Plus,
-  QrCode,
-  Settings,
-  X,
-  type LucideIcon,
-} from "lucide-react";
+import { Home, LogOut, Menu, Plus, X } from "lucide-react";
 import LogoMark from "@/components/logo-mark";
-import type { SidebarCurrent, SidebarMe } from "@/components/dashboard/sidebar";
+import {
+  NAV, PlanCard, initials,
+  type SidebarCurrent, type SidebarMe,
+} from "@/components/dashboard/sidebar";
 
-const PLAN_LIMITS: Record<string, number> = { Free: 25, Pro: 5000 };
+const RING = "focus:outline-none focus-visible:ring-2 focus-visible:ring-lime/70 focus-visible:ring-offset-2 focus-visible:ring-offset-ink";
 
 /**
  * C2 — mobile dashboard nav. The desktop Sidebar is `hidden lg:flex`, so
- * below 1024px there was no way to move between dashboard sections or
- * sign out (each page only had a "back to Dashboard" bar). This renders
- * the `lg:hidden` top bar (logo + hamburger) on every dashboard surface
- * and a slide-in drawer mirroring the Sidebar (full nav + plan usage +
- * account + sign out). Replaces the six bespoke per-page mobile bars.
+ * below 1024px this renders a top bar (logo + create + hamburger) on every
+ * dashboard surface and a slide-in ink drawer mirroring the Sidebar (full nav,
+ * plan usage, account, sign out).
  */
 export default function MobileDashboardNav({
   me,
@@ -54,96 +43,91 @@ export default function MobileDashboardNav({
     };
   }, [open]);
 
-  const limit = PLAN_LIMITS[me.plan] ?? 25;
-  const used = Math.min(me.qrCount, limit);
-  const usagePct = Math.round((used / limit) * 100);
-
-  const nav: { label: string; icon: LucideIcon; href: string; active: boolean }[] = [
-    { label: "Overview", icon: LayoutGrid, href: "/dashboard", active: current === "overview" },
-    { label: "QR Codes", icon: QrCode, href: "/dashboard/qr-codes", active: current === "qrcodes" },
-    { label: "Activity", icon: Activity, href: "/dashboard/activity", active: current === "activity" },
-    { label: "Settings", icon: Settings, href: "/dashboard/settings", active: current === "settings" },
-  ];
+  const showName = me.name && me.name !== me.email;
 
   const drawer = (
     <div
-      className="fixed inset-0 z-[90] lg:hidden"
+      className="fixed inset-0 z-[90] font-body lg:hidden"
       role="dialog"
       aria-modal="true"
       aria-label="Dashboard menu"
     >
       <div
-        className="absolute inset-0 bg-charcoal/40 backdrop-blur-sm"
+        className="absolute inset-0 bg-ink/40 backdrop-blur-sm"
         onClick={() => setOpen(false)}
       />
-      <div className="absolute left-0 top-0 flex h-full w-[82%] max-w-xs flex-col bg-deep-teal text-white shadow-xl">
+      <div className="absolute left-0 top-0 flex h-full w-[84%] max-w-xs flex-col overflow-y-auto bg-ink text-white shadow-float">
         <div className="flex items-center justify-between px-5 py-4">
-          <span className="font-display text-base font-extrabold tracking-tight text-white">
-            Vertexa <span className="text-terracotta-light">QR</span>
+          <span className="flex items-center gap-2.5">
+            <LogoMark tone="light" className="h-7 w-7" />
+            <span className="font-heading text-lg font-extrabold tracking-[-0.03em]">Vertexa QR</span>
           </span>
           <button
             type="button"
             onClick={() => setOpen(false)}
             aria-label="Close menu"
-            className="grid h-9 w-9 place-items-center rounded-lg text-white/70 hover:bg-white/10"
+            className={`grid h-10 w-10 place-items-center rounded-full text-white/70 hover:bg-white/10 ${RING}`}
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <nav className="flex-1 space-y-0.5 overflow-y-auto px-3">
-          {nav.map((n) => (
-            <Link key={n.label} href={n.href} onClick={() => setOpen(false)}>
-              <span
-                className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
-                  n.active
-                    ? "bg-white font-semibold text-deep-teal"
-                    : "text-white/80 hover:bg-white/10 hover:text-white"
-                }`}
-              >
-                <n.icon className="h-4 w-4 shrink-0" strokeWidth={1.75} />
-                {n.label}
-              </span>
-            </Link>
-          ))}
+        <div className="px-3">
           <Link
             href="/create"
             onClick={() => setOpen(false)}
-            className="mt-2 flex items-center justify-center gap-1.5 rounded-lg bg-terracotta px-3 py-2.5 text-sm font-semibold text-white hover:bg-terracotta-dark"
+            className={`group flex h-11 items-center gap-2.5 rounded-full bg-white py-1.5 pl-1.5 pr-4 text-sm font-medium text-ink hover:bg-stone ${RING}`}
           >
-            <Plus className="h-4 w-4" /> Create QR Code
+            <span className="grid h-8 w-8 place-items-center rounded-full bg-ink text-lime">
+              <Plus className="h-4 w-4" strokeWidth={2.25} aria-hidden />
+            </span>
+            Create QR code
           </Link>
-        </nav>
-
-        <div className="mx-3 mb-3 rounded-xl bg-deep-teal-dark p-4">
-          <div className="flex items-center gap-2">
-            <Crown className="h-4 w-4 text-terracotta" />
-            <span className="text-sm font-semibold">{me.plan} Plan</span>
-          </div>
-          <p className="mt-2 text-xs text-white/65">
-            {used.toLocaleString()} / {limit.toLocaleString()} QRs used
-          </p>
-          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10">
-            <div
-              className="h-full rounded-full bg-terracotta"
-              style={{ width: `${Math.min(usagePct, 100)}%` }}
-            />
-          </div>
         </div>
 
+        <nav aria-label="Dashboard" className="mt-5 flex-1 space-y-1 px-3">
+          {NAV.map((n) => {
+            const active = n.key === current;
+            return (
+              <Link
+                key={n.key}
+                href={n.href}
+                onClick={() => setOpen(false)}
+                aria-current={active ? "page" : undefined}
+                className={`flex h-11 items-center gap-3 rounded-full px-4 text-[15px] transition-colors ${RING} ${
+                  active ? "bg-lime font-medium text-ink" : "text-white/75 hover:bg-white/[0.06] hover:text-white"
+                }`}
+              >
+                <n.icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.75} aria-hidden />
+                {n.label}
+              </Link>
+            );
+          })}
+        </nav>
+
+        <PlanCard me={me} className="mx-3 my-3" />
+
         <div className="border-t border-white/10 px-3 py-3">
-          <p className="truncate px-2 pb-2 text-xs text-white/55">{me.email}</p>
+          <div className="flex items-center gap-3 px-2 pb-2">
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-lime font-heading text-[13px] font-bold text-ink">
+              {initials(me)}
+            </span>
+            <span className="min-w-0">
+              <span className="block truncate text-sm font-medium">{showName ? me.name : me.email}</span>
+              {showName && <span className="block truncate text-xs text-white/55">{me.email}</span>}
+            </span>
+          </div>
           <Link
             href="/"
             onClick={() => setOpen(false)}
-            className="flex items-center gap-2 rounded-lg px-2 py-2 text-sm text-white/80 hover:bg-white/10"
+            className={`flex items-center gap-2.5 rounded-full px-3 py-2.5 text-sm text-white/80 hover:bg-white/[0.06] ${RING}`}
           >
             <Home className="h-4 w-4" /> Public site
           </Link>
           <form action="/auth/signout" method="post">
             <button
               type="submit"
-              className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-sm text-white/80 hover:bg-white/10"
+              className={`flex w-full items-center gap-2.5 rounded-full px-3 py-2.5 text-sm text-white/80 hover:bg-white/[0.06] ${RING}`}
             >
               <LogOut className="h-4 w-4" /> Sign out
             </button>
@@ -154,24 +138,32 @@ export default function MobileDashboardNav({
   );
 
   return (
-    <div className="mb-4 flex items-center justify-between lg:hidden">
+    <div className="-mx-4 -mt-5 mb-5 flex items-center justify-between gap-2 border-b border-stone-dark/70 bg-paper/90 px-4 py-3 backdrop-blur sm:-mx-6 sm:-mt-6 sm:px-6 lg:hidden">
       <Link
         href="/dashboard"
-        className="inline-flex items-center gap-2 text-sm font-semibold text-charcoal/65 hover:text-deep-teal"
+        className="inline-flex items-center gap-2 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-ink/30"
       >
-        <span className="grid h-7 w-7 place-items-center rounded-md bg-deep-teal p-1">
-          <LogoMark className="h-full w-full brightness-0 invert" />
-        </span>
-        Dashboard
+        <LogoMark className="h-7 w-7" />
+        <span className="font-heading text-lg font-extrabold tracking-[-0.03em] text-ink">Vertexa QR</span>
       </Link>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        aria-label="Open menu"
-        className="grid h-9 w-9 place-items-center rounded-lg text-charcoal/70 hover:bg-sand-light"
-      >
-        <Menu className="h-5 w-5" />
-      </button>
+      <div className="flex items-center gap-1.5">
+        <Link
+          href="/create"
+          aria-label="Create QR code"
+          className="grid h-10 w-10 place-items-center rounded-full bg-ink text-white hover:bg-ink-soft focus:outline-none focus-visible:ring-2 focus-visible:ring-ink/30 focus-visible:ring-offset-2"
+        >
+          <Plus className="h-4 w-4" strokeWidth={2.25} />
+        </Link>
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          aria-label="Open menu"
+          aria-expanded={open}
+          className="grid h-10 w-10 place-items-center rounded-full bg-stone text-ink hover:bg-stone-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-ink/30"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
+      </div>
       {mounted && open && createPortal(drawer, document.body)}
     </div>
   );
