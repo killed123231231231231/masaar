@@ -21,6 +21,7 @@ import Pagination from "@/components/dashboard/pagination";
 import {
   Card, EmptyState as EmptyBlock, FOCUS, PageTitle, PrimaryButton,
 } from "@/components/dashboard/ui";
+import { qrFileName } from "@/lib/file-name";
 
 export interface QrCardData {
   id: string;
@@ -308,7 +309,7 @@ function ListRow({
       cornerColors: q.corner_colors,
       paletteOptions: q.palette_options,
     });
-    await qr.download({ name: q.name || "vertexa-qr", extension: "png" });
+    await qr.download({ name: qrFileName(q.name), extension: "png" });
   }
 
   return (

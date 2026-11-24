@@ -379,6 +379,7 @@ export default function WizardClient({
             setC={setCustom}
             showDownloads={created}
             downloadRef={downloadRef}
+            fileName={name}
           />
         </div>
       )}

@@ -23,6 +23,7 @@ import {
   CORNER_COUNT,
   type PaletteOptions,
 } from "@/lib/palette";
+import { qrFileName } from "@/lib/file-name";
 
 function useDebounced<T>(v: T, ms: number): T {
   const [d, setD] = useState(v);
@@ -45,6 +46,7 @@ export default function Step3Customize({
   showDownloads = true,
   downloadRef,
   previewFooter,
+  fileName,
 }: {
   previewData: string;
   shortId: string;
@@ -68,6 +70,8 @@ export default function Step3Customize({
   /** Optional node rendered inside the sticky preview card, directly below
    *  the QR + downloads (e.g. the edit page's "Save changes" button). */
   previewFooter?: ReactNode;
+  /** The QR's name; downloads are saved as "<name>.png/.svg/.pdf". */
+  fileName?: string;
 }) {
   // Stable across renders (functional update) so the memoised frame/logo
   // grids below don't re-render merely because a new `set` closure exists.
@@ -165,7 +169,7 @@ export default function Step3Customize({
     );
     const a = document.createElement("a");
     a.href = dataUrl;
-    a.download = `vertexa-qr.${format}`;
+    a.download = `${qrFileName(fileName)}.${format}`;
     a.click();
   }
 
@@ -205,7 +209,7 @@ export default function Step3Customize({
     );
     const a = document.createElement("a");
     a.href = url;
-    a.download = "vertexa-qr.pdf";
+    a.download = `${qrFileName(fileName)}.pdf`;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -642,7 +646,9 @@ export default function Step3Customize({
             </FramedQr>
           </div>
           {showDownloads && (
-          <div className="flex flex-wrap justify-center gap-2">
+          // One row of three equal buttons (they used to wrap PDF onto a
+          // second line in the narrow preview card).
+          <div className="grid w-full grid-cols-3 gap-2">
             <button
               type="button"
               onClick={() => downloadFramed("png")}
@@ -675,7 +681,7 @@ export default function Step3Customize({
 }
 
 const dlBtn =
-  "inline-flex h-10 items-center gap-1.5 rounded-full bg-stone px-4 font-body text-sm font-medium text-ink transition-colors hover:bg-stone-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-ink/30";
+  "inline-flex h-10 min-w-0 items-center justify-center gap-1.5 rounded-full bg-stone px-2 font-body text-sm font-medium text-ink transition-colors hover:bg-stone-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-ink/30";
 
 function Acc({
   title,

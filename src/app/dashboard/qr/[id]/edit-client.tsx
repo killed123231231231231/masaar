@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Check, Repeat2 } from "lucide-react";
+import { Check, Loader2, Repeat2 } from "lucide-react";
 import Step3Customize from "@/app/create/_components/step-3-customize";
 import { DEFAULT_CUSTOMIZATION, type Customization } from "@/app/create/_lib/types";
 import type { QrCode } from "@/types/database";
@@ -28,7 +28,14 @@ export default function EditQrClient({ initial }: { initial: QrCode }) {
   const router = useRouter();
   const [destination, setDestination] = useState(initial.destination);
   const [name, setName] = useState(initial.name);
-  const [saving, setSaving] = useState(false);
+  // Save button lifecycle: idle → saving → saved (2s) → idle. The page
+  // stays put after a save; router.refresh() pulls the new name/title.
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
+  useEffect(() => {
+    if (saveState !== "saved") return;
+    const t = setTimeout(() => setSaveState("idle"), 2000);
+    return () => clearTimeout(t);
+  }, [saveState]);
 
   // Type conversion — only a DYNAMIC, non-url QR can be turned into a plain
   // website link (server enforces the same rule). Printed code is unchanged.
@@ -86,8 +93,10 @@ export default function EditQrClient({ initial }: { initial: QrCode }) {
       }
       convertFields = { content_kind: "url", destination: normalized };
     }
-    setSaving(true);
-    const res = await fetch("/api/qr", {
+    setSaveState("saving");
+    let res: Response;
+    try {
+      res = await fetch("/api/qr", {
       method: "PATCH",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
@@ -115,14 +124,21 @@ export default function EditQrClient({ initial }: { initial: QrCode }) {
         ...convertFields,
       }),
     });
-    setSaving(false);
+    } catch {
+      // Network failure: never leave the button stuck on "Saving…".
+      setSaveState("idle");
+      toast.error("Couldn’t reach the server. Check your connection and try again.");
+      return;
+    }
     if (!res.ok) {
+      setSaveState("idle");
       const { error, message } = await res.json().catch(() => ({ error: null, message: null }));
       toast.error(message || error || "Couldn’t save changes. Try again.");
       return;
     }
+    setSaveState("saved");
     toast.success(convertToUrl ? "Converted to a website link" : "Changes saved");
-    setTimeout(() => router.push("/dashboard/qr-codes"), 800);
+    router.refresh();
   }
 
   return (
@@ -225,17 +241,36 @@ export default function EditQrClient({ initial }: { initial: QrCode }) {
         setC={setCust}
         showHeading={false}
         showPassword={false}
+        fileName={name}
         previewFooter={
-          <button
-            onClick={save}
-            disabled={saving}
-            className="group inline-flex h-11 w-full items-center justify-center gap-2.5 rounded-full bg-ink py-1.5 pl-5 pr-1.5 font-body text-[15px] font-medium text-white shadow-card transition-colors hover:bg-ink-soft focus:outline-none focus-visible:ring-2 focus-visible:ring-ink/30 focus-visible:ring-offset-2 disabled:opacity-60"
-          >
-            <span className="flex-1 text-center">{saving ? "Saving…" : "Save changes"}</span>
-            <span className="grid h-8 w-8 place-items-center rounded-full bg-lime text-ink transition-transform group-hover:translate-x-0.5">
-              <Check className="h-4 w-4" />
-            </span>
-          </button>
+          <div className="flex justify-center">
+            <button
+              type="button"
+              onClick={save}
+              disabled={saveState !== "idle"}
+              aria-live="polite"
+              className={`group inline-flex h-10 min-w-[168px] items-center justify-between gap-2 rounded-full py-1 pl-4 pr-1 font-body text-sm font-medium shadow-card transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-ink/30 focus-visible:ring-offset-2 disabled:cursor-default ${
+                saveState === "saved"
+                  ? "bg-lime text-ink"
+                  : "bg-ink text-white hover:bg-ink-soft"
+              }`}
+            >
+              <span className="flex-1 text-center">
+                {saveState === "saving" ? "Saving…" : saveState === "saved" ? "Saved" : "Save changes"}
+              </span>
+              <span
+                className={`grid h-8 w-8 place-items-center rounded-full transition-colors ${
+                  saveState === "saved" ? "bg-ink text-lime" : "bg-lime text-ink"
+                }`}
+              >
+                {saveState === "saving" ? (
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                ) : (
+                  <Check className="h-4 w-4" aria-hidden />
+                )}
+              </span>
+            </button>
+          </div>
         }
       />
     </div>
