@@ -144,13 +144,12 @@ export function KpiCard({
 }) {
   return (
     <Card as="div" className={`flex h-full min-w-0 flex-col p-4 sm:p-5 ${className}`}>
-      {/* Label row: on phones the icon sits above the label so two-word
-          labels ("Unique scanners") stay on one line and every card's
-          number lines up; from sm up they share a row. */}
       {/* Top-right corner: "+N today" when the card has a daily count,
           otherwise the period change pill (Mobile share). */}
       <div className="flex min-w-0 items-start justify-between gap-2">
-        <div className="flex min-w-0 flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-2.5">
+        {/* Icon above the label at every width, so the corner badge sits
+            beside the icon and never collides with a two-word label. */}
+        <div className="flex min-w-0 flex-col items-start gap-2.5">
           <IconWell icon={icon} tone={tone} size="sm" />
           <p className="min-w-0 whitespace-nowrap font-body text-[13px] font-medium leading-snug text-muted-2">{label}</p>
         </div>
