@@ -147,9 +147,18 @@ export function KpiCard({
       {/* Label row: on phones the icon sits above the label so two-word
           labels ("Unique scanners") stay on one line and every card's
           number lines up; from sm up they share a row. */}
-      <div className="flex min-w-0 flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-2.5">
-        <IconWell icon={icon} tone={tone} size="sm" />
-        <p className="min-w-0 whitespace-nowrap font-body text-[13px] font-medium leading-snug text-muted-2">{label}</p>
+      {/* Top-right corner: "+N today" when the card has a daily count,
+          otherwise the period change pill (Mobile share). */}
+      <div className="flex min-w-0 items-start justify-between gap-2">
+        <div className="flex min-w-0 flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-2.5">
+          <IconWell icon={icon} tone={tone} size="sm" />
+          <p className="min-w-0 whitespace-nowrap font-body text-[13px] font-medium leading-snug text-muted-2">{label}</p>
+        </div>
+        {today != null ? (
+          <TodayBadge count={today} />
+        ) : delta != null ? (
+          <DeltaPill pct={delta} />
+        ) : null}
       </div>
       <p
         className={`mt-4 min-w-0 break-words font-heading font-semibold leading-[1.1] tracking-[-0.02em] text-ink ${
@@ -160,28 +169,46 @@ export function KpiCard({
         {value}
       </p>
       <div className="mt-auto space-y-1.5 pt-3">
-        {delta != null && <Delta pct={delta} label={deltaLabel ?? null} />}
-        {today != null && <TodayBadge count={today} />}
+        {delta != null &&
+          (today != null ? (
+            <Delta pct={delta} label={deltaLabel ?? null} />
+          ) : (
+            deltaLabel && <p className="font-body text-xs text-muted-3">vs {deltaLabel}</p>
+          ))}
         {sub && <div className="font-body text-xs leading-snug text-muted-3">{sub}</div>}
       </div>
     </Card>
   );
 }
 
+// Good/bad tones for change indicators: green when up, red when down,
+// neutral at zero.
+const GOOD = "bg-[#E3F7EA] text-[#15803D]";
+const BAD = "bg-[#FDE8E8] text-[#C62828]";
+const FLAT = "bg-stone text-muted-2";
+
+/** Bare change pill (↗ 12%), coloured by direction. */
+export function DeltaPill({ pct }: { pct: number }) {
+  const up = pct > 0;
+  const down = pct < 0;
+  const Icon = down ? ArrowDownRight : ArrowUpRight;
+  return (
+    <span
+      className={`inline-flex shrink-0 items-center gap-0.5 rounded-full px-1.5 py-0.5 font-body text-xs font-semibold ${
+        up ? GOOD : down ? BAD : FLAT
+      }`}
+    >
+      <Icon className="h-3 w-3" aria-hidden />
+      <span className="sr-only">{up ? "Up" : down ? "Down" : "No change"}</span>
+      {Math.abs(pct)}%
+    </span>
+  );
+}
+
 export function Delta({ pct, label }: { pct: number; label?: string | null }) {
-  const up = pct >= 0;
-  const Icon = up ? ArrowUpRight : ArrowDownRight;
   return (
     <p className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 font-body text-xs text-muted-3">
-      <span
-        className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 font-medium ${
-          up ? "bg-lime text-ink" : "bg-stone text-ink"
-        }`}
-      >
-        <Icon className="h-3 w-3" aria-hidden />
-        <span className="sr-only">{up ? "Up" : "Down"}</span>
-        {Math.abs(pct)}%
-      </span>
+      <DeltaPill pct={pct} />
       {label && <span>vs {label}</span>}
     </p>
   );
@@ -189,16 +216,17 @@ export function Delta({ pct, label }: { pct: number; label?: string | null }) {
 
 // "+N today" — Riyadh calendar-day activity line for the count KPIs.
 export function TodayBadge({ count }: { count: number }) {
-  if (count <= 0) {
-    return <p className="font-body text-xs text-muted-3">No scans yet today</p>;
-  }
+  const has = count > 0;
   return (
-    <p
-      className="inline-flex items-center gap-1 font-body text-xs font-medium text-ink"
+    <span
+      className={`inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 font-body text-xs font-semibold ${
+        has ? GOOD : FLAT
+      }`}
       title={`${count} ${count === 1 ? "scan" : "scans"} today (Riyadh time)`}
     >
-      <TrendingUp className="h-3 w-3" aria-hidden />+{count.toLocaleString()} today
-    </p>
+      {has && <TrendingUp className="h-3 w-3" aria-hidden />}
+      {has ? `+${count.toLocaleString()} today` : "0 today"}
+    </span>
   );
 }
 

@@ -536,10 +536,16 @@ export async function getAccountAnalytics(
     countsRpc,
   ]);
 
-  const total = totalCount ?? 0;
-  const previousTotal = prevTotalCount ?? 0;
   const rows = (rowsRaw ?? []) as ScanRow[];
   const prevRows = (prevRowsRaw ?? []) as ScanRow[];
+  // Totals come from the fetched rows (every scan in the period) unless the
+  // fetch hit ROW_FETCH_CAP, where only the exact count is accurate. The
+  // separate head-count request occasionally fails and returns null, which
+  // used to render "Total scans 0" beside "Unique scanners 64" (and cache it).
+  const total =
+    rows.length < ROW_FETCH_CAP ? rows.length : (totalCount ?? rows.length);
+  const previousTotal =
+    prevRows.length < ROW_FETCH_CAP ? prevRows.length : (prevTotalCount ?? prevRows.length);
 
   const uniq = (xs: ScanRow[]) => new Set(xs.map((r) => r.ip_hash || "")).size;
   const mobileShareOf = (xs: ScanRow[]) => {
