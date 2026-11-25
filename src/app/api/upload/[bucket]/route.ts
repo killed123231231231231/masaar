@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ipHash as hashRequestIp } from "@/lib/ip-hash";
+import { bytesMatchImageMime } from "@/lib/image-sniff";
 
 export const runtime = "nodejs";
 
@@ -140,18 +141,34 @@ export async function POST(
         { status: 429 }
       );
     }
-    return NextResponse.json({ error: rlErr.message }, { status: 400 });
+    console.error("[upload]", rlErr.message);
+    return NextResponse.json({ error: "upload_failed", message: "Couldn’t upload the file. Please try again." }, { status: 400 });
   }
 
   // Service-role upload — the buckets have no client-write policy.
 
   const path = `${prefix}/${crypto.randomUUID()}.${ext}`;
   const bytes = new Uint8Array(await file.arrayBuffer());
+  // The MIME type is client-supplied: check the bytes really are that type
+  // before storing them in a public bucket.
+  const realType =
+    file.type === "application/pdf"
+      ? bytes.length >= 5 && new TextDecoder().decode(bytes.slice(0, 5)) === "%PDF-"
+      : file.type.startsWith("image/")
+        ? bytesMatchImageMime(bytes, file.type)
+        : true;
+  if (!realType) {
+    return NextResponse.json(
+      { error: "unsupported_mime", message: "That file doesn't match its type. Upload a real PDF or image." },
+      { status: 400 }
+    );
+  }
   const { error: upErr } = await admin.storage
     .from(bucket)
     .upload(path, bytes, { upsert: false, contentType: file.type });
   if (upErr) {
-    return NextResponse.json({ error: upErr.message }, { status: 400 });
+    console.error("[upload]", upErr.message);
+    return NextResponse.json({ error: "upload_failed", message: "Couldn’t upload the file. Please try again." }, { status: 400 });
   }
 
   const asset_url = admin.storage.from(bucket).getPublicUrl(path).data

@@ -189,27 +189,18 @@ export default function QrCustomizer({ initialShortId, onSave, saving, allowLogo
     }
     setLogoBusy(true);
     try {
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
-        setLogoErr("Sign in to upload a logo.");
+      // Server-side upload (size, type, real-image check, rate limit).
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/qr/logo", { method: "POST", body: fd });
+      const data = (await res.json().catch(() => null)) as
+        | { url?: string; message?: string }
+        | null;
+      if (!res.ok || !data?.url) {
+        setLogoErr(data?.message || "Couldn’t upload the logo. Please try again.");
         return;
       }
-      const ext = logoExt[file.type];
-      // Path must start with the uploader's auth.uid() — the
-      // logos_owner_upload storage policy checks foldername[1].
-      const path = `${user.id}/${shortId}/${crypto.randomUUID()}.${ext}`;
-      const { error: upErr } = await supabase.storage
-        .from("logos")
-        .upload(path, file, { upsert: false, contentType: file.type });
-      if (upErr) {
-        setLogoErr(upErr.message);
-        return;
-      }
-      const { data } = supabase.storage.from("logos").getPublicUrl(path);
-      setLogoUrl(data.publicUrl);
+      setLogoUrl(data.url);
     } finally {
       setLogoBusy(false);
     }

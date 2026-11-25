@@ -604,13 +604,15 @@ export default function Step3Customize({
                     type="password"
                     value={c.password.trim()}
                     onChange={(e) => set("password", e.target.value)}
-                    placeholder="4–64 characters"
+                    placeholder="6–64 characters"
+                    minLength={6}
+                    maxLength={64}
                     className="mt-3 block min-h-[44px] w-full rounded-xl border border-stone-dark bg-white px-3.5 py-2 text-[15px] text-ink outline-none hover:border-ink/25 focus:border-ink focus:ring-2 focus:ring-ink/20"
                   />
                 )}
                 <p className="mt-2 rounded-xl bg-stone/60 p-2 text-xs text-muted-2">
                   Anyone who scans must enter this password before the QR
-                  opens. It is stored encrypted and we can&apos;t read it.
+                  opens. We store it scrambled, so nobody can read it, not even us.
                 </p>
               </>
             ) : (
@@ -1101,24 +1103,19 @@ function LogoUpload({
     setBusy(true);
     try {
       if (isAuthed) {
-        // Authed direct upload — RLS scopes path to user.id.
-        const sb = createClient();
-        const { data: { user } } = await sb.auth.getUser();
-        if (!user) {
-          setErr("Sign in to upload a logo.");
+        // Signed-in upload goes through the server (size, type, real-image
+        // check, per-account rate limit); no direct browser→storage writes.
+        const fd = new FormData();
+        fd.append("file", file);
+        const res = await fetch("/api/qr/logo", { method: "POST", body: fd });
+        const data = (await res.json().catch(() => null)) as
+          | { url?: string; error?: string; message?: string }
+          | null;
+        if (!res.ok || !data?.url) {
+          setErr(data?.message || "Couldn’t upload the logo. Please try again.");
           return;
         }
-        // Extension from the validated MIME, never the user's filename.
-        const ext = LOGO_EXT[file.type];
-        const path = `${user.id}/${shortId}/${crypto.randomUUID()}.${ext}`;
-        const { error: e } = await sb.storage
-          .from("logos")
-          .upload(path, file, { upsert: false, contentType: file.type });
-        if (e) {
-          setErr(e.message);
-          return;
-        }
-        onChange(sb.storage.from("logos").getPublicUrl(path).data.publicUrl);
+        onChange(data.url);
       } else {
         // Anon path — POST to /api/qr/anonymous/logo. Server validates,
         // rate-limits per IP (5/hr via migration 012's RPC), and uploads

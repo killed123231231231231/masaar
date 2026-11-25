@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ipHash as hashRequestIp } from "@/lib/ip-hash";
+import { bytesMatchImageMime } from "@/lib/image-sniff";
 
 export const runtime = "nodejs";
 
@@ -69,6 +70,15 @@ export async function POST(request: Request) {
     );
   }
 
+  // The MIME type is client-supplied: check the file really is that image.
+  const head = new Uint8Array(await file.slice(0, 16).arrayBuffer());
+  if (!bytesMatchImageMime(head, file.type)) {
+    return NextResponse.json(
+      { error: "unsupported_mime", message: "That file isn't a real PNG, JPG or WebP image." },
+      { status: 400 }
+    );
+  }
+
   // Rate-limit by IP via the SECURITY DEFINER RPC, called with the service
   // role and a server-computed hash (migration 031 revokes anon execute).
   const ipHash = await hashRequestIp(request);
@@ -93,7 +103,8 @@ export async function POST(request: Request) {
         { status: 429 }
       );
     }
-    return NextResponse.json({ error: rlErr.message }, { status: 400 });
+    console.error("[upload]", rlErr.message);
+    return NextResponse.json({ error: "upload_failed", message: "Couldn’t upload the file. Please try again." }, { status: 400 });
   }
 
   // Storage upload via the same service-role client — bypasses anon-write
@@ -109,7 +120,8 @@ export async function POST(request: Request) {
       contentType: file.type,
     });
   if (upErr) {
-    return NextResponse.json({ error: upErr.message }, { status: 400 });
+    console.error("[upload]", upErr.message);
+    return NextResponse.json({ error: "upload_failed", message: "Couldn’t upload the file. Please try again." }, { status: 400 });
   }
 
   const url = admin.storage.from("logos").getPublicUrl(path).data.publicUrl;
