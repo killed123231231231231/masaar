@@ -7,6 +7,8 @@ import { Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import TurnstileWidget, { turnstileEnabled } from "@/components/turnstile-widget";
+import { safeInternalPath } from "@/lib/safe-redirect";
+import { authEmailOrigin } from "@/lib/auth-origin";
 
 /**
  * Returning-user login. Two entry points:
@@ -111,10 +113,7 @@ export default function LoginModal({
     // link to /checkout/<id>). Guard against open-redirect: only
     // internal absolute paths ("/x"), never protocol-relative
     // ("//evil") or absolute URLs. Falls back to the dashboard.
-    const safeRedirect =
-      redirectTo && redirectTo.startsWith("/") && !redirectTo.startsWith("//")
-        ? redirectTo
-        : "/dashboard?welcome=1";
+    const safeRedirect = safeInternalPath(redirectTo, "/dashboard?welcome=1");
     onClose();
     router.push(safeRedirect);
     router.refresh();
@@ -134,7 +133,7 @@ export default function LoginModal({
     setErr(null);
     const supabase = createClient();
     const { error } = await supabase.auth.resetPasswordForEmail(em, {
-      redirectTo: `${window.location.origin}/auth/reset`,
+      redirectTo: `${authEmailOrigin()}/auth/reset`,
       ...(captcha ? { captchaToken: captcha } : {}),
     });
     setCaptchaReset((n) => n + 1);

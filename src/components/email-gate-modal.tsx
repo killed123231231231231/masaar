@@ -2,61 +2,53 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { QrCode } from "lucide-react";
 import LoginModal from "@/components/login-modal";
+import TurnstileWidget, { turnstileEnabled } from "@/components/turnstile-widget";
+import { createClient } from "@/lib/supabase/client";
+import { authEmailOrigin } from "@/lib/auth-origin";
 
 /**
- * Email-holding gate (A.7). NEW users: capture email → hold it on the
- * draft row → straight to /checkout (NO magic link). Returning users:
- * "Have an account? Log in" → LoginModal which DOES send a magic link
- * (that path is unchanged).
+ * Email gate for the anonymous builder. NEW users: hold the email on the
+ * draft row, then send a Supabase magic link that lands on /auth/claim,
+ * which signs them in and adopts the draft QR. The account is only created
+ * once they open the link, so nobody can create an account (or receive our
+ * email) for an address they don't own. Returning users: "Log in".
  */
 export default function EmailGateModal({
   open,
   draftToken,
-  shortId,
   onClose,
 }: {
   open: boolean;
   draftToken: string;
-  shortId: string;
+  /** Kept for callers; the magic link carries the draft token instead. */
+  shortId?: string;
   onClose: () => void;
 }) {
-  const router = useRouter();
   const [view, setView] = useState<"email" | "login">("email");
   const [email, setEmail] = useState("");
   const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [sentTo, setSentTo] = useState<string | null>(null);
+  const [captcha, setCaptcha] = useState<string | null>(null);
+  const [captchaReset, setCaptchaReset] = useState(0);
 
   if (!open) return null;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    // Diagnostic: confirms in devtools that the NEW-USER path ran, NOT
-    // signInWithOtp. If you see "[auth] new-user submit" you are on
-    // the email-holding path (no magic link). If instead you see
-    // "[auth] login submit" your click hit the Log-in modal.
-    console.info("[auth] new-user submit → /checkout (no magic link)");
+    if (turnstileEnabled && !captcha) {
+      setErr("Please complete the verification below.");
+      return;
+    }
     setLoading(true);
     setErr(null);
     const em = email.trim().toLowerCase();
 
-    try {
-      localStorage.setItem(
-        "masaar.checkout_pending",
-        JSON.stringify({ email: em, draft_token: draftToken, short_id: shortId })
-      );
-    } catch {
-      /* private mode — query params still carry the data */
-    }
-
-    // Hold the email on the draft row so the checkout page can verify
-    // it. Surface real errors and DON'T navigate on failure — a silent
-    // pass-through to /checkout would dead-end the user. Never invent
-    // a message (e.g. "rate limit exceeded"); show what the server
-    // actually said, or a clean generic if the body is opaque.
+    // Hold the email on the draft row. Surface real errors and stop on
+    // failure; never invent a message, show what the server said.
     let res: Response;
     try {
       res = await fetch("/api/qr/anonymous/email", {
@@ -83,13 +75,23 @@ export default function EmailGateModal({
       return;
     }
 
+    // Magic link → /auth/claim signs them in and adopts this draft.
+    const supabase = createClient();
+    const { error: otpErr } = await supabase.auth.signInWithOtp({
+      email: em,
+      options: {
+        shouldCreateUser: true,
+        emailRedirectTo: `${authEmailOrigin()}/auth/claim?draft_token=${encodeURIComponent(draftToken)}`,
+        ...(captcha ? { captchaToken: captcha } : {}),
+      },
+    });
+    setCaptchaReset((n) => n + 1);
     setLoading(false);
-    const seg = shortId || "draft";
-    router.push(
-      `/checkout/${seg}?draft_token=${encodeURIComponent(
-        draftToken
-      )}&email=${encodeURIComponent(em)}`
-    );
+    if (otpErr) {
+      setErr(otpErr.message || "Couldn’t send the sign-in link. Please retry.");
+      return;
+    }
+    setSentTo(em);
   }
 
   return (
@@ -110,6 +112,27 @@ export default function EmailGateModal({
           className="w-full max-w-sm rounded-panel border border-stone-dark bg-white p-7 font-body shadow-float"
           onClick={(e) => e.stopPropagation()}
         >
+          {sentTo ? (
+            <div>
+              <span className="grid h-12 w-12 place-items-center rounded-full bg-lime text-ink">
+                <QrCode className="h-6 w-6" />
+              </span>
+              <h2 className="mt-4 font-heading text-2xl font-medium text-ink">
+                Check your email
+              </h2>
+              <p className="mt-2 text-sm leading-relaxed text-muted-2">
+                We sent a sign-in link to <strong className="text-ink">{sentTo}</strong>. Open it on
+                this device and your QR code will be saved to your new account.
+              </p>
+              <button
+                type="button"
+                onClick={onClose}
+                className="mt-6 text-xs font-medium text-muted-3 hover:text-ink"
+              >
+                Close
+              </button>
+            </div>
+          ) : (
           <form onSubmit={handleSubmit}>
             <span className="grid h-12 w-12 place-items-center rounded-full bg-lime text-ink">
               <QrCode className="h-6 w-6" />
@@ -149,13 +172,16 @@ export default function EmailGateModal({
                 </Link>
               </span>
             </label>
+            <div className="mt-3">
+              <TurnstileWidget onToken={setCaptcha} resetKey={captchaReset} />
+            </div>
             {err && <p className="mt-2 text-xs text-red-700">{err}</p>}
             <button
               type="submit"
               disabled={loading || !agreed}
               className="mt-4 w-full rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-ink-soft disabled:opacity-50"
             >
-              {loading ? "Continuing…" : "Continue"}
+              {loading ? "Sending link…" : "Email me a sign-in link"}
             </button>
             <p className="mt-3 text-center text-xs text-muted-3">
               Free plan. No card needed.
@@ -171,6 +197,7 @@ export default function EmailGateModal({
               </button>
             </p>
           </form>
+          )}
         </div>
       )}
     </div>

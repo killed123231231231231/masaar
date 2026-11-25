@@ -17,7 +17,25 @@ const PLANS = ["starter", "pro", "menu_pro"];
 const PROD = "https://quickqrcode.live";
 
 
+// Retired 2026-11-25 (security audit #5): this route created a CONFIRMED
+// account for any email typed in, without proving the person owns it, and
+// emailed that address a QR the requester chose. Anonymous drafts are now
+// saved through a Supabase magic link (email gate → /auth/claim), which only
+// creates the account once the owner opens the link. Old links that still
+// reach here get a clear answer instead of an account.
+const RETIRED = true;
+
 export async function POST(request: Request) {
+  if (RETIRED) {
+    return NextResponse.json(
+      {
+        error: "sign_in_required",
+        message:
+          "Saving a QR code now needs a quick email check. Go back to the builder, enter your email and open the sign-in link we send you.",
+      },
+      { status: 410 }
+    );
+  }
   // Generic limiter on top of the claim-count check below (fails open
   // until migration 031 adds hit_rate_limit).
   if (!(await rateLimit("checkout_anon_ip", await hashRequestIp(request), 5, 3600)).ok) {
