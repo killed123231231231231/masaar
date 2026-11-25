@@ -25,6 +25,10 @@ export default function SignupPage() {
       setErr("Please complete the verification below.");
       return;
     }
+    if (password.length < 8 || !/[A-Za-z]/.test(password) || !/[0-9]/.test(password)) {
+      setErr("Password needs at least 8 characters, with letters and numbers.");
+      return;
+    }
     setLoading(true);
     setErr(null);
     setMsg(null);
@@ -70,7 +74,7 @@ export default function SignupPage() {
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <Field label="Full name" type="text" value={fullName} onChange={setFullName} required />
           <Field label="Email" type="email" value={email} onChange={setEmail} required />
-          <Field label="Password (8+ chars)" type="password" value={password} onChange={setPassword} required />
+          <Field label="Password (8+ characters, letters and numbers)" type="password" value={password} onChange={setPassword} required />
 
           <TurnstileWidget onToken={setCaptcha} resetKey={captchaReset} />
 

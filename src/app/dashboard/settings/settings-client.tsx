@@ -184,8 +184,8 @@ function PasswordCard() {
       setErr("Please complete the verification below.");
       return;
     }
-    if (next.length < 8) {
-      setErr("New password must be at least 8 characters.");
+    if (next.length < 8 || !/[A-Za-z]/.test(next) || !/[0-9]/.test(next)) {
+      setErr("New password needs at least 8 characters, with letters and numbers.");
       return;
     }
     if (next !== confirm) {
@@ -208,7 +208,7 @@ function PasswordCard() {
       if (!res.ok) {
         const map: Record<string, string> = {
           invalid_current_password: "Current password is incorrect.",
-          new_password_too_short: "New password must be at least 8 characters.",
+          new_password_too_short: "New password needs at least 8 characters, with letters and numbers.",
           same_password: "Pick a new password different from the current one.",
           current_password_required: "Enter your current password.",
         };
@@ -237,7 +237,7 @@ function PasswordCard() {
         <div className="min-w-0 flex-1">
           <h2 className="font-heading text-[17px] font-semibold text-ink">Password</h2>
           <p className="mt-0.5 text-sm text-muted-2">
-            At least 8 characters. We check your current password before saving.
+            At least 8 characters, with letters and numbers. We check your current password before saving.
           </p>
         </div>
       </div>

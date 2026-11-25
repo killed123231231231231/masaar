@@ -29,7 +29,8 @@ export async function POST(request: Request) {
   if (!currentPassword) {
     return NextResponse.json({ error: "current_password_required" }, { status: 400 });
   }
-  if (!newPassword || newPassword.length < 8) {
+  // Matches the Supabase Auth rule (min 8, letters and digits).
+  if (!newPassword || newPassword.length < 8 || !/[A-Za-z]/.test(newPassword) || !/[0-9]/.test(newPassword)) {
     return NextResponse.json({ error: "new_password_too_short" }, { status: 400 });
   }
   if (newPassword === currentPassword) {

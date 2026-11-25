@@ -63,8 +63,8 @@ function ResetClient() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setFormErr(null);
-    if (password.length < 8) {
-      setFormErr("Password must be at least 8 characters.");
+    if (password.length < 8 || !/[A-Za-z]/.test(password) || !/[0-9]/.test(password)) {
+      setFormErr("Password needs at least 8 characters, with letters and numbers.");
       return;
     }
     if (password !== confirm) {
@@ -124,7 +124,7 @@ function ResetClient() {
                 Set your password
               </h1>
               <p className="mt-1 text-sm text-muted-2">
-                Pick something at least 8 characters long.
+                At least 8 characters, with letters and numbers.
               </p>
               <form onSubmit={handleSubmit} className="mt-5 space-y-3">
                 <div className="relative">
