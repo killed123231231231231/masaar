@@ -38,15 +38,17 @@ export default function Hero() {
         <Reveal>
           <h1
             id="hero-title"
-            className="mx-auto max-w-[760px] text-balance font-heading text-[clamp(32px,10vw,40px)] font-medium leading-[1.15] tracking-[-0.025em] text-ink sm:text-[52px] md:text-[64px] md:leading-[1.2]"
+            className="mx-auto max-w-[1100px] text-balance font-heading text-[clamp(32px,10vw,40px)] font-medium leading-[1.15] tracking-[-0.025em] text-ink sm:text-[52px] md:text-[64px] md:leading-[1.2]"
           >
-            Never reprint <br />
-            a QR code again
+            {/* One line on desktop; on narrow screens text-balance wraps it
+                into two even lines, and the no-break spaces keep "a QR code"
+                together so it never splits as "a QR / code". */}
+            Never reprint a&nbsp;QR&nbsp;code again
           </h1>
         </Reveal>
 
         <Reveal delay={80}>
-          <p className="mx-auto mt-5 max-w-[560px] text-balance font-body text-lg leading-[1.4] text-muted md:text-[21px]">
+          <p className="mx-auto mt-5 max-w-[720px] text-balance font-body text-lg leading-[1.4] text-muted md:text-[21px]">
             Dynamic QR codes you can edit anytime, with every scan tracked
           </p>
         </Reveal>
