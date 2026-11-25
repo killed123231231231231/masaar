@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse, after } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
 import { UAParser } from "ua-parser-js";
 import { qrTarget } from "@/lib/qr-target";
 import { supabaseUrl, supabaseAnonKey } from "@/lib/env";
@@ -184,7 +185,17 @@ export async function GET(
     }
     if (!isBot) {
       try {
-        await supabase.rpc("log_scan", {
+        // Log with the service role (security audit #7): log_scan is no
+        // longer callable with the public key, so nobody can write fake
+        // scans directly. Falls back to the public client only if the key
+        // is missing in this environment (logging never blocks a scan).
+        const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        const logger = key
+          ? createClient(supabaseUrl(), key, {
+              auth: { persistSession: false, autoRefreshToken: false },
+            })
+          : supabase;
+        await logger.rpc("log_scan", {
           p_qr_code_id: resolvedQr.id,
           p_country: country,
           p_region: region,
@@ -192,7 +203,7 @@ export async function GET(
           p_device_type: parsed.device.type ?? "desktop",
           p_os: parsed.os.name ?? null,
           p_browser: parsed.browser.name ?? null,
-          p_user_agent: ua,
+          p_user_agent: ua.slice(0, 512),
           p_ip_hash: ipHash,
         });
       } catch {
