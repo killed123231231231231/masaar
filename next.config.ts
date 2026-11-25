@@ -27,9 +27,12 @@ const nextConfig: NextConfig = {
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https://*.supabase.co https://lh3.googleusercontent.com",
       "font-src 'self' data:",
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://vercel.live https://challenges.cloudflare.com",
-      // Cloudflare Turnstile renders in an iframe (env-gated bot protection).
-      "frame-src 'self' https://challenges.cloudflare.com",
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://vercel.live https://challenges.cloudflare.com https://nominatim.openstreetmap.org",
+      // Turnstile (bot check), OpenStreetMap (location QRs) and our own
+      // storage (PDF viewer on /v) render in iframes.
+      "frame-src 'self' https://challenges.cloudflare.com https://www.openstreetmap.org https://*.supabase.co",
+      "media-src 'self' blob: https://*.supabase.co",
+      "object-src 'none'",
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",
@@ -45,7 +48,8 @@ const nextConfig: NextConfig = {
             key: "Strict-Transport-Security",
             value: "max-age=63072000; includeSubDomains; preload",
           },
-          { key: "Content-Security-Policy-Report-Only", value: csp },
+          // Enforced since 2026-11-25 (security audit #16).
+          { key: "Content-Security-Policy", value: csp },
         ],
       },
     ];
