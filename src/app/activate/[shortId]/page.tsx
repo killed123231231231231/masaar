@@ -1,6 +1,5 @@
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { parseHttpUrl } from "@/lib/url";
 import LockScreen from "@/components/lock-screen";
 
 // Server-rendered (no client fetch flicker), no auth required. Reads
@@ -22,8 +21,9 @@ export default async function ActivatePage({
 
   // Keep URLs coherent if someone lands here for a QR that isn't pending.
   if (qr.status === "active") {
-    const target = parseHttpUrl(qr.destination);
-    redirect(target ? target.toString() : "/");
+    // Hand back to the scan route so the password gate and every other
+    // check apply; never jump straight to the raw destination from here.
+    redirect(`/r/${shortId}`);
   }
   if (qr.status === "suspended") redirect(`/expired/${shortId}`);
 

@@ -1,6 +1,5 @@
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { parseHttpUrl } from "@/lib/url";
 import LockScreen from "@/components/lock-screen";
 
 // Server-rendered, no auth. "This QR is no longer active." No CTA.
@@ -19,8 +18,9 @@ export default async function ExpiredPage({
   if (error || !qr || qr.status === "draft") notFound();
 
   if (qr.status === "active") {
-    const target = parseHttpUrl(qr.destination);
-    redirect(target ? target.toString() : "/");
+    // Hand back to the scan route so the password gate and every other
+    // check apply; never jump straight to the raw destination from here.
+    redirect(`/r/${shortId}`);
   }
   if (qr.status === "pending_payment") redirect(`/activate/${shortId}`);
 

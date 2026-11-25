@@ -28,16 +28,30 @@ async function hmac(data: string): Promise<string> {
 export const UNLOCK_TTL_MS = 24 * 60 * 60 * 1000; // 24h
 export const unlockCookieName = (shortId: string) => `masaar_unlock_${shortId}`;
 
-export async function signUnlock(shortId: string, now: number): Promise<string> {
+// Binds a token to the QR's CURRENT password: the HMAC covers a fingerprint
+// of password_hash, so changing the password invalidates every cookie issued
+// for the old one (it used to stay valid for up to 24h). The fingerprint is
+// never put in the cookie itself.
+async function fingerprint(passwordHash: string): Promise<string> {
+  const d = await crypto.subtle.digest("SHA-256", enc.encode(passwordHash));
+  return Buffer.from(new Uint8Array(d)).toString("base64url").slice(0, 16);
+}
+
+export async function signUnlock(
+  shortId: string,
+  now: number,
+  passwordHash: string
+): Promise<string> {
   const exp = now + UNLOCK_TTL_MS;
   const body = `${shortId}.${exp}`;
-  return `${body}.${await hmac(body)}`;
+  return `${body}.${await hmac(`${body}.${await fingerprint(passwordHash)}`)}`;
 }
 
 export async function verifyUnlock(
   token: string | undefined,
   shortId: string,
-  now: number
+  now: number,
+  passwordHash: string
 ): Promise<boolean> {
   if (!token) return false;
   const parts = token.split(".");
@@ -46,7 +60,7 @@ export async function verifyUnlock(
   if (sid !== shortId) return false;
   const exp = Number(expStr);
   if (!Number.isFinite(exp) || exp < now) return false;
-  const expected = await hmac(`${sid}.${expStr}`);
+  const expected = await hmac(`${sid}.${expStr}.${await fingerprint(passwordHash)}`);
   if (sig.length !== expected.length) return false;
   let diff = 0;
   for (let i = 0; i < sig.length; i++) diff |= sig.charCodeAt(i) ^ expected.charCodeAt(i);

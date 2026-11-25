@@ -12,6 +12,7 @@ export const dynamic = "force-dynamic";
 
 interface Row {
   name: string;
+  kind: string;
   status: string;
   content_kind: string;
   destination: string;
@@ -27,11 +28,17 @@ export default async function UnlockPage({
   const admin = createAdminClient();
   const { data } = await admin
     .from("qr_codes")
-    .select("name, status, content_kind, destination, password_hash")
+    .select("name, kind, status, content_kind, destination, password_hash")
     .eq("short_id", shortId)
     .maybeSingle();
   const qr = data as Row | null;
-  if (!qr) notFound();
+  // Static QRs encode their content directly and never resolve here.
+  if (!qr || qr.kind !== "dynamic") notFound();
+
+  // Status FIRST, before any redirect to the target: a suspended (e.g.
+  // admin-locked) QR must never resolve through /unlock, password or not.
+  if (qr.status === "suspended") redirect(`/expired/${shortId}`);
+  if (qr.status !== "active") redirect(`/activate/${shortId}`);
 
   const target = qrTarget(shortId, qr.content_kind, qr.destination);
 
@@ -40,11 +47,10 @@ export default async function UnlockPage({
     if (!target) notFound();
     redirect(target);
   }
-  if (qr.status !== "active") redirect(`/activate/${shortId}`);
 
   const jar = await cookies();
   const token = jar.get(unlockCookieName(shortId))?.value;
-  if (await verifyUnlock(token, shortId, Date.now())) {
+  if (await verifyUnlock(token, shortId, Date.now(), qr.password_hash)) {
     if (!target) notFound();
     redirect(target);
   }

@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { requireUnlocked } from "@/lib/qr-access";
 import FeedbackWidget from "./feedback-widget";
 
 // Session D — hosted feedback form. Public, no auth.
@@ -15,6 +16,8 @@ interface Cfg {
 interface Row {
   name: string;
   status: string;
+  kind?: string;
+  password_hash?: string | null;
   content_kind: string;
   payload_json: Cfg | null;
 }
@@ -23,7 +26,7 @@ async function resolve(shortId: string): Promise<Row | null> {
   const admin = createAdminClient();
   const { data } = await admin
     .from("qr_codes")
-    .select("name, status, content_kind, payload_json")
+    .select("name, kind, status, content_kind, payload_json, password_hash")
     .eq("short_id", shortId)
     .maybeSingle();
   return (data as Row) ?? null;
@@ -52,7 +55,11 @@ export default async function FeedbackPage({
   const { shortId } = await params;
   const qr = await resolve(shortId);
   if (!qr || qr.content_kind !== "feedback") notFound();
+  if (qr.kind && qr.kind !== "dynamic") notFound();
+  if (qr.status === "suspended") redirect(`/expired/${shortId}`);
   if (qr.status !== "active") redirect(`/activate/${shortId}`);
+  // Password QRs need a valid unlock cookie here too (this URL is public).
+  await requireUnlocked(shortId, qr.password_hash);
 
   const c = (qr.payload_json ?? {}) as Cfg;
 

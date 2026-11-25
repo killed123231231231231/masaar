@@ -1,7 +1,9 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { requireUnlocked } from "@/lib/qr-access";
+import { isOwnStorageAsset } from "@/lib/hosted-asset";
 
 // C/5 — hosted landing page for the file content types (pdf/image/video).
 // Public, no auth. The scan path is /r/<shortId> → (active file QR) → here.
@@ -11,7 +13,9 @@ export const dynamic = "force-dynamic";
 
 interface Resolved {
   name: string;
+  kind: string;
   status: string;
+  password_hash: string | null;
   content_kind: string;
   asset_url: string | null;
   asset_mime: string | null;
@@ -20,14 +24,21 @@ interface Resolved {
 }
 
 async function resolve(shortId: string): Promise<Resolved | null> {
-  const supabase = await createClient();
-  // resolve_asset_qr is a SECURITY DEFINER reader (qr_codes has no public
-  // read). asset_url falls back to `destination` (migration 022).
-  const { data } = await supabase.rpc("resolve_asset_qr", {
-    p_short_id: shortId,
-  });
-  const row = Array.isArray(data) ? data[0] : null;
-  return (row as Resolved) ?? null;
+  // Server-side read with the service role (node page; never sent to the
+  // client). Replaces the anon resolve_asset_qr RPC, which handed the file
+  // URL to anyone regardless of password or status.
+  const admin = createAdminClient();
+  const { data } = await admin
+    .from("qr_codes")
+    .select(
+      "name, kind, status, content_kind, destination, asset_url, asset_mime, asset_filename, asset_size, password_hash"
+    )
+    .eq("short_id", shortId)
+    .maybeSingle();
+  if (!data) return null;
+  const row = data as Resolved & { destination: string };
+  // asset_url falls back to destination (same rule as migration 022).
+  return { ...row, asset_url: row.asset_url ?? row.destination ?? null };
 }
 
 export async function generateMetadata({
@@ -37,7 +48,8 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { shortId } = await params;
   const qr = await resolve(shortId);
-  if (!qr) return { title: "Not found · Vertexa QR" };
+  if (!qr || qr.status !== "active" || qr.password_hash)
+    return { title: "Vertexa QR" };
   const title = qr.name || "Shared via Vertexa QR";
   const description = "Shared with a Vertexa QR code.";
   const isImage = qr.content_kind === "image" && !!qr.asset_url;
@@ -59,12 +71,16 @@ export default async function HostedAssetPage({
 }) {
   const { shortId } = await params;
   const qr = await resolve(shortId);
-  if (!qr || !qr.asset_url) notFound();
+  if (!qr || qr.kind !== "dynamic" || !qr.asset_url) notFound();
 
   // Lock-in: only an active QR renders its asset. Anything else bounces to
   // the activation flow (mirrors /r). This guards direct /v access too,
   // not just the scan redirect.
+  if (qr.status === "suspended") redirect(`/expired/${shortId}`);
   if (qr.status !== "active") redirect(`/activate/${shortId}`);
+  await requireUnlocked(shortId, qr.password_hash);
+  // Only files in our own storage bucket are ever framed or embedded here.
+  if (!isOwnStorageAsset(qr.asset_url, qr.content_kind)) notFound();
 
   const url = qr.asset_url;
   const ck = qr.content_kind;

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import type { Metadata } from "next";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { requireUnlocked } from "@/lib/qr-access";
 import { parseHttpUrl } from "@/lib/url";
 import { platformMeta } from "@/app/create/_lib/social-platforms";
 import { BrandGlyph } from "@/components/icons/brand-icons";
@@ -21,6 +22,8 @@ interface SocialProfile {
 interface Row {
   name: string;
   status: string;
+  kind?: string;
+  password_hash?: string | null;
   content_kind: string;
   payload_json: SocialProfile | null;
 }
@@ -31,7 +34,7 @@ async function resolve(shortId: string): Promise<Row | null> {
   const admin = createAdminClient();
   const { data } = await admin
     .from("qr_codes")
-    .select("name, status, content_kind, payload_json")
+    .select("name, kind, status, content_kind, payload_json, password_hash")
     .eq("short_id", shortId)
     .maybeSingle();
   return (data as Row) ?? null;
@@ -66,7 +69,11 @@ export default async function SocialPage({
   const { shortId } = await params;
   const qr = await resolve(shortId);
   if (!qr || qr.content_kind !== "social") notFound();
+  if (qr.kind && qr.kind !== "dynamic") notFound();
+  if (qr.status === "suspended") redirect(`/expired/${shortId}`);
   if (qr.status !== "active") redirect(`/activate/${shortId}`);
+  // Password QRs need a valid unlock cookie here too (this URL is public).
+  await requireUnlocked(shortId, qr.password_hash);
 
   const p = (qr.payload_json ?? {}) as SocialProfile;
   const name = (p.display_name || qr.name || "").trim();
