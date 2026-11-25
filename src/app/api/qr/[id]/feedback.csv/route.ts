@@ -36,7 +36,7 @@ export async function GET(
   // to neutralize CSV-injection in spreadsheet apps.
   const esc = (v: unknown) => {
     let s = String(v ?? "");
-    if (/^[=+\-@]/.test(s)) s = `'${s}`;
+    if (/^[=+\-@\t\r]/.test(s)) s = `'${s}`;
     return `"${s.replace(/"/g, '""')}"`;
   };
   const csv = [

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { parsePeriod, periodBounds, periodDays } from "@/lib/analytics";
+import { csvCell } from "@/lib/csv";
 
 // CSV export of a QR's scans for the selected period. Authed +
 // owner-RLS scoped. Caps at 50k rows (async exports = Sprint 3+).
@@ -9,11 +10,7 @@ export const runtime = "nodejs";
 
 const MAX_ROWS = 50_000;
 
-function csvEscape(v: unknown): string {
-  if (v == null) return "";
-  const s = String(v);
-  return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-}
+const csvEscape = csvCell;
 
 export async function GET(
   request: Request,
@@ -50,8 +47,10 @@ export async function GET(
     q = q.gte("scanned_at", startISO).lte("scanned_at", endISO);
   }
   const { data: rows, count, error } = await q;
-  if (error)
-    return NextResponse.json({ error: error.message }, { status: 400 });
+  if (error) {
+    console.error("[scans.csv]", error.message);
+    return NextResponse.json({ error: "export_failed" }, { status: 400 });
+  }
 
   if ((count ?? rows?.length ?? 0) > MAX_ROWS) {
     return NextResponse.json(

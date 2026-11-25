@@ -17,7 +17,8 @@ export async function GET(req: NextRequest) {
     .from("qr_codes")
     .select("id", { count: "exact", head: true });
   if (error) {
-    return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+    console.error("[keepalive]", error.message);
+    return NextResponse.json({ ok: false }, { status: 500 });
   }
   return NextResponse.json(
     { ok: true, at: new Date().toISOString() },

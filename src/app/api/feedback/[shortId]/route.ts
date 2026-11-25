@@ -35,6 +35,8 @@ export async function POST(
     .select("id")
     .eq("short_id", shortId)
     .eq("content_kind", "feedback")
+    // Suspended / admin-locked QRs stop taking feedback.
+    .eq("status", "active")
     .maybeSingle();
   if (!qr) return NextResponse.json({ error: "not_found" }, { status: 404 });
 

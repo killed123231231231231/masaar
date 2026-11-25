@@ -8,7 +8,7 @@
 export function qrFileName(name: string | null | undefined, fallback = "vertexa-qr"): string {
   const cleaned = (name ?? "")
     // eslint-disable-next-line no-control-regex
-    .replace(/[\/:*?"<>|\u0000-\u001f]/g, " ")
+    .replace(/[\\/:*?"<>|\u0000-\u001f]/g, " ")
     .replace(/\s+/g, " ")
     .trim()
     .replace(/[. ]+$/, "")

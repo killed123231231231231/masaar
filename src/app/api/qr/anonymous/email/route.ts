@@ -37,7 +37,9 @@ export async function PATCH(request: Request) {
     .eq("draft_token", draftToken)
     .is("user_id", null);
 
-  if (error)
-    return NextResponse.json({ error: error.message }, { status: 400 });
+  if (error) {
+    console.error("[anon email]", error.message);
+    return NextResponse.json({ error: "save_failed", message: "Couldn’t save your email. Please retry." }, { status: 400 });
+  }
   return NextResponse.json({ ok: true });
 }
