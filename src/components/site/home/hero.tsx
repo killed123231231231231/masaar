@@ -40,14 +40,14 @@ export default function Hero() {
             id="hero-title"
             className="mx-auto max-w-[760px] text-balance font-heading text-[clamp(32px,10vw,40px)] font-medium leading-[1.15] tracking-[-0.025em] text-ink sm:text-[52px] md:text-[64px] md:leading-[1.2]"
           >
-            QR codes, but <br />
-            make them editable
+            Never reprint <br />
+            a QR code again
           </h1>
         </Reveal>
 
         <Reveal delay={80}>
           <p className="mx-auto mt-5 max-w-[560px] text-balance font-body text-lg leading-[1.4] text-muted md:text-[21px]">
-            Change the link after it&apos;s printed and watch every scan roll in
+            Dynamic QR codes you can edit anytime, with every scan tracked
           </p>
         </Reveal>
 
