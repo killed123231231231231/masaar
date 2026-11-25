@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { qrCacheDelete } from "@/lib/qr-edge-cache";
 
 // Checkout stub. With PAYMENTS_ENABLED unset/false this directly
 // activates the QR (no billing) — the whole point of the lock-in
@@ -27,16 +29,29 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "short_id required" }, { status: 400 });
   }
 
-  // RLS (qr_codes_owner_all) scopes this to the caller's own row.
-  const { data: updated, error } = await supabase
+  // Service-role write (direct browser writes are revoked in migration
+  // 032), pinned to the caller's own row that is genuinely waiting to be
+  // activated. Never flips a suspended or admin-locked QR back on.
+  let admin;
+  try {
+    admin = createAdminClient();
+  } catch {
+    return NextResponse.json({ error: "unavailable" }, { status: 503 });
+  }
+  const { data: updated, error } = await admin
     .from("qr_codes")
     .update({ status: "active" })
     .eq("short_id", shortId)
     .eq("user_id", user.id)
+    .eq("status", "pending_payment")
+    .eq("admin_locked", false)
     .select("id")
     .maybeSingle();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  if (error) {
+    console.error("[checkout activate]", error.message);
+    return NextResponse.json({ error: "Couldn’t activate the QR code. Please try again." }, { status: 400 });
+  }
   if (!updated) {
     return NextResponse.json(
       { error: "QR not found or not yours." },
@@ -44,11 +59,8 @@ export async function POST(request: Request) {
     );
   }
 
-  // Best-effort subscription flag (profiles_self_update allows self).
-  await supabase
-    .from("profiles")
-    .update({ subscription_status: "active" })
-    .eq("id", user.id);
+  // Any cached "pending" copy must not linger now the QR is live.
+  await qrCacheDelete(shortId).catch(() => undefined);
 
   return NextResponse.json({ ok: true });
 }

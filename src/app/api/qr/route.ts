@@ -1,5 +1,7 @@
 import { NextResponse, after } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { FILE_KINDS, isOwnStorageAsset } from "@/lib/hosted-asset";
 import { generateShortId, isValidShortId } from "@/lib/shortid";
 import bcrypt from "bcryptjs";
 import { parseHttpUrl } from "@/lib/url";
@@ -56,6 +58,13 @@ function sizeError(body: {
 
 const LOCKED_MESSAGE =
   "This QR code was disabled by an administrator. Contact support.";
+
+function nextKindFor(
+  patch: { content_kind?: string | null },
+  cur: { content_kind: string }
+): string {
+  return (patch.content_kind ?? cur.content_kind) as string;
+}
 
 function lockedResponse() {
   return NextResponse.json({ error: "locked", message: LOCKED_MESSAGE }, { status: 403 });
@@ -150,7 +159,15 @@ export async function POST(request: Request) {
   if (typeof body.logo_scale === "number") insert.logo_scale = body.logo_scale;
   if (typeof body.qr_text === "string" && body.qr_text.trim())
     insert.frame_text = body.qr_text.trim();
-  if (typeof body.password === "string" && body.password.trim().length >= 4) {
+  // A password that was typed but is too short is an error, never silently
+  // dropped (the owner would think the QR is protected when it isn't).
+  if (typeof body.password === "string" && body.password.trim().length > 0 && body.password.trim().length < 6) {
+    return NextResponse.json(
+      { error: "weak_password", message: "QR passwords need at least 6 characters." },
+      { status: 400 }
+    );
+  }
+  if (typeof body.password === "string" && body.password.trim().length >= 6) {
     insert.password_hash = await bcrypt.hash(body.password.trim(), 10);
     insert.password_set_at = new Date().toISOString();
   }
@@ -197,6 +214,15 @@ export async function POST(request: Request) {
     }
   }
 
+  // File QRs (pdf/image/video) are shown inside a quickqrcode.live page, so
+  // their file must live in our own storage bucket, never an outside URL.
+  if (FILE_KINDS.has(insert.content_kind ?? "") && !isOwnStorageAsset(insert.destination, insert.content_kind ?? "")) {
+    return NextResponse.json(
+      { error: "unsafe_destination", message: "Upload the file here instead of linking to another site." },
+      { status: 400 }
+    );
+  }
+
   if (insert.kind === "dynamic") {
     // Trust the client-generated shortId only if it's well-formed (so the
     // printed/previewed QR matches what we persist); otherwise generate.
@@ -210,10 +236,19 @@ export async function POST(request: Request) {
   // unique-violation (Postgres 23505, qr_codes_short_id_key), keep the
   // client-provided id on attempt 1 (so the previewed QR matches), then
   // regenerate and retry up to 5 times before failing.
+  // Writes go through the service role (security audit #3): direct
+  // browser writes to qr_codes are revoked in migration 032, so the checks
+  // above can't be skipped. user_id is always the signed-in user.
+  let admin;
+  try {
+    admin = createAdminClient();
+  } catch {
+    return NextResponse.json({ error: "unavailable" }, { status: 503 });
+  }
   let data = null;
   let error = null;
   for (let attempt = 1; attempt <= 5; attempt++) {
-    ({ data, error } = await supabase
+    ({ data, error } = await admin
       .from("qr_codes")
       .insert(insert)
       .select()
@@ -232,7 +267,7 @@ export async function POST(request: Request) {
       {
         error: collided
           ? "Could not allocate a unique code — please try again."
-          : error.message,
+          : "Couldn’t create the QR code. Please try again.",
       },
       { status: collided ? 409 : 400 }
     );
@@ -381,6 +416,19 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
   }
 
+  // File QRs: a changed file location must stay in our own storage.
+  if (
+    FILE_KINDS.has(nextKindFor(patch, cur)) &&
+    typeof patch.destination === "string" &&
+    patch.destination !== cur.destination &&
+    !isOwnStorageAsset(patch.destination, nextKindFor(patch, cur))
+  ) {
+    return NextResponse.json(
+      { error: "unsafe_destination", message: "Upload the file here instead of linking to another site." },
+      { status: 400 }
+    );
+  }
+
   // Abuse guard ONLY when a redirect destination actually changes.
   // Unchanged destinations of existing printed QRs are never re-validated
   // (Rule 0) — an old link that predates these rules keeps working.
@@ -399,16 +447,28 @@ export async function PATCH(request: Request) {
     }
   }
 
-  const { data, error } = await supabase
+  // Service-role write, still pinned to this owner's unlocked row (the
+  // admin_locked filter keeps an admin takedown from being undone even if
+  // the lock lands between the read above and this update).
+  let admin;
+  try {
+    admin = createAdminClient();
+  } catch {
+    return NextResponse.json({ error: "unavailable" }, { status: 503 });
+  }
+  const { data, error } = await admin
     .from("qr_codes")
     .update(patch)
     .eq("id", body.id)
     .eq("user_id", user.id)
+    .eq("admin_locked", false)
     .select()
     .single();
 
   if (error) {
-    return guardErrorResponse(error) ?? NextResponse.json({ error: error.message }, { status: 400 });
+    if (error.code === "PGRST116") return lockedResponse();
+    console.error("[qr patch]", error.message);
+    return guardErrorResponse(error) ?? NextResponse.json({ error: "Couldn’t save changes. Please try again." }, { status: 400 });
   }
   // Keep the /r edge cache truthful the moment an edit/toggle lands — a
   // destination change or Active⇄Inactive flip must not wait for the
@@ -443,7 +503,7 @@ export async function DELETE(request: Request) {
     .eq("id", id)
     .eq("user_id", user.id)
     .maybeSingle();
-  const cur = curRow as { admin_locked?: boolean | null } | null;
+  const cur = curRow as { admin_locked?: boolean | null; short_id?: string | null } | null;
   if (cur?.admin_locked === true) return lockedResponse();
 
   // Owner-scoped delete (RLS qr_codes_owner_all + the explicit user_id
@@ -456,7 +516,12 @@ export async function DELETE(request: Request) {
     .eq("user_id", user.id);
 
   if (error) {
-    return guardErrorResponse(error) ?? NextResponse.json({ error: error.message }, { status: 400 });
+    console.error("[qr delete]", error.message);
+    return guardErrorResponse(error) ?? NextResponse.json({ error: "Couldn’t delete the QR code. Please try again." }, { status: 400 });
   }
+  // Drop the /r edge-cache entry now, so a deleted QR stops redirecting
+  // immediately instead of on its next scan.
+  const sid = cur?.short_id;
+  if (sid) after(async () => qrCacheDelete(sid));
   return NextResponse.json({ ok: true });
 }

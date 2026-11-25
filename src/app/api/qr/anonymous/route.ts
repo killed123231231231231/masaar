@@ -6,6 +6,7 @@ import { checkDestination } from "@/lib/url-safety";
 import { isRedirectKind } from "@/lib/qr-target";
 import { isQuotaError, quotaExceededResponse } from "@/lib/quota";
 import { ipHash as hashRequestIp } from "@/lib/ip-hash";
+import { FILE_KINDS, isOwnStorageAsset } from "@/lib/hosted-asset";
 
 // Anonymous QR creation for the public /create funnel. No auth. The
 // insert runs through the SECURITY DEFINER create_anon_qr RPC (migration
@@ -57,6 +58,13 @@ export async function POST(request: Request) {
   if (kind === "dynamic" && !parseHttpUrl(body.destination)) {
     return NextResponse.json(
       { error: "Dynamic QR codes need a valid http(s) destination URL." },
+      { status: 400 }
+    );
+  }
+  // File QRs render inside our own page: their file must be in our storage.
+  if (FILE_KINDS.has(body.content_kind || "") && !isOwnStorageAsset(body.destination, body.content_kind || "")) {
+    return NextResponse.json(
+      { error: "unsafe_destination", message: "Upload the file here instead of linking to another site." },
       { status: 400 }
     );
   }
@@ -119,7 +127,8 @@ export async function POST(request: Request) {
         { status: 429 }
       );
     }
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    console.error("[anon create]", error.message);
+    return NextResponse.json({ error: "create_failed", message: "Couldn’t create the QR code. Please try again." }, { status: 400 });
   }
 
   const row = Array.isArray(data) ? data[0] : data;
